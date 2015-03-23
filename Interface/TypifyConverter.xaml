@@ -1,4 +1,4 @@
-﻿<Window x:Class="Interface.ConverterWindow"
+﻿<Window x:Class="UI.ConverterWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Преобразователь в шаблонную книгу" Height="300" Width="449" WindowStyle="ToolWindow" Closing="Window_Closing">

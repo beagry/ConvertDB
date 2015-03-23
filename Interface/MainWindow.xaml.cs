@@ -12,8 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-
-namespace Interface
+namespace UI
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

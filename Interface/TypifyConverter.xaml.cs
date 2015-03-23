@@ -15,18 +15,18 @@ using System.Windows.Shapes;
 using Converter;
 using RwaySupportLibraly;
 
-namespace Interface
+namespace UI
 {
     /// <summary>
     /// Interaction logic for ConverterWindow.xaml
     /// </summary>
     public partial class ConverterWindow
     {
-        private CoverterArgs _coverterArgs;
+        private ConverterArgs _coverterArgs;
         public ConverterWindow()
         {
             InitializeComponent();
-            _coverterArgs = new CoverterArgs();
+            _coverterArgs = new ConverterArgs();
 
             foreach (Enum e in Enum.GetValues(typeof (XlTemplateWorkbookTypes)))
                 WorkbookTypesComboBox.Items.Add(e.GetDescription());

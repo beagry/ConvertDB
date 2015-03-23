@@ -1,4 +1,4 @@
-﻿<Window x:Class="Interface.MainWindow"
+﻿<Window x:Class="UI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MainWindow" Height="321.364" Width="277.879">
