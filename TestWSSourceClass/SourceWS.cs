@@ -4,15 +4,17 @@ using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Converter;
 using Converter.Template_workbooks;
 using DataTable = System.Data.DataTable;
 using Excel = Microsoft.Office.Interop.Excel;
 
 
-namespace TestWSSourceClass
+namespace Converter
 {
-    public enum XlTemplateWorkbooks
+    /// <summary>
+    /// Перечень шаблонных книг
+    /// </summary>
+    public enum XlTemplateWorkbookTypes
     {
         [Description("Земельные участки")]
         LandProperty, //Земельные участки
@@ -23,6 +25,7 @@ namespace TestWSSourceClass
         [Description("Городское жильё")]
         CityLivaArea//Городское жильё
     }
+
     public class SourceWs
     {
         private Excel.Application xlApp;
@@ -51,14 +54,10 @@ namespace TestWSSourceClass
 
         public SourceWs(Excel.Worksheet worksheet, Excel.Application xlApp, TemplateWorkbook templateWorkbook)
         {
-            //Console.WriteLine("Подргужаю книгу...");
             this.xlApp = xlApp;
-            //this.oktmoWorkbook = xlApp.Workbooks.Open(oktmoWbAddress);
-            //this._oktmoWorksheet = oktmoWorkbook.Worksheets["нас.пункты РФ"];
             const int takeFirstItemsQuantity = 300;
 
             this.templateWorkbook = templateWorkbook;
-            //oktmoTable = FillDataTable.GetDataTable(OktmoWbAddress, "нас.пункты РФ");
 
             sourceWorksheet = worksheet;
             wsTable = FillDataTable.GetDataTable(((Excel.Workbook) sourceWorksheet.Parent).FullName,
@@ -68,26 +67,34 @@ namespace TestWSSourceClass
             CreateColumnsList();
         }
 
-        private bool GetColumnNumberByColumnName(string columnCode, List<string> masks, bool FullSimilar = false)
+        /// <summary>
+        /// Метод находит колонку с колным или частичным совпадением в имени по пеерданному списки масок поиска
+        /// </summary>
+        /// <param name="columnCode">Название колонки для записи результата</param>
+        /// <param name="masks">Маски для сопоставления</param>
+        /// <param name="fullSimilar">Обязательно полное совпадение</param>
+        /// <returns></returns>
+        private bool GetColumnNumberByColumnName(string columnCode, List<string> masks, bool fullSimilar = false)
         {
             //Если мы уже находили такую колонку
-//            if (columnsDictionary.ContainsValue(columnCode)) return true;
             int c = 0;
             DataColumn cl;
 
-            do //Цикл полного воспадения названия колонки
+
+            do //Поиск колонки с полным совпалением одного из критериев маски поиска
             {
                 cl = wsTable.Columns.Cast<DataColumn>().Where(x => !checkedColumnsList.Contains(x.Ordinal + 1)).
-                            FirstOrDefault(x => x.ColumnName.ToLower() == masks[c].ToLower());
+                            FirstOrDefault(x => String.Equals(x.ColumnName, masks[c], StringComparison.CurrentCultureIgnoreCase));
                 c++;
             } while (cl == null & masks.Count - 1 >= c);
 
-            if (cl==null && !FullSimilar)
-            {   //Цикл частичного воспадения названия колонки
+            //Поиск столбца, в котором содержится часть маски поиска
+            if (cl == null && !fullSimilar)
+            {
                 c = 0;
                 do
                 {
-                    cl = wsTable.Columns.Cast<DataColumn>().Where(x => !checkedColumnsList.Contains(x.Ordinal+1)).
+                    cl = wsTable.Columns.Cast<DataColumn>().Where(x => !checkedColumnsList.Contains(x.Ordinal + 1)).
                         FirstOrDefault(x => x.ColumnName.IndexOf(masks[c], StringComparison.OrdinalIgnoreCase) > -1);
                     c++;
                 } while (cl == null & masks.Count - 1 >= c);
@@ -97,11 +104,13 @@ namespace TestWSSourceClass
 
             columnsDictionary.Add(cl.Ordinal + 1, columnCode);
 
+            //Запись результата
             checkedColumnsList.Add(cl.Ordinal + 1);
             JustColumn firstOrDefault = sourceColumns.First(x => x.Index == cl.Ordinal + 1);
 
             firstOrDefault.CodeName = columnCode;
 
+            //Результат работы
             return true;
         }
 

@@ -89,6 +89,9 @@
     <SignManifests>true</SignManifests>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ExcelRLibrary">
+      <HintPath>..\..\ExcelRLibrary\ExcelRLibrary\bin\Release\ExcelRLibrary.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
@@ -99,6 +102,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -113,8 +117,9 @@
     <Compile Include="CompareColumnsForm.Designer.cs">
       <DependentUpon>CompareColumnsForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="CSVReader.cs" />
+    <Compile Include="CoverterArgs.cs" />
     <Compile Include="ExcelExtensions.cs" />
+    <Compile Include="ExcelResaver.cs" />
     <Compile Include="FillDataTable.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -134,9 +139,6 @@
     <Compile Include="SelectWorkbookTypeForm.Designer.cs">
       <DependentUpon>SelectWorkbookTypeForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="StartWindow.xaml.cs">
-      <DependentUpon>StartWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Template workbooks\CityLivaAreaTemplateWorkbook.cs" />
     <Compile Include="Template workbooks\CommercePropertyTemplateWorkbook.cs" />
     <Compile Include="Template workbooks\CountryLiveAreaTemplateWorkbook.cs" />
@@ -151,7 +153,8 @@
     <Compile Include="SimilarityTool.cs" />
     <Compile Include="SourceWS.cs" />
     <Compile Include="Template workbooks\TemplateWorkbook.cs" />
-    <Compile Include="WorksheetExtensions.cs" />
+    <Compile Include="WorkbookFiller.cs" />
+    <Compile Include="WorksheetsColumnsAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -195,12 +198,6 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="StartWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

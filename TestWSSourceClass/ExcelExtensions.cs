@@ -89,7 +89,6 @@ namespace Converter
             }
         }
 
-        //Появилось само!! Что это может быть?!
         public static IEnumerable<TSource> DistinctBy<TSource, TKey>
             (this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
         {
@@ -181,14 +180,12 @@ namespace Converter
         public Excel.Workbook OpenWorkbook(string workbookPath)
         {
             if (!File.Exists(workbookPath)) return null;
+            
+
             XlProcess.StartInfo = new ProcessStartInfo(workbookPath);
             XlProcess.Start();
-            var workbookName = Path.GetFileName(workbookPath);
 
-            foreach (var workbook1 in XlApplication.Workbooks.Cast<Workbook>())
-            {
-                Console.WriteLine(workbook1.Name);
-            }
+            var workbookName = Path.GetFileName(workbookPath);
             var workbook = XlApplication.Workbooks[workbookName];
 
             return workbook;
@@ -220,5 +217,4 @@ namespace Converter
         }
     }
 
-    
 }

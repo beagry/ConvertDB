@@ -3,29 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using Converter.Template_workbooks;
-using TestWSSourceClass;
 
 namespace Converter
 {
     public partial class SelectWorkbookTypeForm : Form
     {
         private List<TemplateWorkbook> _workbook;
-        private Dictionary<XlTemplateWorkbooks, string> templateWorkbookNamesDictionary; 
+        private Dictionary<XlTemplateWorkbookTypes, string> templateWorkbookNamesDictionary; 
         public SelectWorkbookTypeForm(ref List<TemplateWorkbook> workbook)
         {
             InitializeComponent();
             _workbook = workbook;
             
             //Соответствия коду шаблоны и его описания
-            templateWorkbookNamesDictionary = new Dictionary<XlTemplateWorkbooks, string>();
-            templateWorkbookNamesDictionary.Add(XlTemplateWorkbooks.LandProperty, "Земельные участки");
-            templateWorkbookNamesDictionary.Add(XlTemplateWorkbooks.CommerceProperty, "Коммерческая недвижимость");
-            templateWorkbookNamesDictionary.Add(XlTemplateWorkbooks.CityLivaArea, "Городское жильё");
-            templateWorkbookNamesDictionary.Add(XlTemplateWorkbooks.CountyLiveArea, "Загородное жильё");
+            templateWorkbookNamesDictionary = new Dictionary<XlTemplateWorkbookTypes, string>();
+            templateWorkbookNamesDictionary.Add(XlTemplateWorkbookTypes.LandProperty, "Земельные участки");
+            templateWorkbookNamesDictionary.Add(XlTemplateWorkbookTypes.CommerceProperty, "Коммерческая недвижимость");
+            templateWorkbookNamesDictionary.Add(XlTemplateWorkbookTypes.CityLivaArea, "Городское жильё");
+            templateWorkbookNamesDictionary.Add(XlTemplateWorkbookTypes.CountyLiveArea, "Загородное жильё");
 
 
             //Заполняем выпадающий список всеми видами шаблонов
-            foreach (KeyValuePair<XlTemplateWorkbooks, string> keyValuePair in templateWorkbookNamesDictionary)
+            foreach (KeyValuePair<XlTemplateWorkbookTypes, string> keyValuePair in templateWorkbookNamesDictionary)
             {
                 comboBox1.Items.Add(keyValuePair.Value);
             }
@@ -49,20 +48,20 @@ namespace Converter
                 return;
             }
 
-            XlTemplateWorkbooks wbType = templateWorkbookNamesDictionary.First(x => x.Value == comboBox1.Text).Key;
+            XlTemplateWorkbookTypes wbType = templateWorkbookNamesDictionary.First(x => x.Value == comboBox1.Text).Key;
 
             switch (wbType)
             {
-                case XlTemplateWorkbooks.CommerceProperty:
+                case XlTemplateWorkbookTypes.CommerceProperty:
                     _workbook.Add(new CommercePropertyTemplateWorkbook());
                     break;
-                case XlTemplateWorkbooks.CityLivaArea:
+                case XlTemplateWorkbookTypes.CityLivaArea:
                     _workbook.Add(new CityLivaAreaTemplateWorkbook());
                     break;
-                case XlTemplateWorkbooks.CountyLiveArea:
+                case XlTemplateWorkbookTypes.CountyLiveArea:
                     _workbook.Add(new CountryLiveAreaTemplateWorkbook());
                     break;
-                case XlTemplateWorkbooks.LandProperty:
+                case XlTemplateWorkbookTypes.LandProperty:
                     _workbook.Add(new LandPropertyTemplateWorkbook());
                     break;
             }

@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 using Converter.Template_workbooks;
-using TestWSSourceClass;
 using Action = System.Action;
 using Application = System.Windows.Forms.Application;
 using Excel = Microsoft.Office.Interop.Excel;
@@ -20,7 +19,7 @@ namespace Converter
         [STAThread]
         static void Main(string[] args)
         {
-            
+
             Excel.Worksheet worksheet;
             string[] workbooksList = null;
             Excel.Worksheet targetWorksheet = null;
@@ -88,6 +87,7 @@ namespace Converter
             keybd_event(0x4D, 0, 0, 0);
             keybd_event(0x5B, 0, 0x2, 0);
             Application.Run(form);
+
             if (!okPressed) //Если форму просто закрыли
             {
                 xlApplication.Visible = true;

@@ -2,13 +2,13 @@
 
 namespace Converter.Template_workbooks
 {
-    class LandPropertyTemplateWorkbook : TemplateWorkbook
+    public class LandPropertyTemplateWorkbook : TemplateWorkbook
     {
         public LandPropertyTemplateWorkbook()
         {
 
 
-            columns = new List<JustColumn>
+            Columns = new List<JustColumn>
                 #region Columns Initialize
 
             {

@@ -6,7 +6,7 @@ namespace Converter.Template_workbooks
     {
         public CommercePropertyTemplateWorkbook()
         {
-            columns = new List<JustColumn> 
+            Columns = new List<JustColumn> 
             #region Columns Initialize
             {
                 new JustColumn("ID","ПОРЯДКОВЫЙ_НОМЕР",1),

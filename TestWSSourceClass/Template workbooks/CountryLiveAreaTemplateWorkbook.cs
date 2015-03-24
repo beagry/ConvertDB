@@ -6,7 +6,7 @@ namespace Converter.Template_workbooks
     {
         public CountryLiveAreaTemplateWorkbook()
         {
-            columns = new List<JustColumn>()
+            Columns = new List<JustColumn>()
             {
                 new JustColumn("OBJECTID","ПОРЯДКОВЫЙ_НОМЕР",1),
                 new JustColumn("SUBJECT","СУБЪЕКТ_РОССИЙСКОЙ_ФЕДЕРАЦИИ",2),

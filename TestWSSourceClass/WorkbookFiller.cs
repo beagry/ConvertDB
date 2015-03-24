@@ -9,8 +9,15 @@ using Microsoft.Office.Interop.Excel;
 
 namespace Converter
 {
+    /// <summary>
+    /// Класс для объединения книг на основе переданного типа шаблонной книги
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class WorkbookTypifier<T> where T : TemplateWorkbook, new ()
     {
+        /// <summary>
+        /// Правила для объединения книг
+        /// </summary>
         public Dictionary<string,IEnumerable<string>> RulesDictionary { get; set; }
 
         public WorkbookTypifier()
@@ -23,6 +30,11 @@ namespace Converter
             RulesDictionary = columnsDictionary;
         }
 
+        /// <summary>
+        /// Метод возвращает единую книгу, солженную из переданныхх книг по переданным правилам
+        /// </summary>
+        /// <param name="workbooksPaths"></param>
+        /// <returns></returns>
         public Workbook CombineToSingleWorkbook(IEnumerable<string> workbooksPaths)
         {
             var helper = new ExcelHelper();
@@ -44,6 +56,7 @@ namespace Converter
             return newWb;
         }        
     }
+
 
     class WorksheetFiller
     {
@@ -115,7 +128,6 @@ namespace Converter
         private long lastUsedRow ;
         private byte headRow;
         public Dictionary<int, string> HeadsDictionary { get; private set; }
-//        public Dictionary<int,string> HeadsDictionary { get; private set; }
 
         public WorksheetToCopy(Worksheet worksheet, byte headRow = 1)
         {

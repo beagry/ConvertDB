@@ -6,7 +6,7 @@ namespace Converter.Template_workbooks
 {
     public class TemplateWorkbook
     {
-        protected List<JustColumn> columns;
+        protected List<JustColumn> Columns;
         public String UnUsedColumnCode
     {
             get { return "UNUS"; }
@@ -14,13 +14,13 @@ namespace Converter.Template_workbooks
 
         public IEnumerable<JustColumn> TemplateColumns
         {
-            get { return columns; }
+            get { return Columns; }
         }
 
         public int GetColumnByCode(string name)
         {
             int column = 0;
-            JustColumn firstOrDefault = columns.FirstOrDefault(x => x.CodeName == name);
+            JustColumn firstOrDefault = Columns.FirstOrDefault(x => x.CodeName == name);
             if (firstOrDefault != null)
                 column = firstOrDefault.Index;
             return column;
