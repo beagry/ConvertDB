@@ -7,8 +7,8 @@
     <ProjectGuid>{5C19EF21-6E46-4EE9-B765-8AF7AA5237FF}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Interface</RootNamespace>
-    <AssemblyName>Interface</AssemblyName>
+    <RootNamespace>UI</RootNamespace>
+    <AssemblyName>UI</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -56,8 +56,6 @@
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
     <Reference Include="Telerik.Windows.Controls, Version=2015.1.225.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL" />
-    <Reference Include="UIAutomationProvider" />
-    <Reference Include="UIAutomationTypes" />
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -70,6 +68,7 @@
     <Compile Include="ColumnsCompareWindow.xaml.cs">
       <DependentUpon>ColumnsCompareWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="CompareViewModel.cs" />
     <Compile Include="ExtentionConverterWindow.xaml.cs">
       <DependentUpon>ExtentionConverterWindow.xaml</DependentUpon>
     </Compile>
@@ -77,8 +76,8 @@
     <Compile Include="SelectedWorkbook.cs" />
     <Compile Include="WindowsExtentions.cs" />
     <Page Include="ColumnsCompareWindow.xaml">
-      <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="ExtentionConverterWindow.xaml">
       <SubType>Designer</SubType>
