@@ -65,6 +65,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="BooksToConvertViewModel.cs" />
     <Compile Include="ColumnsCompareWindow.xaml.cs">
       <DependentUpon>ColumnsCompareWindow.xaml</DependentUpon>
     </Compile>

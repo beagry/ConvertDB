@@ -12,18 +12,18 @@ namespace UI
             InitializeComponent();
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void ConvertButton_Click(object sender, RoutedEventArgs e)
         {
-            var w = new ConverterWindow {Owner = this};
-            this.Hide();
+            var w = new ConverterWindow();
             w.Show();
+            this.Close();
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private void ChangeExtentionButton_Click(object sender, RoutedEventArgs e)
         {
-            var w = new ExtentionConverterWindow { Owner = this };
-            this.Hide();
+            var w = new ExtentionConverterWindow();
             w.Show();
+            this.Close();
         }
     }
 }
