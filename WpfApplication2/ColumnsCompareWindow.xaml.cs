@@ -21,10 +21,10 @@ namespace WpfApplication2
     /// <summary>
     /// Interaction logic for Window1.xaml
     /// </summary>
-    public partial class Window1 : Window
+    public partial class ColumnsCompareWindow : Window
     {
         private CompareViewModel view;
-        public Window1(Dictionary<string, ObservableCollection<string>> dict, ICollection<WorksheetInfo> wsInfos)
+        public ColumnsCompareWindow(Dictionary<string, ObservableCollection<string>> dict, ICollection<WorksheetInfo> wsInfos)
         {
             InitializeComponent();
             view = new CompareViewModel(dict,wsInfos);
