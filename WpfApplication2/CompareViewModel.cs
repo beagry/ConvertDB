@@ -11,11 +11,9 @@ namespace WpfApplication2
 {
     public sealed class CompareViewModel:INotifyPropertyChanged
     {
-        private ICollection<WorksheetInfo> worksheets;
-
-//        private ObservableCollection<string> unbindedColumns;
-
+        private readonly ICollection<WorksheetInfo> worksheets;
         private Dictionary<string, ObservableCollection<string>> bindedColumnsDictionary;
+        private string lastSelectedItem;
 
         public CompareViewModel(Dictionary<string, ObservableCollection<string>> bindedColumns, ICollection<WorksheetInfo> worksheetsSamples)
         {
@@ -37,7 +35,7 @@ namespace WpfApplication2
             bindedColumnsDictionary = new Dictionary<string, ObservableCollection<string>>();
         }
 
-
+        public byte ItemsSelectQnt { get; set; }
         public Dictionary<string, ObservableCollection<string>> BindedColumnsDictionary
         {
             get { return bindedColumnsDictionary; }
@@ -51,18 +49,43 @@ namespace WpfApplication2
 
         public ObservableCollection<string> UnbindedColumns { get; set; }
 
-        public IEnumerable<string> GetColumnValuesExamples(string columnName, byte examplesQnt = 10)
+        public string LastSelectedItem
         {
-            return
+            get { return lastSelectedItem; }
+            set
+            {
+                if (Equals(value, lastSelectedItem)) return;
+                lastSelectedItem = value;
+                OnPropertyChanged("LastSelectedItem");
+            }
+        }
+
+        public IEnumerable<string> LastSelectedColumnValuesExamples
+        {
+            get
+            {
+                return GetColumnValuesExamples(LastSelectedItem, ItemsSelectQnt);
+            }
+        }
+
+        private List<string> GetColumnValuesExamples(string columnName, byte quantity)
+        {
+            if (string.IsNullOrEmpty(columnName)) return new List<string>();
+
+            var suitWorksheets =
                 worksheets.Where(
-                    w => w.Columns.Any(c => string.Equals(c.Name, columnName, StringComparison.OrdinalIgnoreCase)))
-                    .SelectMany(w => w.Columns)
+                    w =>
+                        w.Columns.Any(
+                            c => string.Equals(c.Name, LastSelectedItem, StringComparison.OrdinalIgnoreCase) && c.ValuesExamples != null)).ToList();
+
+            if (!suitWorksheets.Any()) return new List<string>();
+
+            return suitWorksheets.SelectMany(w => w.Columns)
+                    .Where(c => string.Equals(c.Name, LastSelectedItem, StringComparison.OrdinalIgnoreCase))
                     .SelectMany(c => c.ValuesExamples)
                     .OrderBy(s => Guid.NewGuid())
-                    .Take(examplesQnt);
-        } 
-
-
+                    .ToList();
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
