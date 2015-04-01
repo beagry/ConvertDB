@@ -7,6 +7,42 @@
         ResizeMode="NoResize">
     <Grid Margin="0,0,2,1">
         <Grid.Resources>
+            <VisualBrush x:Key="DragDropFilesWatermark" Stretch="None" AlignmentX="Center" AlignmentY="Center">
+                <VisualBrush.Visual >
+                    <Grid HorizontalAlignment="Center">
+                        <TextBlock FontFamily="SEGOEWP" FontSize="22" FontWeight="Normal" HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" Foreground="LightBlue" FontStyle="Italic" 
+                                   Opacity="1" Text="Сбросьте файлы сюда">
+                            <TextBlock.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform/>
+                                    <SkewTransform/>
+                                    <RotateTransform Angle="-60"/>
+                                    <TranslateTransform/>
+                                </TransformGroup>
+                            </TextBlock.RenderTransform>
+                        </TextBlock>
+                    </Grid>
+                </VisualBrush.Visual>
+            </VisualBrush>
+            <VisualBrush x:Key="DragDropWorksheetsWatermark" Stretch="None" AlignmentX="Center" AlignmentY="Center">
+                <VisualBrush.Visual >
+                    <Grid HorizontalAlignment="Center">
+                        <TextBlock FontFamily="SEGOEWP" FontSize="20" FontWeight="Normal" HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" Foreground="LightBlue" FontStyle="Italic" 
+                                   Opacity="1" Text="Тащите слева">
+                            <TextBlock.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform/>
+                                    <SkewTransform/>
+                                    <RotateTransform Angle="-60"/>
+                                    <TranslateTransform/>
+                                </TransformGroup>
+                            </TextBlock.RenderTransform>
+                        </TextBlock>
+                    </Grid>
+                </VisualBrush.Visual>
+            </VisualBrush>
             <Style x:Key="DraggableListBoxItem" TargetType="telerik:RadListBoxItem">
                 <Setter Property="telerik:DragDropManager.AllowCapturedDrag" Value="True" />
             </Style>
@@ -27,30 +63,61 @@
             <RowDefinition Height="10*"/>
             <RowDefinition Height="69*"/>
         </Grid.RowDefinitions>
-        <Label Content="Книги для объединения" FontSize="14" Margin="0,10,0,0" />
+        <Label Content="Книги для объединения" FontSize="14" Margin="5,10,244,0" Grid.ColumnSpan="2" />
         <Label Grid.Row="0" Content="Настройки" FontSize="14" Margin="5,10,58,0" Grid.Column="1" />
-        <ListBox Grid.Column="0" x:Name="WorkbooksListBox" ItemTemplate="{StaticResource ItemTemplate}" Grid.Row="1" AllowDrop="True" Drop="ListBox_Drop"/>
+        <ListBox BorderBrush="Black" BorderThickness="1" Grid.Column="0" x:Name="WorkbooksListBox" ItemTemplate="{StaticResource ItemTemplate}" Grid.Row="1" AllowDrop="True" Drop="ListBox_Drop" Margin="10,0,0,10">
+            <ListBox.Style>
+                <Style TargetType="{x:Type ListBox}">
+                    <Setter Property="Background" Value="Transparent"></Setter>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=Workbooks.Count}" Value="0">
+                            <Setter Property="Background" Value="{StaticResource DragDropFilesWatermark}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ListBox.Style>
+        </ListBox >
+        <Label Content="Текущее кол-во объектов:" Grid.Column="1" HorizontalAlignment="Left" Margin="5,5,0,0" Grid.Row="1" VerticalAlignment="Top" Height="26" Width="157"/>
 
-        <Label Content="Текущее кол-во объектов:" Grid.Column="1" HorizontalAlignment="Left" Margin="5,0,0,0" Grid.Row="1" VerticalAlignment="Top" Height="26" Width="157"/>
-        <Label Content="Рекомендуется не более:" Grid.Column="1" HorizontalAlignment="Left" Margin="5,26,0,0" Grid.Row="1" VerticalAlignment="Top" Height="26" Width="152"/>
-        <Label Padding="2,0" BorderBrush="LightSlateGray" BorderThickness="1" Content="{Binding MaxRequiredItems}" Grid.Column="1" HorizontalAlignment="Left" Margin="162,31,0,0" Grid.Row="1" VerticalAlignment="Top" RenderTransformOrigin="0.316,-0.038" Width="79" Height="21"/>
-        <Label Padding="2,0" BorderBrush="LightSlateGray" BorderThickness="1" x:Name="TotalItemsLabel" Grid.Column="1" HorizontalAlignment="Left" Margin="162,5,0,0" Grid.Row="1" VerticalAlignment="Top" RenderTransformOrigin="0.316,-0.038" Width="79" Height="21"/>
-        <Button x:Name="StartButton" Content="Объединить" Grid.Column="1" HorizontalAlignment="Left" Margin="129,264,0,0" Grid.Row="1" VerticalAlignment="Top" Width="112" Height="30" Click="ButtonBase_OnClick"/>
-        <telerik:RadListBox ItemContainerStyle="{StaticResource DraggableListBoxItem}" x:Name="AllWorksheetsListBox" ItemsSource="{Binding AllWorksheets}" Grid.Column="1" HorizontalAlignment="Left" Height="144" Margin="10,78,0,0" Grid.Row="1" VerticalAlignment="Top" Width="115">
+        <TextBox x:Name="TotalItemsQntTextBox" IsReadOnly="True" Padding="2,0" Text="{Binding TotalItemsQuantity, Mode=OneWay}" BorderBrush="LightSlateGray" BorderThickness="1"  Grid.Column="1" HorizontalAlignment="Left" Margin="162,5,0,0" Grid.Row="1" VerticalAlignment="Top" RenderTransformOrigin="0.316,-0.038" Width="79" Height="21">
+<!--            <TextBox.Style>-->
+<!--                <Style TargetType="{x:Type TextBox}">-->
+<!--                    <Setter Property="BorderBrush" Value="Black"></Setter>-->
+<!--                    <Style.Triggers>-->
+<!--                        <DataTrigger Binding="{Binding TotalObjectsQntTooHigh}" Value="true">-->
+<!--                            <Setter Property="BorderBrush" Value="Red"></Setter>-->
+<!--                        </DataTrigger>-->
+<!--                    </Style.Triggers>-->
+<!--                </Style>-->
+<!--            </TextBox.Style>-->
+        </TextBox>
+        <Button x:Name="StartButton" Content="Объединить" Grid.Column="1" HorizontalAlignment="Left" Margin="129,258,0,0" Grid.Row="1" VerticalAlignment="Top" Width="112" Height="30" Click="ButtonBase_OnClick"/>
+        <telerik:RadListBox ItemContainerStyle="{StaticResource DraggableListBoxItem}" x:Name="AllWorksheetsListBox" ItemsSource="{Binding AllWorksheetsCollection}" Grid.Column="1" HorizontalAlignment="Left" Height="165" Margin="10,57,0,0" Grid.Row="1" VerticalAlignment="Top" Width="115">
             <telerik:RadListBox.DragDropBehavior>
                 <telerik:ListBoxDragDropBehavior />
             </telerik:RadListBox.DragDropBehavior>
         </telerik:RadListBox>
 
-        <telerik:RadListBox x:Name="SelectedWorksheetsListBox" ItemContainerStyle="{StaticResource DraggableListBoxItem}" ItemsSource="{Binding WorksheetsToCopy}" Grid.Column="1" HorizontalAlignment="Left" Height="144" Margin="129,78,0,0" Grid.Row="1" VerticalAlignment="Top" Width="112">
+        <telerik:RadListBox x:Name="SelectedWorksheetsListBox" ItemContainerStyle="{StaticResource DraggableListBoxItem}" ItemsSource="{Binding WorksheetsToCopy}" Grid.Column="1" HorizontalAlignment="Left" Height="165" Margin="129,57,0,0" Grid.Row="1" VerticalAlignment="Top" Width="112">
             <telerik:RadListBox.DragDropBehavior>
                 <telerik:ListBoxDragDropBehavior />
             </telerik:RadListBox.DragDropBehavior>
+            <telerik:RadListBox.Style>
+                <Style TargetType="{x:Type telerik:RadListBox}">
+                    <Setter Property="Background" Value="Transparent"></Setter>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding WorksheetsToCopyAreEmpty}" Value="true">
+                            <Setter Property="Background" Value="{StaticResource DragDropWorksheetsWatermark}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </telerik:RadListBox.Style>
         </telerik:RadListBox>
-        <Label Content="Листы для объед." Grid.Column="1" HorizontalAlignment="Left" Margin="125,52,0,0" Grid.Row="1" VerticalAlignment="Top" Height="26" Width="106"/>
-        <Label Content="Все листы" Grid.Column="1" HorizontalAlignment="Left" Margin="5,52,0,0" Grid.Row="1" VerticalAlignment="Top" RenderTransformOrigin="0.516,-0.115" Height="26" Width="64"/>
+        <Label Content="Листы для объед." Grid.Column="1" HorizontalAlignment="Left" Margin="129,31,0,0" Grid.Row="1" VerticalAlignment="Top" Height="26" Width="106"/>
+        <Label Content="Все листы" Grid.Column="1" HorizontalAlignment="Left" Margin="5,31,0,0" Grid.Row="1" VerticalAlignment="Top" RenderTransformOrigin="0.516,-0.115" Height="26" Width="64"/>
         <Label Content="Кол-во строк шапки:" Grid.Column="1" HorizontalAlignment="Left" Margin="5,227,0,0" Grid.Row="1" VerticalAlignment="Top" RenderTransformOrigin="-0.026,-0.154" Width="140" Height="26"/>
         <TextBox Grid.Column="1" HorizontalAlignment="Left" Height="23" Margin="129,230,0,0" Grid.Row="1" TextWrapping="Wrap" Text="{Binding HeadSize}" VerticalAlignment="Top" Width="112"/>
-        <telerik:RadProgressBar x:Name="MyProgressBar" Minimum="0" Maximum="100" Foreground="DeepSkyBlue" Grid.Column="1" HorizontalAlignment="Left" Height="30" Margin="10,264,0,0" Grid.Row="1" Value="50" VerticalAlignment="Top" Width="115"/>
+        <telerik:RadProgressBar Visibility="Hidden" x:Name="MyProgressBar" Minimum="0" Maximum="100" Foreground="DeepSkyBlue" Grid.Column="1" HorizontalAlignment="Left" Height="30" Margin="10,264,0,0" Grid.Row="1" Value="50" VerticalAlignment="Top" Width="115"/>
+        
     </Grid>
 </Window>

@@ -11,11 +11,30 @@ namespace UnionWorkbooks
     {
         public int MaxRequiredItems { get; set; }
 
-        public long TotalItemsQuantity { get { return Workbooks.Sum(w => w.MaxRowsInWorkbook); } }
+        public long TotalItemsQuantity
+        {
+            get
+            {
+                return Workbooks.Sum(w => w.MaxRowsInWorkbook);
+            }
+        }
 
         public ObservableCollection<WorkbookWithItemsQnt> Workbooks { get; set; }
 
         public ObservableCollection<string> WorksheetsToCopy { get; set; }
+
+        public bool WorksheetsToCopyAreEmpty
+        {
+            get { return WorksheetsToCopy.Count == 0 && AllWorksheetsCollection.Count != 0; }
+        }
+
+        public bool TotalObjectsQntTooHigh
+        {
+            get
+            {
+                return TotalItemsQuantity > 50000;
+            }
+        }
 
         public List<string> AllWorksheetsCollection
         {
@@ -23,7 +42,6 @@ namespace UnionWorkbooks
         }
 
         public byte HeadSize { get; set; }
-        
 
         public ViewModel()
         {
@@ -31,7 +49,39 @@ namespace UnionWorkbooks
             Workbooks = new ObservableCollection<WorkbookWithItemsQnt>();
             WorksheetsToCopy = new ObservableCollection<string>();
             HeadSize = 8;
+
+            UpdaWorkbooksDepends();
+
+            Workbooks.CollectionChanged += (sender, args) => {UpdaWorkbooksDepends();};
+
+            WorksheetsToCopy.CollectionChanged += WorksheetsToCopy_CollectionChanged;
+
         }
+
+        void UpdaWorkbooksDepends()
+        {
+            OnPropertyChanged("AllWorksheetsCollection");
+
+            OnPropertyChanged("WorksheetsToCopyAreEmpty");
+
+            OnPropertyChanged("TotalItemsQuantity");
+            OnPropertyChanged("TotalObjectsQntTooHigh");
+        }
+
+        private void WorksheetsToCopy_CollectionChanged(object sender,
+            System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            var coll = sender as ObservableCollection<string>;
+            if (coll != null)
+                foreach (var workbook in Workbooks)
+                    workbook.WorksheetsForCountMaxRows = new List<string>(coll);
+
+            OnPropertyChanged("WorksheetsToCopyAreEmpty");
+
+            OnPropertyChanged("TotalItemsQuantity");
+            OnPropertyChanged("TotalObjectsQntTooHigh");
+        }
+
 
 
         public event PropertyChangedEventHandler PropertyChanged;

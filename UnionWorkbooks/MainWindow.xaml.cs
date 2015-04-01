@@ -30,12 +30,11 @@ namespace UnionWorkbooks
         public MainWindow()
         {
             InitializeComponent();
+
             ResetParams();
             DataContext = viewModel;
 
             ExcelHelper.App = ExcelHelper.CreateNewApplication();
-
-            viewModel.WorksheetsToCopy.CollectionChanged += WorksheetsToCopy_CollectionChanged;
         }
 
         void WorksheetsToCopy_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -45,27 +44,29 @@ namespace UnionWorkbooks
 
             foreach (var workbook in viewModel.Workbooks)
                 workbook.WorksheetsForCountMaxRows = new List<string>(coll);
-
-            UpdateTotalItems();
         }
 
         private void ListBox_Drop(object sender, DragEventArgs e)
         {
+            var waitWindow = new PleaseWaitWindow(){Owner = this};
+            waitWindow.Show();
+
             var files = (string[])e.Data.GetData(DataFormats.FileDrop);
 
             if (files == null) return;
-            
+
             files.ToList().ForEach(s =>
             {
                 if (viewModel.Workbooks.All(w => w.Path != s && FileTypeChecker.IsFileExtelType(s)))
                 {
                     var newWB = new WorkbookWithItemsQnt(s);
-                    viewModel.Workbooks.Add(newWB);
                     newWB.WorksheetsForCountMaxRows = new List<string>(viewModel.WorksheetsToCopy);
+                    viewModel.Workbooks.Add(newWB);
                 }
             });
 
-            ManualUpdateWindow();
+//            UpdateTotalItems();
+            waitWindow.Close();
         }
 
         private void ConverterWindow_OnKeyDown(object sender, KeyEventArgs e)
@@ -86,7 +87,6 @@ namespace UnionWorkbooks
                         {
                             viewModel.Workbooks.Remove(item);
                         }
-                        ManualUpdateWindow();
                     }
                 }
                 else if (focusetControl is RadListBoxItem)
@@ -99,7 +99,6 @@ namespace UnionWorkbooks
                         {
                             viewModel.WorksheetsToCopy.Remove(item);
                         }
-                        ManualUpdateWindow();
                     }
             }
             else if (e.Key == Key.Enter)
@@ -112,9 +111,13 @@ namespace UnionWorkbooks
         private async void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
 //            await CombineAsync();
+            var waitWindow = new PleaseWaitWindow() { Owner = this };
+            waitWindow.Show();
+            waitWindow.Show();
             BlockUi();
             StartCombine();
             UnblockUi();
+            waitWindow.Close();
         }
 
         private async Task CombineAsync()
@@ -128,17 +131,18 @@ namespace UnionWorkbooks
 
         }
 
-
         private void StartCombine()
         {
-            if (viewModel.WorksheetsToCopy.Count == 0) return;
+            var selectedWorksheets = viewModel.WorksheetsToCopy.Distinct().ToList();
+            if (!selectedWorksheets.Any()) return;
 
-            var resultWb = ExcelHelper.CreateNewWorkbook(ExcelHelper.App, (byte)viewModel.WorksheetsToCopy.Count());
+            var resultWb = ExcelHelper.CreateNewWorkbook(ExcelHelper.App, (byte)selectedWorksheets.Count());
             var sampleWb = ExcelHelper.GetWorkbook(ExcelApp,viewModel.Workbooks.First().Path);
-            for (int i = 1; i <= viewModel.WorksheetsToCopy.Count; i++)
+
+            for (int i = 1; i <= selectedWorksheets.Count(); i++)
             {
                 var resultWs = (Excel.Worksheet)resultWb.Worksheets[i];
-                resultWs.Name = viewModel.WorksheetsToCopy[i - 1];
+                resultWs.Name = selectedWorksheets[i - 1];
 
                 var sourceWs =
                     sampleWb.Worksheets.Cast<Excel.Worksheet>()
@@ -150,8 +154,7 @@ namespace UnionWorkbooks
             var fillers =
                 resultWb.Worksheets.Cast<Excel.Worksheet>().Select(w => new WorksheetFiller(w)).ToList();
 
-
-            MyProgressBar.Maximum = viewModel.Workbooks.Count;
+            MyProgressBar.Maximum = viewModel.Workbooks.Distinct().Count();
 
             foreach (var workbookInfo in viewModel.Workbooks)
             {
@@ -178,7 +181,7 @@ namespace UnionWorkbooks
                 Thread.Sleep(1000);
             }
 
-            ((Excel.Application)resultWb.Parent).Visible = true;
+            ExcelApp.Visible = true;
             resultWb.Activate();
             ((Excel.Worksheet)resultWb.Worksheets[1]).Activate();
             ResetParams();
@@ -204,7 +207,6 @@ namespace UnionWorkbooks
             WorkbooksListBox.ItemsSource = viewModel.Workbooks;
             SelectedWorksheetsListBox.ItemsSource = viewModel.WorksheetsToCopy;
             MyProgressBar.Value = 0;
-            ManualUpdateWindow();
         }
 
         private void ManualUpdateWindow()
@@ -215,10 +217,13 @@ namespace UnionWorkbooks
 
         private void UpdateTotalItems()
         {
-            TotalItemsLabel.Content = viewModel.Workbooks.Sum(w => w.MaxRowsInWorkbook);
+            Binding binding = new Binding();
+            binding.ElementName = "TotalItemsQntTextBox";
+            binding.Path = new PropertyPath("TotalItemsQuantity");
+            TotalItemsQntTextBox.SetBinding(TextBox.TextProperty, binding);
+
+//            TotalItemsQntTextBox.Text = viewModel.Workbooks.Sum(w => w.MaxRowsInWorkbook).ToString();
         }
-
-
 
         private void WriteWideHead(Excel.Worksheet targetWs, Excel.Worksheet soureWs, byte headSize)
         {

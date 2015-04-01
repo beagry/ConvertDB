@@ -70,6 +70,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="PleaseWaitWindow.xaml.cs">
+      <DependentUpon>PleaseWaitWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewModel.cs" />
     <Compile Include="WorkbookWithItemsQnt.cs" />
     <Page Include="MainWindow.xaml">
@@ -84,6 +87,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="PleaseWaitWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
