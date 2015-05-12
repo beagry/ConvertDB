@@ -11,10 +11,10 @@
         </CollectionViewSource>
     </Window.Resources>
     <Grid>
-        <ComboBox  SelectedItem="{Binding Type}" x:Name="ExtentionsComboBox" HorizontalAlignment="Left" Margin="239,29,0,0" VerticalAlignment="Top" Width="174" Height="25" FontSize="14"/>
+        <ComboBox  SelectedItem="{Binding SaveType}" x:Name="ExtentionsComboBox" HorizontalAlignment="Left" Margin="239,29,0,0" VerticalAlignment="Top" Width="174" Height="25" FontSize="14"/>
         <Button Content="Обработать" HorizontalAlignment="Left" Margin="266,132,0,0" VerticalAlignment="Top" Width="108" Height="32" FontSize="14" Click="Button_Click"/>
         <Label Content="Список книг" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.421,0.115" Width="180" FontSize="14"/>
         <Label Content="Тип книг" HorizontalAlignment="Left" Margin="239,0,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.421,0.115" Width="180" FontSize="14"/>
-        <ListBox ItemsSource="{Binding Source={StaticResource Cvs}}" DisplayMemberPath="Name" HorizontalAlignment="Left" Height="218" Margin="10,29,0,0" VerticalAlignment="Top" Width="180" AllowDrop="True" Drop="ListBox_Drop" FontSize="14" />
+        <ListBox ItemsSource="{Binding WorkbooksToResave}" DisplayMemberPath="Name" HorizontalAlignment="Left" Height="218" Margin="10,29,0,0" VerticalAlignment="Top" Width="180" AllowDrop="True" Drop="ListBox_Drop" FontSize="14" />
     </Grid>
 </Window>
