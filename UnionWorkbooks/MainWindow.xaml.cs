@@ -34,7 +34,7 @@ namespace UnionWorkbooks
             ResetParams();
             DataContext = viewModel;
 
-            ExcelHelper.App = ExcelHelper.CreateNewApplication();
+            ExcelHelper.App = ExcelHelper.GetApplication();
         }
 
         void WorksheetsToCopy_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -108,8 +108,11 @@ namespace UnionWorkbooks
             
         }
 
-        private async void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
+            if (viewModel.Workbooks.Count == 0) return;
+            if (viewModel.WorksheetsToCopy.Count == 0 && !viewModel.AllSheetsInOne) return;
+            
 //            await CombineAsync();
             var waitWindow = new PleaseWaitWindow() { Owner = this };
             waitWindow.Show();
@@ -117,6 +120,7 @@ namespace UnionWorkbooks
             BlockUi();
             StartCombine();
             UnblockUi();
+            ResetParams();
             waitWindow.Close();
         }
 
@@ -133,58 +137,107 @@ namespace UnionWorkbooks
 
         private void StartCombine()
         {
-            var selectedWorksheets = viewModel.WorksheetsToCopy.Distinct().ToList();
+            ExcelApp.Visible = false;
+            ExcelApp.EnableEvents = false;
+
+            List<string> selectedWorksheets = null;
+
+            if (viewModel.AllSheetsInOne)
+                selectedWorksheets = viewModel.AllWorksheetsCollection.Distinct().ToList();
+            else
+                selectedWorksheets = viewModel.WorksheetsToCopy.Distinct().ToList();
+
             if (!selectedWorksheets.Any()) return;
 
-            var resultWb = ExcelHelper.CreateNewWorkbook(ExcelHelper.App, (byte)selectedWorksheets.Count());
-            var sampleWb = ExcelHelper.GetWorkbook(ExcelApp,viewModel.Workbooks.First().Path);
 
-            for (int i = 1; i <= selectedWorksheets.Count(); i++)
+            
+            Excel.Workbook sampleWb = ExcelHelper.GetWorkbook(ExcelApp, viewModel.Workbooks.First().Path);
+            Excel.Workbook resultWb;
+
+            if (viewModel.AllSheetsInOne)
             {
-                var resultWs = (Excel.Worksheet)resultWb.Worksheets[i];
-                resultWs.Name = selectedWorksheets[i - 1];
+                resultWb = ExcelHelper.CreateNewWorkbook(ExcelHelper.App);
+
+                var resultWs = (Excel.Worksheet)resultWb.Worksheets[1];
+                resultWs.Name = selectedWorksheets.First();
 
                 var sourceWs =
-                    sampleWb.Worksheets.Cast<Excel.Worksheet>()
-                        .FirstOrDefault(w => string.Equals(resultWs.Name, w.Name, StringComparison.OrdinalIgnoreCase));
+                    sampleWb.Worksheets.Cast<Excel.Worksheet>().First();
 
                 WriteWideHead(resultWs, sourceWs, viewModel.HeadSize);
             }
+            else
+            {
+                resultWb = ExcelHelper.CreateNewWorkbook(ExcelHelper.App, (byte)selectedWorksheets.Count());
+                //Create result worksheets
+                for (int i = 1; i <= selectedWorksheets.Count(); i++)
+                {
+                    var resultWs = (Excel.Worksheet)resultWb.Worksheets[i];
+                    resultWs.Name = selectedWorksheets[i - 1];
 
+                    var sourceWs =
+                        sampleWb.Worksheets.Cast<Excel.Worksheet>()
+                            .FirstOrDefault(w => string.Equals(resultWs.Name, w.Name, StringComparison.OrdinalIgnoreCase));
+
+                    WriteWideHead(resultWs, sourceWs, viewModel.HeadSize);
+                }
+
+            }
+            
             var fillers =
                 resultWb.Worksheets.Cast<Excel.Worksheet>().Select(w => new WorksheetFiller(w)).ToList();
 
-            MyProgressBar.Maximum = viewModel.Workbooks.Distinct().Count();
+            
 
             foreach (var workbookInfo in viewModel.Workbooks)
             {
                 var wb = ExcelHelper.GetWorkbook(ExcelApp,workbookInfo.Path);
 
-                foreach (var targetWs in resultWb.Worksheets.Cast<Excel.Worksheet>())
+                foreach (var targetWs in selectedWorksheets)
                 {
                     var sourceWs =
                         wb.Worksheets.Cast<Excel.Worksheet>()
                             .FirstOrDefault(
-                                w => String.Equals(w.Name, targetWs.Name, StringComparison.OrdinalIgnoreCase));
+                                w => String.Equals(w.Name, targetWs, StringComparison.OrdinalIgnoreCase));
+
                     if (sourceWs == null) continue;
 
-                    var filler =
-                        fillers.First(
-                            f => string.Equals(f.WorksheetName, targetWs.Name, StringComparison.OrdinalIgnoreCase));
+                    try
+                    {
+                        sourceWs.ShowAllData();
+                    }
+                    catch (Exception)
+                    {
+                        //ignored
+                    }
 
-                    filler.InsertWorksheet(sourceWs, viewModel.HeadSize + 1);
+                    WorksheetFiller filler;
+                    if (viewModel.AllSheetsInOne)
+                    {
+                        filler = fillers.First();
+                    }
+                    else
+                        filler = fillers.First(
+                            f => string.Equals(f.WorksheetName, targetWs, StringComparison.OrdinalIgnoreCase));
+
+                    filler.InsertOneToOneWorksheet(sourceWs, viewModel.HeadSize + 1);
                 }
-
                 wb.Close();
-
-                MyProgressBar.Value ++;
-                Thread.Sleep(1000);
             }
 
-            ExcelApp.Visible = true;
-            resultWb.Activate();
-            ((Excel.Worksheet)resultWb.Worksheets[1]).Activate();
-            ResetParams();
+            try
+            {
+                ExcelApp.EnableEvents = false;
+                ExcelApp.Visible = true;
+                resultWb.Activate();
+                ((Excel.Worksheet)resultWb.Worksheets[1]).Activate();
+            }
+            catch (COMException)
+            {
+                
+                return;
+            }
+            
         }
 
         private void BlockUi()
@@ -203,7 +256,9 @@ namespace UnionWorkbooks
 
         private void ResetParams()
         {
+            ExcelHelper.App = ExcelHelper.CreateNewApplication();
             viewModel = new ViewModel();
+            DataContext = viewModel;
             WorkbooksListBox.ItemsSource = viewModel.Workbooks;
             SelectedWorksheetsListBox.ItemsSource = viewModel.WorksheetsToCopy;
             MyProgressBar.Value = 0;

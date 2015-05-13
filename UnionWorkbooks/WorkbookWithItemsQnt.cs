@@ -1,20 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows;
-using Converter.Annotations;
+using Converter.Properties;
 using ExcelRLibrary;
+using Microsoft.Office.Interop.Excel;
 
 namespace UnionWorkbooks
 {
     sealed class WorkbookWithItemsQnt:SelectedWorkbook, INotifyPropertyChanged
     {
-        private Application app;
         private Dictionary<string, long> worksheetsRowsQntDictionary;
         private List<string> worksheetsForCountMaxRows;
-        private string type;
 
 
         public long MaxRowsInWorkbook
@@ -51,9 +50,22 @@ namespace UnionWorkbooks
 
         private void Init()
         {
+//            Workbook wb = null;
             var wb = ExcelHelper.GetWorkbook(ExcelHelper.App, Path);
+            if (wb == null)
+            {
+                var newApp = ExcelHelper.GetApplication();
+                wb = newApp.Workbooks[System.IO.Path.GetFileName(Path)];
+                ExcelHelper.App = newApp;
+            }
 
-            var wsList = wb.Worksheets.Cast<Microsoft.Office.Interop.Excel.Worksheet>();
+            Debug.Assert(wb != null);
+
+            List<Worksheet> wsList = null;
+            if (System.IO.Path.GetExtension(Path) == ".csv")
+                wsList = new List<Worksheet>(){wb.Worksheets[1]};
+            else
+                wsList = wb.Worksheets.Cast<Microsoft.Office.Interop.Excel.Worksheet>().ToList();
 
             worksheetsRowsQntDictionary =  wsList.ToDictionary(toKey => toKey.Name,w =>
             {

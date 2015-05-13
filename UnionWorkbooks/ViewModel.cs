@@ -3,12 +3,13 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Converter.Annotations;
+using Converter.Properties;
 
 namespace UnionWorkbooks
 {
     sealed class ViewModel:INotifyPropertyChanged
     {
+        private bool allSheetsInOne;
         public int MaxRequiredItems { get; set; }
 
         public long TotalItemsQuantity
@@ -16,6 +17,17 @@ namespace UnionWorkbooks
             get
             {
                 return Workbooks.Sum(w => w.MaxRowsInWorkbook);
+            }
+        }
+
+        public bool AllSheetsInOne
+        {
+            get { return allSheetsInOne; }
+            set
+            {
+                if (AllSheetsInOne == value) return;
+                allSheetsInOne = value;
+                OnPropertyChanged("AllSheetsInOne");
             }
         }
 
@@ -55,7 +67,6 @@ namespace UnionWorkbooks
             Workbooks.CollectionChanged += (sender, args) => {UpdaWorkbooksDepends();};
 
             WorksheetsToCopy.CollectionChanged += WorksheetsToCopy_CollectionChanged;
-
         }
 
         void UpdaWorkbooksDepends()

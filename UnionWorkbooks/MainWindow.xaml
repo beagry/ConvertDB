@@ -118,6 +118,6 @@
         <Label Content="Кол-во строк шапки:" Grid.Column="1" HorizontalAlignment="Left" Margin="5,227,0,0" Grid.Row="1" VerticalAlignment="Top" RenderTransformOrigin="-0.026,-0.154" Width="140" Height="26"/>
         <TextBox Grid.Column="1" HorizontalAlignment="Left" Height="23" Margin="129,230,0,0" Grid.Row="1" TextWrapping="Wrap" Text="{Binding HeadSize}" VerticalAlignment="Top" Width="112"/>
         <telerik:RadProgressBar Visibility="Hidden" x:Name="MyProgressBar" Minimum="0" Maximum="100" Foreground="DeepSkyBlue" Grid.Column="1" HorizontalAlignment="Left" Height="30" Margin="10,264,0,0" Grid.Row="1" Value="50" VerticalAlignment="Top" Width="115"/>
-        
+<!--        <CheckBox Content="Все листы водин" IsChecked="{Binding AllSheetsInOne}" Grid.Column="1" HorizontalAlignment="Left" Margin="19,264,0,0" Grid.Row="1" VerticalAlignment="Top" Width="105"/>-->
     </Grid>
 </Window>
