@@ -112,16 +112,22 @@ namespace UnionWorkbooks
         {
             if (viewModel.Workbooks.Count == 0) return;
             if (viewModel.WorksheetsToCopy.Count == 0 && !viewModel.AllSheetsInOne) return;
-            
+
+            ExcelHelper.App.DisplayAlerts = false;
+
 //            await CombineAsync();
             var waitWindow = new PleaseWaitWindow() { Owner = this };
             waitWindow.Show();
             waitWindow.Show();
             BlockUi();
+
             StartCombine();
+
             UnblockUi();
             ResetParams();
             waitWindow.Close();
+
+            ExcelHelper.App.DisplayAlerts = true;
         }
 
         private async Task CombineAsync()
