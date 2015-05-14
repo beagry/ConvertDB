@@ -39,17 +39,18 @@ namespace Converter
         {
             this.fillingWorksheet = fillingWorksheet;
             lastUsedRow = fillingWorksheet.GetLastUsedRow();
-            lastUsedColumn = fillingWorksheet.GetLastUsedColumn();
+            lastUsedColumn = fillingWorksheet.GetLastUsedColumnByRow();
         }
 
 
         public void InsertOneToOneWorksheet(Worksheet ws, int firstRowWithData = 1)
         {
 
-            var copyRange = ws.Range[ws.Cells[firstRowWithData, 1], ws.Cells[ws.GetLastUsedRowByColumn(1), ws.GetLastUsedColumnByRow(1)]];
+            var copyRange = ws.Range[ws.Cells[firstRowWithData, 1], ws.Cells[ws.GetLastUsedRow(), ws.GetLastUsedColumn()]];
             var cellTopaste = fillingWorksheet.Cells[lastUsedRow,1];
             copyRange.Copy(cellTopaste);
-            lastUsedRow += copyRange.Rows.Count;
+            lastUsedRow += copyRange.Rows.Count + 1;
+//            DeleteLastEmptyRows();
 
             Marshal.FinalReleaseComObject(copyRange);
             Marshal.FinalReleaseComObject(cellTopaste);
@@ -60,10 +61,10 @@ namespace Converter
         {
             CheckRulesDict();
 
-            var copyWs = new WorksheetToCopy(ws) { FirstRowWithData = (byte) firstRowWithData };
+            var wsWithData = new WorksheetToCopy(ws) { FirstRowWithData = (byte) firstRowWithData };
 
             //Каждую колонку из копируемого листа
-            foreach (var indexNamePair in copyWs.HeadsDictionary)
+            foreach (var indexNamePair in wsWithData.HeadsDictionary)
             {
                 //ищем подготовленную для неё колонку вставки
                 int indexToPaste = oneToOneMode? indexNamePair.Key : GetColumnIndexToPaste(indexNamePair.Value);
@@ -75,10 +76,10 @@ namespace Converter
                     headsDictionary.Add(indexToPaste, indexNamePair.Value);
                 }
 
-                var firstCellToPaste = fillingWorksheet.Cells[lastUsedRow + 1, indexToPaste] as Range;
+                var cellToPaste = fillingWorksheet.Cells[lastUsedRow + 1, indexToPaste] as Range;
                 var copyColumnIndex = indexNamePair.Key;
 
-                copyWs.CopyColumn(copyColumnIndex,firstCellToPaste,copyFormat);
+                wsWithData.CopyColumn(copyColumnIndex,cellToPaste,copyFormat);
             }
 
             lastUsedRow = fillingWorksheet.GetLastUsedRow();
@@ -90,6 +91,7 @@ namespace Converter
             if (RulesDictionary == null)
                 SetOneToOneRulesDict();
         }
+
         private void SetOneToOneRulesDict()
         {
             headsDictionary = fillingWorksheet.ReadHead().ToDictionary(k => k.Key, v => v.Key.ToString());
@@ -107,6 +109,7 @@ namespace Converter
                 lastUsedRow --;
             }
         }
+
         private int GetColumnIndexToPaste(string columnNameToSearch)
         {
             if (!RulesDictionary.Any(
