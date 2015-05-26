@@ -3,6 +3,8 @@ using System.Linq;
 using Converter.Template_workbooks;
 using ExcelRLibrary;
 using Microsoft.Office.Interop.Excel;
+using OfficeOpenXml;
+using DataTable = System.Data.DataTable;
 
 namespace Converter
 {
@@ -43,25 +45,27 @@ namespace Converter
         /// </summary>
         /// <param name="workbooksPaths"></param>
         /// <returns></returns>
-        public Workbook CombineToSingleWorkbook()
+        public ExcelPackage CombineToSingleWorkbook()
         {
-            var helper = new ExcelHelper();
+            var result = new ExcelPackage();
+            var resultWS =  result.Workbook.Worksheets.Add("Combined");
 
-            //создать пустую книгу
-            var newWb = helper.CreateNewWorkbook();
-            var ws = newWb.Worksheets[1] as Worksheet;
-            
-            //оформить шапку
+            var wsWriter = new WorksheetFiller(resultWS, RulesDictionary);
+
+            //подготовить конечный лист
             var templateHead = new T().TemplateColumns.ToDictionary(k => k.Index, v => v.CodeName);
-            ws.WriteHead(templateHead);
+            resultWS.WriteHead(templateHead);
 
-            var wsWriter = new WorksheetFiller(ws, RulesDictionary);
-            
-            //поочередно записываем книги из списка книги из списка
-            foreach (var openWs in helper.GetWorkbooks(WorkbooksPaths).Select(wb => wb.Worksheets[1]).Cast<Worksheet>())
-                wsWriter.InsertWorksheet(openWs);
+            var reader = new ExcelReader();
+            foreach (
+                var dt in
+                    WorkbooksPaths.Select(p => reader.ReadExcelFile(p))
+                        .Select(ds => ds.Tables.Cast<DataTable>().First()))
+            {
+                wsWriter.AppendDataTable(dt);
+            }
 
-            return newWb;
+            return result;
         }        
     }
 }

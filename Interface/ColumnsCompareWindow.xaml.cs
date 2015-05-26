@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using Converter;
 using Converter.Models;
 using Converter.Template_workbooks;
+using ExcelRLibrary;
 using Telerik.Windows.Controls;
 
 namespace UI
@@ -44,7 +45,10 @@ namespace UI
                 WorkbooksPaths = wsInfos.Select(w => w.Workbook.Path).Distinct().ToList()
             };
 
-            typifer.CombineToSingleWorkbook();
+            var result = typifer.CombineToSingleWorkbook();
+            if (result == null) return;
+
+            result.SaveWithDialog();
 
         }
 

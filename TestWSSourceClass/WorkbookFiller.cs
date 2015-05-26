@@ -1,18 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Converter.Models;
 using ExcelRLibrary;
 using Microsoft.Office.Interop.Excel;
+using OfficeOpenXml;
+using DataTable = System.Data.DataTable;
 
 namespace Converter
 {
+
+    public interface IFiller
+    {
+        Dictionary<string,List<string>> RulesDictionary { get; set; }
+    }
+
+    interface IWorksheetFiller:IFiller
+    {
+        void InsertOneToOneWorksheet(Worksheet ws, int firstRowWithData = 1);
+        void InsertWorksheet(Worksheet ws, int firstRowWithData = 1, bool copyFormat = false);
+    }
+
+    interface IEPPlusWorksheetFiller:IFiller
+    {
+        ExcelWorksheet Worksheet{ get; }
+        void AppendDataTable(DataTable dt);
+    }
+
     /// <summary>
     /// Простой помощни для записи информации в книгу.
     /// </summary>
-    public class WorksheetFiller
+    public class WorksheetFiller:IWorksheetFiller,IEPPlusWorksheetFiller
     {
         private long lastUsedRow;
         private int lastUsedColumn;
@@ -26,7 +47,13 @@ namespace Converter
         public string WorksheetName { get { return fillingWorksheet.Name; } }
 
 
-
+        public WorksheetFiller(ExcelWorksheet worksheet, Dictionary<string, List<string>> rulesDictionary):this()
+        {
+            this.Worksheet = worksheet;
+            headsDictionary = worksheet.ReadHead();
+            lastUsedColumn = Worksheet.Dimension.Columns;
+            lastUsedRow = Worksheet.Dimension.Rows;
+        }
 
         public WorksheetFiller(Worksheet fillingWorksheet, Dictionary<string, List<string>> rulesDictionary):this(fillingWorksheet)
         {
@@ -35,11 +62,17 @@ namespace Converter
         }
 
 
-        public WorksheetFiller(Worksheet fillingWorksheet)
+        public WorksheetFiller(Worksheet fillingWorksheet):this()
         {
             this.fillingWorksheet = fillingWorksheet;
             lastUsedRow = fillingWorksheet.GetLastUsedRow();
             lastUsedColumn = fillingWorksheet.GetLastUsedColumnByRow();
+        }
+
+        private WorksheetFiller()
+        {
+            RulesDictionary = new Dictionary<string, List<string>>();
+            headsDictionary = new Dictionary<int, string>();
         }
 
 
@@ -50,7 +83,6 @@ namespace Converter
             var cellTopaste = fillingWorksheet.Cells[lastUsedRow,1];
             copyRange.Copy(cellTopaste);
             lastUsedRow += copyRange.Rows.Count + 1;
-//            DeleteLastEmptyRows();
 
             Marshal.FinalReleaseComObject(copyRange);
             Marshal.FinalReleaseComObject(cellTopaste);
@@ -125,6 +157,39 @@ namespace Converter
             return
                 headsDictionary.First(
                     kv => string.Equals(kv.Value, columnNameToPaste, StringComparison.OrdinalIgnoreCase)).Key;
+        }
+
+
+
+        public ExcelWorksheet Worksheet { get; private set; }
+
+        public void AppendDataTable(DataTable dt)
+        {
+            var tableColumns = dt.ReadHead();
+            
+            //Поколоночно
+            foreach (var indexNamePair in tableColumns)
+            {
+                //ищем подготовленную для неё колонку вставки
+                var indexToPaste = GetColumnIndexToPaste(indexNamePair.Value);
+
+                //если правил нет, колонку вставляем в конец книги
+                if (indexToPaste == 0)
+                {
+                    indexToPaste = lastUsedColumn++;
+                    headsDictionary.Add(indexToPaste, indexNamePair.Value);
+                }
+
+                var cellToPaste =  Worksheet.Cells[(int) lastUsedRow++, indexToPaste];
+                var copyColumn = dt.Columns[indexNamePair.Key - 1];
+
+                //Вставляем всю колонку построчно
+                foreach (var row in dt.Rows.Cast<DataRow>())
+                    cellToPaste.Value = row[copyColumn];
+            }
+
+            lastUsedRow = fillingWorksheet.GetLastUsedRow();
+            DeleteLastEmptyRows();
         }
     }
 }

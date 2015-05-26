@@ -20,7 +20,6 @@ namespace Converter.Models
 
             foreach (var pair in head)
                 Columns.Add(new ColumnInfo(dt,pair.Key,pair.Value));
-            //bug last debug stoped here
         }
 
 
