@@ -46,7 +46,7 @@ namespace Converter
             checkedColumnsList = new List<int>();
 
             wsTable = table;
-            head = wsTable.Columns.Cast<DataColumn>().ToDictionary(k => wsTable.Columns.IndexOf(k), v => v.ColumnName);
+            head = wsTable.Columns.Cast<DataColumn>().ToDictionary(k => wsTable.Columns.IndexOf(k)+1, v => v.ColumnName);
         }
 
         public SourceWs(Excel.Worksheet worksheet, TemplateWorkbook templateWorkbook):this(templateWorkbook)
