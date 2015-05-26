@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 using ExcelRLibrary;
 using Microsoft.Office.Interop.Excel;
+using DataTable = System.Data.DataTable;
 
 namespace Converter.Models
 {
@@ -11,12 +14,21 @@ namespace Converter.Models
         public SelectedWorkbook Workbook { get; set; }
 
 
-        public WorksheetInfo(Worksheet ws)
+        public WorksheetInfo(DataTable dt):this()
+        {
+            var head = dt.Columns.Cast<DataColumn>().ToDictionary(k => dt.Columns.IndexOf(k) + 1, v => v.ColumnName);
+
+            foreach (var pair in head)
+                Columns.Add(new ColumnInfo(dt,pair.Key,pair.Value));
+            //bug last debug stoped here
+        }
+
+
+        public WorksheetInfo(Worksheet ws):this()
         {
             var head = ws.ReadHead();
 
-            Columns = new List<ColumnInfo>();
-            foreach (KeyValuePair<int, string> keyValuePair in head)
+            foreach (var keyValuePair in head)
                 Columns.Add(new ColumnInfo(ws, keyValuePair.Key, keyValuePair.Value));
         }
         public WorksheetInfo(Dictionary<int,string> head)

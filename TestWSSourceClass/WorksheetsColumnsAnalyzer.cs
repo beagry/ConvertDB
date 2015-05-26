@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -10,6 +12,7 @@ using Converter.Template_workbooks;
 using Converter.Tools;
 using ExcelRLibrary;
 using Microsoft.Office.Interop.Excel;
+using DataTable = System.Data.DataTable;
 
 namespace Converter
 {
@@ -42,33 +45,47 @@ namespace Converter
 
         public async Task CheckWorkbooksAsync(IEnumerable<string> wbPaths)
         {
-            var app = ExcelHelper.App;
-            app.DisplayAlerts = false;
-
-            await Task.Run(() =>
+            foreach (var wbPath in wbPaths)
             {
-                try
-                {
-                    wbPaths.ForEach(s =>
-                    {
-                        var wb = excelHelper.GetWorkbook(s);
-                        app.Visible = false;
-                        CheckWorkbook(wb);
-                        wb.Close();
-                        Marshal.FinalReleaseComObject(wb);
-                    });
-                }
-                catch (Exception)
-                {
-                    app.DisplayAlerts = true;
-                    app.Visible = true;
-                    throw;
-                }
-            });
-            
-            
+                var path = wbPath;
+                await Task.Run(()=>CheckWorkbook(path));
+            }
         }
 
+        public void CheckWorkbook(string path, string wsName = "1")
+        {
+            var fi = new FileInfo(path);
+            var reader = new ExcelReader();
+            var ds = reader.ReadExcelFile(fi.FullName);
+            var dt = ds.Tables.Cast<DataTable>().First();
+            if (dt == null) return;
+
+
+            //Создаем модель рабочего листа
+            WorksheetsInfos.Add(new WorksheetInfo(dt){Workbook = new SelectedWorkbook(fi.FullName)});
+
+            //Анализируем содержание рабочего листа
+            var sourceWs = new SourceWs(dt, templateWorkbook);
+            sourceWs.CheckColumns();
+            var result = sourceWs.ResultDictionary;
+
+            //Add to compareResultDictionary
+            foreach (var keyPair in result)
+            {
+                var templateColumnName = keyPair.Key;
+                var comparedColumnNames = keyPair.Value;
+
+                if (!ComparedColumns.ContainsKey(templateColumnName))
+                    ComparedColumns.Add(templateColumnName, new List<string>());
+
+                comparedColumnNames.ForEach(s =>
+                {
+                    if (!ComparedColumns[templateColumnName].Contains(s))
+                        ComparedColumns[templateColumnName].Add(s);
+                });
+
+            }
+        }
 
         public void CheckWorkbook(Workbook wb, byte wsIndex = 1)
         {
@@ -84,12 +101,11 @@ namespace Converter
                 catch (Exception)
                 {
                     //ignored
-                    throw;
                 }
             }
             catch (Exception e)
             {
-                throw;
+                throw e;
             }
 
             //Создаем модель рабочего листа

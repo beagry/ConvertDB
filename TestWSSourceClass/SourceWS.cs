@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Windows.Media.TextFormatting;
 using Converter.Template_workbooks;
 using Converter.Tools;
 using ExcelRLibrary;
@@ -40,15 +41,27 @@ namespace Converter
             }
         }
 
-        public SourceWs(Excel.Worksheet worksheet, TemplateWorkbook templateWorkbook)
+        public SourceWs(DataTable table, TemplateWorkbook templateWorkbook):this(templateWorkbook)
         {
-            this.templateWorkbook = templateWorkbook;
+            checkedColumnsList = new List<int>();
+
+            wsTable = table;
+            head = wsTable.Columns.Cast<DataColumn>().ToDictionary(k => wsTable.Columns.IndexOf(k), v => v.ColumnName);
+        }
+
+        public SourceWs(Excel.Worksheet worksheet, TemplateWorkbook templateWorkbook):this(templateWorkbook)
+        {
             var sourceWorksheet = worksheet;
             checkedColumnsList = new List<int>();
 
             wsTable = FillDataTable.GetDataTable(((Excel.Workbook) sourceWorksheet.Parent).FullName,
                 sourceWorksheet.Name, TakeFirstItemsQuantity);
             head = worksheet.ReadHead();
+        }
+
+        public SourceWs(TemplateWorkbook workbook)
+        {
+            this.templateWorkbook = workbook;
         }
         
         public void CheckColumns()
