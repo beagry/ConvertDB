@@ -60,7 +60,7 @@
 
         <Label Content="Содержание" Grid.Column="1" HorizontalAlignment="Left" Margin="10,258,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.158,0.462" FontSize="14" Height="29" Width="91" Grid.Row="1"/>
         <ListBox x:Name="ValuesExamplesListBox" Grid.Column="1" HorizontalAlignment="Left" Height="240" Margin="10,287,0,0" VerticalAlignment="Top" Width="189" Grid.Row="1"/>
-        <telerik:RadButton Content="OK" Click="StartButton_OnClick" Grid.Column="1" HorizontalAlignment="Left" Height="32" Margin="10,546,0,0" Grid.Row="1" VerticalAlignment="Top" Width="189"/>
+        <Button Content="OK" Click="StartButton_OnClick" Grid.Column="1" HorizontalAlignment="Left" Height="32" Margin="10,546,0,0" Grid.Row="1" VerticalAlignment="Top" Width="189"/>
 
     </Grid>
 </Window>

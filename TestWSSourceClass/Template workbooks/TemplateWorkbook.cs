@@ -4,9 +4,14 @@ using System.Linq;
 
 namespace Converter.Template_workbooks
 {
+
+    /// <summary>
+    /// Абстрактный класс шаблонной книги
+    /// </summary>
     public class TemplateWorkbook
     {
         protected List<JustColumn> Columns;
+
         public String UnUsedColumnCode
     {
             get { return "UNUS"; }
@@ -35,28 +40,7 @@ namespace Converter.Template_workbooks
             //return workbook;
         }
     }
-    public class JustColumn
-    {
-        public JustColumn(string codename, string description, int index)
-        {
-            Index = index;
-            Description = description;
-            CodeName = codename;
-        }
 
-        public JustColumn(string description, int index)
-        {
-            Index = index;
-            Description = description;
-        }
-        public int Index { get; set; }
-
-        public string Description { get; private set; }
-
-        public string CodeName { get; set; }
-
-        public List<string> Examples { get; set; }
-    }
     public class WSType
     {
         public List<string> Heads { get; set; }

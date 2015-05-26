@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Converter;
+using Converter.Models;
 using UI.Annotations;
 
 namespace UI
@@ -15,27 +16,10 @@ namespace UI
         private Dictionary<string, ObservableCollection<string>> bindedColumnsDictionary;
         private string lastSelectedItem;
 
-        public CompareViewModel(Dictionary<string, ObservableCollection<string>> bindedColumns, ICollection<WorksheetInfo> worksheetsSamples)
-        {
-            worksheets = worksheetsSamples;
 
-            bindedColumnsDictionary = bindedColumns;
-
-            UnbindedColumns = new ObservableCollection<string>(
-                worksheets.SelectMany(w => w.Columns) //Единый список колонок
-                    .Select(c => c.Name) //Взять их имена
-                    .Distinct()
-                    .Except(bindedColumns.SelectMany(kp => kp.Value)) //исключить уже выбранные 
-                    .ToList());
-        }
-        public CompareViewModel()
-        {
-            worksheets = new List<WorksheetInfo>();
-            UnbindedColumns = new ObservableCollection<string>();
-            bindedColumnsDictionary = new Dictionary<string, ObservableCollection<string>>();
-        }
 
         public byte ItemsSelectQnt { get; set; }
+
         public Dictionary<string, ObservableCollection<string>> BindedColumnsDictionary
         {
             get { return bindedColumnsDictionary; }
@@ -68,6 +52,29 @@ namespace UI
             }
         }
 
+
+
+        public CompareViewModel(Dictionary<string, ObservableCollection<string>> bindedColumns, ICollection<WorksheetInfo> worksheetsSamples)
+        {
+            worksheets = worksheetsSamples;
+
+            bindedColumnsDictionary = bindedColumns;
+
+            UnbindedColumns = new ObservableCollection<string>(
+                worksheets.SelectMany(w => w.Columns) //Единый список колонок
+                    .Select(c => c.Name) //Взять их имена
+                    .Distinct()
+                    .Except(bindedColumns.SelectMany(kp => kp.Value)) //исключить уже выбранные 
+                    .ToList());
+        }
+
+        public CompareViewModel()
+        {
+            worksheets = new List<WorksheetInfo>();
+            UnbindedColumns = new ObservableCollection<string>();
+            bindedColumnsDictionary = new Dictionary<string, ObservableCollection<string>>();
+        }
+
         private List<string> GetColumnValuesExamples(string columnName, byte quantity)
         {
             if (string.IsNullOrEmpty(columnName)) return new List<string>();
@@ -87,6 +94,7 @@ namespace UI
                     .ToList();
         }
 
+        #region inotifyChanged
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
@@ -95,5 +103,6 @@ namespace UI
             var handler = PropertyChanged;
             if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
         }
+        #endregion
     }
 }

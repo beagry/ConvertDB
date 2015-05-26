@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{2A95F170-6CFA-480D-AC85-CDEF0C4BA927}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Converter</RootNamespace>
     <AssemblyName>Converter</AssemblyName>
@@ -111,34 +111,12 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CompareColumnsForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="CompareColumnsForm.Designer.cs">
-      <DependentUpon>CompareColumnsForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="CoverterArgs.cs" />
-    <Compile Include="ExcelExtensions.cs" />
+    <Compile Include="Template workbooks\JustColumn.cs" />
+    <Compile Include="Tools\ExcelExtensions.cs" />
     <Compile Include="ExcelResaver.cs" />
-    <Compile Include="FillDataTable.cs" />
-    <Compile Include="MainForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="MainForm.Designer.cs">
-      <DependentUpon>MainForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ProgressForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ProgressForm.Designer.cs">
-      <DependentUpon>ProgressForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="SelectWorkbookTypeForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="SelectWorkbookTypeForm.Designer.cs">
-      <DependentUpon>SelectWorkbookTypeForm.cs</DependentUpon>
-    </Compile>
+    <Compile Include="Tools\FillDataTable.cs" />
+    <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="Models\SelectedWorkbookWithWorkSheets.cs" />
     <Compile Include="Template workbooks\CityLivaAreaTemplateWorkbook.cs" />
     <Compile Include="Template workbooks\CommercePropertyTemplateWorkbook.cs" />
     <Compile Include="Template workbooks\CountryLiveAreaTemplateWorkbook.cs" />
@@ -150,11 +128,17 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="SimilarityTool.cs" />
+    <Compile Include="Tools\SimilarityTool.cs" />
     <Compile Include="SourceWS.cs" />
     <Compile Include="Template workbooks\TemplateWorkbook.cs" />
     <Compile Include="WorkbookFiller.cs" />
+    <Compile Include="WorkbookTypifier.cs" />
+    <Compile Include="Models\WorksheetColumnInfo.cs" />
+    <Compile Include="Models\WorksheetInfo.cs" />
+    <Compile Include="WorksheetReader.cs" />
     <Compile Include="WorksheetsColumnsAnalyzer.cs" />
+    <Compile Include="Models\WorksheetToCopy.cs" />
+    <Compile Include="XlTemplateWorkbookTypes.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -162,21 +146,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="CompareColumnsForm.resx">
-      <DependentUpon>CompareColumnsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="MainForm.resx">
-      <DependentUpon>MainForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProgressForm.resx">
-      <DependentUpon>ProgressForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="SelectWorkbookTypeForm.resx">
-      <DependentUpon>SelectWorkbookTypeForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

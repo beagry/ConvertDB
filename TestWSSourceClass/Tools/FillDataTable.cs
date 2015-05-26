@@ -8,7 +8,7 @@ using System.Text;
 using DataTable = System.Data.DataTable;
 using Excel = Microsoft.Office.Interop.Excel;
 
-namespace Converter
+namespace Converter.Tools
 {
     class FillDataTable
     {

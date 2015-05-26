@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using Converter;
 using Converter.Template_workbooks;
+using ExcelRLibrary;
 using RwaySupportLibraly;
 
 namespace UI
@@ -15,15 +16,12 @@ namespace UI
     public partial class ConverterWindow
     {
         private BooksToConvertViewModel viewModel;
+
+
         public ConverterWindow()
         {
             InitializeComponent();
-            viewModel = new BooksToConvertViewModel();
-
-            DataContext = viewModel;
-
-            foreach (Enum e in Enum.GetValues(typeof (XlTemplateWorkbookTypes)))
-                WorkbookTypesComboBox.Items.Add(e.GetDescription());
+            ResetWindow();
         }
 
         private void ListBox_Drop(object sender, DragEventArgs e)
@@ -47,15 +45,22 @@ namespace UI
                 window.Owner.Close();
         }
 
-
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private async void Button_Click(object sender, RoutedEventArgs e)
         {
-            var dict = new Dictionary<string, List<string>>();
-            List<WorksheetInfo> unbindedColumns = new List<WorksheetInfo>();
 
+            var wbAnalyzier = new WorkbooksAnalyzier(viewModel.WorkbooksType);
+            await wbAnalyzier.CheckWorkbooksAsync(viewModel.Workbooks.Select(wb => wb.Path));
+            
+            var worksheets = wbAnalyzier.WorksheetsInfos;
+            var dict = wbAnalyzier.ComparedColumns;
 
-            var w = new ColumnsCompareWindow(dict, unbindedColumns);
-            w.Closed += (o, args) => this.Show();
+            var w = new ColumnsCompareWindow(dict, worksheets);
+            w.Closed += (o, args) => 
+            {
+                ResetWindow();
+                this.Show();
+            };
+
             w.Show();
             this.Hide();
         }
@@ -72,6 +77,16 @@ namespace UI
                     viewModel.Workbooks.Remove(item);
                 }
             }
+        }
+
+        private void ResetWindow()
+        {
+            viewModel = new BooksToConvertViewModel();
+
+            DataContext = viewModel;
+
+            foreach (Enum e in Enum.GetValues(typeof(XlTemplateWorkbookTypes)))
+                WorkbookTypesComboBox.Items.Add(e.GetDescription());
         }
     }
 }

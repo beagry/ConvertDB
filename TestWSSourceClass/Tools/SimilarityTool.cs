@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Converter
+namespace Converter.Tools
 {
     /// <summary>
     /// This class implements string comparison algorithm

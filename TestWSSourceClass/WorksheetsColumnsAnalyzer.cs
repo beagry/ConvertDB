@@ -1,90 +1,133 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using Converter.Models;
+using Converter.Template_workbooks;
+using Converter.Tools;
 using ExcelRLibrary;
 using Microsoft.Office.Interop.Excel;
 
 namespace Converter
 {
-    class WorksheetsColumnsAnalyzer
+
+    /// <summary>
+    /// Помощник в анализе книг
+    /// В результате выдаёт список столбцов наиболее подходящих к шаблону
+    /// </summary>
+    public class WorkbooksAnalyzier: IDisposable
     {
-        
-        //Возвращает список уникальных столбцов от всех полученных книг
-        //В списке так же присутствуют образцы информации
-    }
-
-    public class WorksheetInfo
-    {
-        public string Name { get; private set; }
-        public ICollection<WorksheetColumnInfo> Columns  { get; private set; }
+        private readonly XlTemplateWorkbookTypes wbType;
+        private readonly ExcelHelper excelHelper;
+        private TemplateWorkbook templateWorkbook;
 
 
+        //Result properties
+        public Dictionary<string,List<string>> ComparedColumns { get; set; }
+        public List<WorksheetInfo> WorksheetsInfos { get; set; }
 
-        public WorksheetInfo(Worksheet ws)
+
+        public WorkbooksAnalyzier(XlTemplateWorkbookTypes workbookType)
         {
-            var head = WorksheetExtentions.GetHeadsDictionary(ws);
-
-            Columns = new List<WorksheetColumnInfo>();
-            foreach (KeyValuePair<int, string> keyValuePair in head)
-                Columns.Add(new WorksheetColumnInfo(ws, keyValuePair.Key, keyValuePair.Value));
+            WorksheetsInfos = new List<WorksheetInfo>();
+            excelHelper = new ExcelHelper();
+            wbType = workbookType;
+            templateWorkbook = wbType.GetWorkbook();
+            CreateResultDict();
         }
-        public WorksheetInfo(Dictionary<int,string> head)
+
+
+        public async Task CheckWorkbooksAsync(IEnumerable<string> wbPaths)
         {
-            Columns = new List<WorksheetColumnInfo>();
-            foreach (KeyValuePair<int, string> keyValuePair in head)
-                Columns.Add(new WorksheetColumnInfo(keyValuePair.Key, keyValuePair.Value));
-        }
-        public WorksheetInfo(string name, ICollection<WorksheetColumnInfo> columns)
-        {
-            Name = name;
-            Columns = columns;
-        }
-        public WorksheetInfo()
-        {
+            var app = ExcelHelper.App;
+            app.DisplayAlerts = false;
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    wbPaths.ForEach(s =>
+                    {
+                        var wb = excelHelper.GetWorkbook(s);
+                        app.Visible = false;
+                        CheckWorkbook(wb);
+                        wb.Close();
+                        Marshal.FinalReleaseComObject(wb);
+                    });
+                }
+                catch (Exception)
+                {
+                    app.DisplayAlerts = true;
+                    app.Visible = true;
+                    throw;
+                }
+            });
+            
             
         }
-    }
-
-    public class WorksheetColumnInfo
-    {
-        public static byte ExamplesQnt = 10;
-        public int Index { get; private set; }
-        public String Name { get; private set; }
-        public IEnumerable<string> ValuesExamples { get; set; }
 
 
-        public WorksheetColumnInfo(Worksheet ws, int index, string name):this(index,name)
+        public void CheckWorkbook(Workbook wb, byte wsIndex = 1)
         {
-            Index = index;
-            Name = name;
-            SetValuesExamples(ws);
+            Worksheet ws;
+            try
+            {
+                ws = (Worksheet) wb.Worksheets[wsIndex];
+                try
+                {
+                    ws.ShowAllData();
+
+                }
+                catch (Exception)
+                {
+                    //ignored
+                    throw;
+                }
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
+
+            //Создаем модель рабочего листа
+            WorksheetsInfos.Add(new WorksheetInfo(ws){Workbook = new SelectedWorkbook(wb.FullName) });
+
+            //Анализируем содержание рабочего листа
+            var sourceWs = new SourceWs(ws,templateWorkbook);
+            sourceWs.CheckColumns();
+            var result = sourceWs.ResultDictionary;
+
+            //Add to compareResultDictionary
+            foreach (var keyPair in result)
+            {
+                var templateColumnName = keyPair.Key;
+                var comparedColumnNames = keyPair.Value;
+
+                if (!ComparedColumns.ContainsKey(templateColumnName))
+                    ComparedColumns.Add(templateColumnName, new List<string>());
+
+                comparedColumnNames.ForEach(s =>
+                {
+                    if (!ComparedColumns[templateColumnName].Contains(s))
+                        ComparedColumns[templateColumnName].Add(s);
+                });
+                
+            }
         }
-        public WorksheetColumnInfo(int index, string name)
+
+        private void CreateResultDict()
         {
-            Index = index;
-            Name = name;
-        }
-        public WorksheetColumnInfo()
-        {
+            ComparedColumns = templateWorkbook.TemplateColumns.ToDictionary(j => j.CodeName, j2 => new List<string>());
         }
 
 
-        private void SetValuesExamples(Worksheet ws)
+        public void Dispose()
         {
-            ValuesExamples = new List<string>();
-            var i = 1;
-            var columnRange = ws.Columns[Index, Type.Missing] as Range;
-
-            Debug.Assert(columnRange != null, "columnRange != null");
-            ValuesExamples =
-                // ReSharper disable once PossibleNullReferenceException
-                (IEnumerable<string>) columnRange.Cells.Cast<Range>()
-                    .Where(c => c.Value2 != null && c.Value2.ToString() != "")
-                    .Take(ExamplesQnt)
-                    .Select(c => c.Value2.ToString()).AsEnumerable();
+            if (excelHelper != null)
+                excelHelper.Dispose();
         }
     }
 }

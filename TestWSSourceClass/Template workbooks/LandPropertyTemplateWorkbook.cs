@@ -70,6 +70,8 @@ namespace Converter.Template_workbooks
                 new JustColumn("ADDITIONAL", "Уточненные (дополненные) характеристики",56),
                 new JustColumn("ASSOCIATIONS", "Товарищества и корпоративы",57),
                 new JustColumn("DATE_PARSING", "ДАТА_ПАРСИНГА", 58),
+                new JustColumn("LAND_MARK", "Ориентиры", 59),
+                new JustColumn("SNT", "Товарищества", 60),
 
                 #endregion
 

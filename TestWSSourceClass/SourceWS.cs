@@ -1,118 +1,123 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Converter.Template_workbooks;
+using Converter.Tools;
+using ExcelRLibrary;
 using DataTable = System.Data.DataTable;
 using Excel = Microsoft.Office.Interop.Excel;
 
 
 namespace Converter
 {
-    /// <summary>
-    /// Перечень шаблонных книг
-    /// </summary>
-    public enum XlTemplateWorkbookTypes
-    {
-        [Description("Земельные участки")]
-        LandProperty, //Земельные участки
-        [Description("Коммерция")]
-        CommerceProperty, //Коммерческая нд
-        [Description("Загородка")]
-        CountyLiveArea,//Загородка
-        [Description("Городское жильё")]
-        CityLivaArea//Городское жильё
-    }
-
     public class SourceWs
     {
-        private Excel.Application xlApp;
-        private List<int> checkedColumnsList;
-        private TemplateWorkbook templateWorkbook;
+        const int TakeFirstItemsQuantity = 300;
 
+        private readonly List<int> checkedColumnsList;
+        private readonly TemplateWorkbook templateWorkbook;
+
+        private readonly Dictionary<int, string> head; 
         private readonly DataTable wsTable;
-        private readonly Dictionary<int, string> columnsDictionary = new Dictionary<int, string>();
-        private Excel.Worksheet sourceWorksheet;
-
-
-        private List<JustColumn> sourceColumns = new List<JustColumn>();
-
-        public List<JustColumn> SourceColumns
-        {
-            get { return sourceColumns; }
-        }
-
-        public Dictionary<string, string> TmpDictionary { get; set; }
-
-        public Excel.Application ExcelApp
-        {
-            get { return xlApp; }
-        }
-
-
-        public SourceWs(Excel.Worksheet worksheet, Excel.Application xlApp, TemplateWorkbook templateWorkbook)
-        {
-            this.xlApp = xlApp;
-            const int takeFirstItemsQuantity = 300;
-
-            this.templateWorkbook = templateWorkbook;
-
-            sourceWorksheet = worksheet;
-            wsTable = FillDataTable.GetDataTable(((Excel.Workbook) sourceWorksheet.Parent).FullName,
-                sourceWorksheet.Name, takeFirstItemsQuantity);
-            checkedColumnsList = new List<int>();
-
-            CreateColumnsList();
-        }
 
         /// <summary>
-        /// Метод находит колонку с колным или частичным совпадением в имени по пеерданному списки масок поиска
+        /// Key = номер столбца, который будет скопирован, Value = Название колонки Куда будет скопирован столбец
         /// </summary>
-        /// <param name="columnCode">Название колонки для записи результата</param>
-        /// <param name="masks">Маски для сопоставления</param>
-        /// <param name="fullSimilar">Обязательно полное совпадение</param>
-        /// <returns></returns>
-        private bool GetColumnNumberByColumnName(string columnCode, List<string> masks, bool fullSimilar = false)
+        private readonly Dictionary<int, string> columnsDictionary = new Dictionary<int, string>();
+
+//        private readonly List<JustColumn> sourceColumns;
+
+        public Dictionary<string, List<string>> ResultDictionary
         {
-            //Если мы уже находили такую колонку
-            int c = 0;
-            DataColumn cl;
-
-
-            do //Поиск колонки с полным совпалением одного из критериев маски поиска
+            get
             {
-                cl = wsTable.Columns.Cast<DataColumn>().Where(x => !checkedColumnsList.Contains(x.Ordinal + 1)).
-                            FirstOrDefault(x => String.Equals(x.ColumnName, masks[c], StringComparison.CurrentCultureIgnoreCase));
-                c++;
-            } while (cl == null & masks.Count - 1 >= c);
+                return columnsDictionary
+                    .Select(kp => new {ColumnCopy = head.First(hk => hk.Key == kp.Key).Value, ColumnPaste = kp.Value})
+                    .GroupBy(obj => obj.ColumnPaste,o => o.ColumnCopy)
+                    .ToDictionary(k => k.Key, v => v.ToList());
+            }
+        }
 
-            //Поиск столбца, в котором содержится часть маски поиска
-            if (cl == null && !fullSimilar)
+        public SourceWs(Excel.Worksheet worksheet, TemplateWorkbook templateWorkbook)
+        {
+            this.templateWorkbook = templateWorkbook;
+            var sourceWorksheet = worksheet;
+            checkedColumnsList = new List<int>();
+
+            wsTable = FillDataTable.GetDataTable(((Excel.Workbook) sourceWorksheet.Parent).FullName,
+                sourceWorksheet.Name, TakeFirstItemsQuantity);
+            head = worksheet.ReadHead();
+        }
+        
+        public void CheckColumns()
+        {
+            //
+            //Общие колонки
+            //
+
+            TryToFindTemplateColumns();
+
+            GetSOURCE_LINK();
+            GetDESCRIPTION();
+            GetSUBJECT();
+            GetREGION();
+            GetNEAR_CITY();
+
+            GetHEAT_SUPPLY();
+            GetSYSTEM_ELECTRICITY();
+            GetSYSTEM_GAS();
+            GetSYSTEM_SEWERAGE();
+            GetSYSTEM_WATER();
+
+            GetPRICE();
+            GetDateParsing();
+            GetDATE_RESEARCH();
+            GetAREA_LOT();
+            GetSOURCE_DESC();
+            GetOperationType();
+            GetCONTACTS();
+
+            if (templateWorkbook is CountryLiveAreaTemplateWorkbook ||
+                templateWorkbook is CityLivaAreaTemplateWorkbook)
             {
-                c = 0;
-                do
-                {
-                    cl = wsTable.Columns.Cast<DataColumn>().Where(x => !checkedColumnsList.Contains(x.Ordinal + 1)).
-                        FirstOrDefault(x => x.ColumnName.IndexOf(masks[c], StringComparison.OrdinalIgnoreCase) > -1);
-                    c++;
-                } while (cl == null & masks.Count - 1 >= c);
+                GetAREA_TOTAL();
+                GetOBJECT_TYPE();
+                GetBALCONY();
             }
 
-            if (cl == null) return false;
+            //Уникальные поля Зем участков
+            if (templateWorkbook is LandPropertyTemplateWorkbook)
+            {
+                GetRights();
+                GetDIST_REG_CENTER();
+                GetBuildings();
+                GetLAND_CATEGORY();
+                GetPERMITTED_USE();
+                GetRELIEF();
+                GetVEGETATION();                
+                GetSeller();
+            }
+            //Уникальные поля Коммерции
+            if (templateWorkbook is CommercePropertyTemplateWorkbook)
+            {
+                GetHEIGHT_FLOOR();
+                GetMATERIAL_WALL();
+                GetCONDITION();
+                GetSECURITY();
+                GetSEGMENT();
+                GetBUILDING_TYPE();
+                GetOBJECT_PURPOSE();
+                GetFLOOR();
+                GetFLOORITY();
+                GetYEAR_BUILD();
+                GetCLASS_TYPE();
+            }
 
-            columnsDictionary.Add(cl.Ordinal + 1, columnCode);
-
-            //Запись результата
-            checkedColumnsList.Add(cl.Ordinal + 1);
-            JustColumn firstOrDefault = sourceColumns.First(x => x.Index == cl.Ordinal + 1);
-
-            firstOrDefault.CodeName = columnCode;
-
-            //Результат работы
-            return true;
         }
+
+
 
         #region GetColumnMethods
 
@@ -152,9 +157,9 @@ namespace Converter
             if (columnMatchDictionary.Count == 0) return;
             result = columnMatchDictionary.Aggregate((l, r) => l.Value > r.Value ? l : r).Key + 1;
 
-            JustColumn firstOrDefault = sourceColumns.FirstOrDefault(x => x.Index == result - 1);
-            if (firstOrDefault != null)
-                firstOrDefault.CodeName = "SUBJECT";
+//            JustColumn firstOrDefault = sourceColumns.FirstOrDefault(x => x.Index == result - 1);
+//            if (firstOrDefault != null)
+//                firstOrDefault.CodeName = "SUBJECT";
 
             columnsDictionary.Add(result, "SUBJECT");
             checkedColumnsList.Add(result);
@@ -213,13 +218,17 @@ namespace Converter
 
         private void GetNEAR_CITY()
         {
-            ////Населенный пункт
-            //Dictionary<int, decimal> columnMatchDictionary = new Dictionary<int, decimal>();
-            //int result;
-            //const decimal percentIsOk = (decimal) 0.6;
-            //List<string> maskList = new List<string>(new[] { "насел", "нас" });
-            //const string columnCode = "NEAR_CITY";
-            //if (GetColumnNumberByColumnName(columnCode, maskList)) return;
+            //Населенный пункт
+            
+            List<string> maskList = new List<string>(new[] { "населенн", "насел" });
+            const string columnCode = "NEAR_CITY";
+            if (GetColumnNumberByColumnName(columnCode, maskList)) return;
+
+
+//
+//            const decimal percentIsOk = (decimal)0.6;
+//            Dictionary<int, decimal> columnMatchDictionary = new Dictionary<int, decimal>();
+//            int result;
             ////Массив для поиска
             //List<string> oktmoCurrColumnList = (from cell in oktmoTable.AsEnumerable()
             //    where !String.IsNullOrEmpty(cell.Field<string>("Название населенного пункта"))
@@ -260,7 +269,9 @@ namespace Converter
             List<string> maskList = new List<string> { "ОПИСАНИЕ" };
             const string columnCode = "DESCRIPTION";
             if (GetColumnNumberByColumnName(columnCode, maskList)) return;
+
             if (columnsDictionary.ContainsValue(columnCode)) return;
+
             int c;
             int[] cups = {300, 150, 100};
             foreach (int cup in cups)
@@ -276,9 +287,9 @@ namespace Converter
                     if (c == 0) continue;
 
                     //Нашли
-                    JustColumn firstOrDefault = sourceColumns.FirstOrDefault(x => x.Index == i);
-                    if (firstOrDefault != null)
-                        firstOrDefault.CodeName = columnCode;
+//                    JustColumn firstOrDefault = sourceColumns.FirstOrDefault(x => x.Index == i);
+//                    if (firstOrDefault != null)
+//                        firstOrDefault.CodeName = columnCode;
                     columnsDictionary.Add(i + 1, columnCode);
                     checkedColumnsList.Add(i + 1);
                     return;
@@ -488,9 +499,11 @@ namespace Converter
                         .Count();
                 if (percentSimilarity < 0.5M) continue;
                 int result = i + 1;
-                JustColumn firstOrDefault = sourceColumns.FirstOrDefault(x => x.Index == i);
-                if (firstOrDefault != null)
-                    firstOrDefault.CodeName = columnCode;
+
+//                JustColumn firstOrDefault = sourceColumns.FirstOrDefault(x => x.Index == i);
+//                if (firstOrDefault != null)
+//                    firstOrDefault.CodeName = columnCode;
+                
                 columnsDictionary.Add(result, columnCode);
                 checkedColumnsList.Add(i + 1);
                 return;
@@ -823,80 +836,7 @@ namespace Converter
             //if (firstOrDefault != null)
             //    firstOrDefault.Code = "OPERATION";
 
-        }
-
-
-        #endregion
-
-        public void CheckColumns()
-        {
-            //
-            //Общие колонки
-            //
-            //Console.WriteLine(@"Оцениваю столбцы...");
-
-            TryToFindTemplateColumns();
-
-            GetSOURCE_LINK();
-            GetDESCRIPTION();
-            GetSUBJECT();
-            GetREGION();
-            GetNEAR_CITY();
-            
-            GetHEAT_SUPPLY();
-            GetSYSTEM_ELECTRICITY();
-            GetSYSTEM_GAS();
-            GetSYSTEM_SEWERAGE();
-            GetSYSTEM_WATER();
-            
-            ////TODO: процерка прайса, чтобы минимальная сумма была болл 1 000 000, исключаем цену за сотку
-            GetPRICE();
-            GetDateParsing();
-            GetDATE_RESEARCH();
-            GetAREA_LOT();
-            GetSOURCE_DESC();
-            GetOperationType();
-            GetCONTACTS();
-
-            if (templateWorkbook is CountryLiveAreaTemplateWorkbook ||
-                templateWorkbook is CityLivaAreaTemplateWorkbook)
-            {
-                GetAREA_TOTAL();
-                GetOBJECT_TYPE();
-                GetBALCONY();
-            }
-
-            //Уникальные поля Зем участков
-            if (templateWorkbook is LandPropertyTemplateWorkbook)
-            {
-                GetRights();
-                GetDIST_REG_CENTER();
-                GetBuildings();
-                GetLAND_CATEGORY();
-                GetPERMITTED_USE();
-                GetRELIEF();
-                GetVEGETATION();                ////TODO: проверка телефонного номера на ***-***-**-**
-                GetSeller();
-            }
-            //Уникальные поля Коммерции
-            if (templateWorkbook is CommercePropertyTemplateWorkbook)
-            {
-                GetHEIGHT_FLOOR();
-                GetMATERIAL_WALL();
-                GetCONDITION();
-                GetSECURITY();
-                GetSEGMENT();
-                GetBUILDING_TYPE();
-                GetOBJECT_PURPOSE();
-                GetFLOOR();
-                GetFLOORITY();
-                GetYEAR_BUILD();
-                GetCLASS_TYPE();
-
-            }
-
-            //Console.WriteLine("Done");
-        }
+        }       
 
         private void GetBALCONY()
         {
@@ -914,13 +854,7 @@ namespace Converter
             GetColumnNumberByColumnName("AREA_TOTAL", new List<string>() { "ПЛОЩАДЬ ОБЪЕКТА", "ПЛОЩАДЬ_ОБЪЕКТА", });
         }
 
-        private void TryToFindTemplateColumns()
-        {
-            foreach (JustColumn templateColumn in templateWorkbook.TemplateColumns)
-            {
-                GetColumnNumberByColumnName(templateColumn.CodeName, new List<string>() {templateColumn.Description},true);
-            }
-        }
+        
 
         private void GetDateParsing()
         {
@@ -1018,18 +952,86 @@ namespace Converter
             GetColumnNumberByColumnName("SOURCE_DESC", maskList);
         }
 
+        #endregion
+
+        /// <summary>
+        /// формирует список столбцов с названиями, порядковым номером и образцами содержания
+        /// </summary>
         private void CreateColumnsList()
         {
-            int i = 1;
-            foreach (DataColumn column in wsTable.Columns)
+//            int i = 1;
+//            foreach (DataColumn column in wsTable.Columns)
+//            {
+//                sourceColumns.Add(new JustColumn(column.ColumnName, i)
+//                {
+//                    Examples = wsTable.Rows.Cast<DataRow>().Where(x => x[column] != null).Where(x => x[column].ToString() != "")
+//                                    .Select(x => x[column].ToString()).ToList()
+//                });
+//                i++;
+//            }
+        }
+
+        /// <summary>
+        /// Метод ищет колонки по названиями используя вшитые правила
+        /// </summary>
+        private void TryToFindTemplateColumns()
+        {
+            foreach (JustColumn templateColumn in templateWorkbook.TemplateColumns)
             {
-                sourceColumns.Add(new JustColumn(column.ColumnName, i)
-                {
-                    Examples = wsTable.Rows.Cast<DataRow>().Where(x => x[column]!= null).Where(x => x[column].ToString() != "")
-                                    .Select(x => x[column].ToString()).ToList()     
-                });
-                i++;
+                GetColumnNumberByColumnName(templateColumn.CodeName, new List<string>() { templateColumn.Description }, true);
             }
+        }
+
+        /// <summary>
+        /// Метод находит колонку с полным или частичным совпадением в имени по пеерданному списку критериев поиска
+        /// </summary>
+        /// <param name="columnCode">Название колонки для записи результата</param>
+        /// <param name="masks">Маски для сопоставления</param>
+        /// <param name="fullSimilar">Обязательно полное совпадение</param>
+        /// <returns></returns>
+        private bool GetColumnNumberByColumnName(string columnCode, List<string> masks, bool fullSimilar = false)
+        {
+            //Если мы уже находили такую колонку
+            var c = 0;
+            DataColumn cl;
+
+
+            do //Поиск колонки с ПОЛНЫМ совпалением по одному из критериев маски поиска
+            {
+                cl = wsTable.Columns.Cast<DataColumn>().Where(x => !checkedColumnsList.Contains(x.Ordinal + 1)).
+                            FirstOrDefault(x => string.Equals(x.ColumnName, masks[c], StringComparison.CurrentCultureIgnoreCase));
+                c++;
+            } while (cl == null & masks.Count - 1 >= c);
+
+
+            //Поиск колонки с ЧАСТИЧНЫМ совпалением по одному из критериев маски поиска
+            if (cl == null && !fullSimilar)
+            {
+                c = 0;
+                do
+                {
+                    cl = wsTable.Columns.Cast<DataColumn>().Where(x => !checkedColumnsList.Contains(x.Ordinal + 1)).
+                        FirstOrDefault(x => x.ColumnName.IndexOf(masks[c], StringComparison.OrdinalIgnoreCase) > -1);
+                    c++;
+                } while (cl == null & masks.Count - 1 >= c);
+            }
+
+
+            //ничего не нашли
+            if (cl == null) return false;
+            checkedColumnsList.Add(cl.Ordinal + 1);
+            
+
+            //В словарь результатов
+            columnsDictionary.Add(cl.Ordinal + 1, columnCode);
+
+
+            //Тоже самое но в списко колонок
+//            JustColumn firstOrDefault = sourceColumns.First(x => x.Index == cl.Ordinal + 1);
+//            firstOrDefault.CodeName = columnCode;
+
+            //Результат работы
+            return true;
         }
 
         //public Dictionary<int, int> ResultDictionary { get; set; }
@@ -1047,169 +1049,6 @@ namespace Converter
         //    //<источник/база>
         //    ResultDictionary = tmpDict;
         //}
-
-        public void FillWorksheet(ref Excel.Worksheet targetWorksheet, IEnumerable<JustColumn> srColumns )
-        {
-            Console.WriteLine(targetWorksheet.UsedRange.Rows.Count);
-            Console.WriteLine(targetWorksheet.UsedRange.Columns.Count);
-            Console.WriteLine(sourceWorksheet.UsedRange.Rows.Count);
-            Console.WriteLine(sourceWorksheet.UsedRange.Columns.Count);
-
-            int lastRowTargetWS = targetWorksheet.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell).Row;
-            int lastRowSourceWS = sourceWorksheet.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell).Row;
-
-            Excel.Range sourceHead =
-                sourceWorksheet.Range[
-                    sourceWorksheet.Cells[1, 1],
-                    sourceWorksheet.Cells[
-                        1, sourceWorksheet.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell).Column]];
-
-            //Сначале все распределенные столбцы
-            foreach (JustColumn justColumn in srColumns)
-            {
-                
-
-                Excel.Range fndCell = sourceHead.Find(justColumn.Description);
-                if (fndCell == null) continue;
-                int sourceColumn = fndCell.Column; //justColumn.Index;
-                int targetColumn = 0;
-
-                if (justColumn.CodeName == templateWorkbook.UnUsedColumnCode)
-                {
-                    var q = targetWorksheet.UsedRange.Columns.Count;
-                    var clmncell = ((Excel.Range)targetWorksheet.UsedRange.Rows[1]).Cells.Cast<Excel.Range>()
-                        .Where(x => x != null).FirstOrDefault(x => x.Value2.ToString() ==justColumn.Description );
-                    if (clmncell != null)
-                        targetColumn = clmncell.Column;
-                    else
-                    {
-                        //находим первый неиспользованный столбец
-                        targetColumn = targetWorksheet.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell).Column + 1;
-                        //Делаем ему шапку
-                        targetWorksheet.Cells[1, targetColumn].Value2 = justColumn.Description;
-                    }
-                }
-                else
-                    targetColumn =
-                        templateWorkbook.TemplateColumns.First(x => x.CodeName == justColumn.CodeName).Index;
-                
-
-                //Debug.Assert(sourceColumn == fndCell.Column);
-                Excel.Range sourceColumnRange =
-                    sourceWorksheet.Range[
-                        sourceWorksheet.Cells[2, sourceColumn], sourceWorksheet.Cells[lastRowSourceWS, sourceColumn]
-                        ];
-                object[,] srcValues = sourceColumnRange.Value2 as object[,];
-
-                Excel.Range targetRange =
-                    targetWorksheet.Range[
-                        targetWorksheet.Cells[lastRowTargetWS + 1, targetColumn],
-                        targetWorksheet.Cells[lastRowTargetWS + sourceColumnRange.Rows.Count, targetColumn]];
-                //В зависимости он кол-ва столбцов внесенных у даный столбец
-                if (
-                    srColumns.Where(x => x.CodeName != templateWorkbook.UnUsedColumnCode)
-                        .Count(x => x.CodeName == justColumn.CodeName) > 1)
-                {
-                    object[,] trgtValues = targetRange.Value2;
-                    if (srcValues != null)
-                    {
-                        for (int i = 1; i < srcValues.GetLength(0); i++)
-                        {
-                            if (trgtValues[i, 1] == null)
-                                trgtValues[i, 1] = srcValues[i, 1];
-                            else
-                                trgtValues[i, 1] += ", " + srcValues[i, 1];
-                        }
-
-                        targetRange.Value2 = trgtValues;
-                        
-                    }
-//                    int l = 1;
-//                    foreach (Excel.Range sourceCell in sourceColumnRange)
-//                    {
-//                        //Check
-//                        if (sourceCell.Value2 != null)
-//                        {
-//                            //Set
-//                            Excel.Range targetCell =
-//                                targetWorksheet.Cells[lastRowTargetWS + l, targetColumn] as Excel.Range;
-//                            //Copy
-//                            targetCell.Value2 += sourceCell.Value2;
-//                        }
-//                        //Next
-//                        l++;
-//                    }
-                }
-                else
-                {
-                    try
-                    {
-                        targetRange.Value2 = srcValues;
-                    }
-                    catch (Exception e)
-                    {
-                        if (e.HResult == -2146827284)
-                        {
-                            if (srcValues == null) continue;
-                            
-                            var i2 = 1;
-                            foreach (var cell in targetRange.Cells.Cast<Excel.Range>())
-                            {
-                                var pattern = "^=";
-
-                                //Нельзя вставить значение которое начинается с знака равно, например "=авыаыв" вызовет ошибку
-                                if (srcValues[i2, 1] != null)
-                                    while (Regex.IsMatch(srcValues[i2, 1].ToString(), pattern, RegexOptions.IgnoreCase))
-                                        srcValues[i2, 1] = Regex.Replace(srcValues[i2, 1].ToString(), pattern, "",
-                                            RegexOptions.IgnoreCase);
-
-                                cell.Value2 = srcValues[i2, 1] ?? String.Empty;
-
-                                i2++;
-                            }
-                        }
-                        else
-                            throw;
-                    }
-//                    sourceColumnRange.Copy(targetWorksheet.Cells[lastRowTargetWS + 1, targetColumn]);
-                }
-                //Теперь все нераспределенные столбцы добавляем в конец
-            }
-
-            
-
-            ////<название колонки в сточнике, русское название колонки в шаблоне>
-            //foreach (KeyValuePair<int, int> keyValuePair in ResultDictionary)
-            //{
-
-            //    int columnSourceNumber = keyValuePair.Key;
-            //    int columnTargetNumber = keyValuePair.Value;
-            //    Excel.Range columnTarget = targetWorksheet.Cells[lastRowTargetWS + 1, columnTargetNumber];
-            //    Excel.Range columnSource = sourceWorksheet.Range[sourceWorksheet.Cells[2, columnSourceNumber],
-            //        sourceWorksheet.Cells[lastRowSourceWS, columnSourceNumber]];
-            //    //Копируем столбец
-            //    int l = 1;
-            //    foreach (
-            //        Excel.Range sourceCell in
-            //            columnSource.Cast<Excel.Range>().Where(cell => !String.IsNullOrEmpty(cell.Value2)))
-            //    {
-            //        Excel.Range targetCell =
-            //            targetWorksheet.Cells[lastRowTargetWS + l, columnTargetNumber] as Excel.Range;
-            //        if (targetCell != null)
-            //            targetCell.Value2 +=
-            //                sourceCell.Value2;
-            //        l++;
-            //    }
-            //}
-        }
-
-        public List<string> GetExamplesByColumn(int columnNumber, int exmaplesQuantity)
-        {
-            List<string> result =  wsTable.AsEnumerable().Where(x => !String.IsNullOrEmpty(x.Field<string>(columnNumber))).
-                                                            Select(x => x.Field<string>(columnNumber)).Take(exmaplesQuantity).ToList();
-
-            return result;
-        }
     }
 }
 // ReSharper restore SuggestUseVarKeywordEvident

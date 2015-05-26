@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using Converter;
+using Converter.Models;
 using Converter.Template_workbooks;
 using Telerik.Windows.Controls;
 
@@ -17,11 +18,11 @@ namespace UI
         private CompareViewModel view;
         private ICollection<WorksheetInfo> wsInfos; 
 
-        public ColumnsCompareWindow(Dictionary<string, List<string>> dict, List<WorksheetInfo> wsInfos)
+        public ColumnsCompareWindow(Dictionary<string, List<string>> rulesDictionary, List<WorksheetInfo> wsInfos)
         {
             InitializeComponent();
             this.wsInfos = wsInfos;
-            view = new CompareViewModel(DitctToObservDict(dict), wsInfos);
+            view = new CompareViewModel(DitctToObservDict(rulesDictionary), wsInfos);
             UnbindexListBox.ItemsSource = view.UnbindedColumns;
             BindedColumnsListBox.ItemsSource = view.BindedColumnsDictionary;
             ValuesExamplesListBox.ItemsSource = view.LastSelectedColumnValuesExamples;
@@ -36,7 +37,15 @@ namespace UI
         private void StartButton_OnClick(object sender, RoutedEventArgs e)
         {
             var dict = ObservDictToDict(view.BindedColumnsDictionary);
-            var typifer = new WorkbookTypifier<LandPropertyTemplateWorkbook>(dict);
+
+            var typifer = new WorkbookTypifier<LandPropertyTemplateWorkbook>()
+            {
+                RulesDictionary = dict,
+                WorkbooksPaths = wsInfos.Select(w => w.Workbook.Path).Distinct().ToList()
+            };
+
+            typifer.CombineToSingleWorkbook();
+
         }
 
         private Dictionary<string, ObservableCollection<string>> DitctToObservDict(
