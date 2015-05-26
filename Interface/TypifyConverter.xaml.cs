@@ -48,6 +48,7 @@ namespace UI
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
 
+            viewModel.EditMode = false;
             var wbAnalyzier = new WorkbooksAnalyzier(viewModel.WorkbooksType);
             await wbAnalyzier.CheckWorkbooksAsync(viewModel.Workbooks.Select(wb => wb.Path));
             
@@ -59,6 +60,7 @@ namespace UI
             {
                 ResetWindow();
                 this.Show();
+                viewModel.EditMode = true;
             };
 
             w.Show();

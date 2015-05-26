@@ -72,7 +72,7 @@ namespace Converter
 
             TryToFindTemplateColumns();
 
-            GetSOURCE_LINK();
+//            GetSOURCE_LINK();
             GetDESCRIPTION();
             GetSUBJECT();
             GetREGION();

@@ -29,7 +29,7 @@ namespace Converter
 
 
         //Result properties
-        public Dictionary<string,List<string>> ComparedColumns { get; set; }
+        public Dictionary<string,List<string>> ComparedColumns { get; private set; }
         public List<WorksheetInfo> WorksheetsInfos { get; set; }
 
 
@@ -76,14 +76,14 @@ namespace Converter
                 var comparedColumnNames = keyPair.Value;
 
                 if (!ComparedColumns.ContainsKey(templateColumnName))
-                    ComparedColumns.Add(templateColumnName, new List<string>());
+                    continue;
+//                    ComparedColumns.Add(templateColumnName, new List<string>());
 
                 comparedColumnNames.ForEach(s =>
                 {
                     if (!ComparedColumns[templateColumnName].Contains(s))
                         ComparedColumns[templateColumnName].Add(s);
                 });
-
             }
         }
 

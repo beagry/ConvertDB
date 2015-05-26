@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Преобразователь в шаблонную книгу" Height="300" Width="449" WindowStyle="ToolWindow" Closing="Window_Closing"
         KeyDown="ConverterWindow_OnKeyDown">
-    <Grid>
+    <Grid IsEnabled="{Binding EditMode}">
         <ComboBox SelectedItem="{Binding WorkbooksType}"  x:Name="WorkbookTypesComboBox" HorizontalAlignment="Left" Margin="239,29,0,0" VerticalAlignment="Top" Width="174" Height="25" FontSize="16"/>
         <Button Content="Обработать" HorizontalAlignment="Left" Margin="266,132,0,0" VerticalAlignment="Top" Width="108" Height="32" FontSize="16" Click="Button_Click"/>
         <Label Content="Список книг" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.421,0.115" Width="180" FontSize="16"/>

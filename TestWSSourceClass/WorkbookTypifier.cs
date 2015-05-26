@@ -50,11 +50,13 @@ namespace Converter
             var result = new ExcelPackage();
             var resultWS =  result.Workbook.Worksheets.Add("Combined");
 
-            var wsWriter = new WorksheetFiller(resultWS, RulesDictionary);
 
             //подготовить конечный лист
             var templateHead = new T().TemplateColumns.ToDictionary(k => k.Index, v => v.CodeName);
             resultWS.WriteHead(templateHead);
+
+            var wsWriter = new WorksheetFiller(resultWS, RulesDictionary);
+
 
             var reader = new ExcelReader();
             foreach (

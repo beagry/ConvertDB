@@ -38,6 +38,8 @@ namespace Converter
         private long lastUsedRow;
         private int lastUsedColumn;
         private bool oneToOneMode;
+        private int colNum = 1;
+        private const string colName = "AddColumn_";
 
         private readonly Worksheet fillingWorksheet;
         private Dictionary<int, string> headsDictionary;
@@ -51,6 +53,7 @@ namespace Converter
         {
             this.Worksheet = worksheet;
             headsDictionary = worksheet.ReadHead();
+            RulesDictionary = rulesDictionary;
             lastUsedColumn = Worksheet.Dimension.Columns;
             lastUsedRow = Worksheet.Dimension.Rows;
         }
@@ -144,10 +147,12 @@ namespace Converter
 
         private int GetColumnIndexToPaste(string columnNameToSearch)
         {
+            //проверяем наличие искомой колонки в списке с правилами вставка
             if (!RulesDictionary.Any(
                 kv => kv.Value.Any(s => string.Equals(s, columnNameToSearch, StringComparison.OrdinalIgnoreCase))))
                 return 0;
 
+            //Ну и извлекаем название колонки, в которую переносится переданная колонка
             var columnNameToPaste = RulesDictionary.
                 First(
                     kv =>
@@ -176,20 +181,24 @@ namespace Converter
                 //если правил нет, колонку вставляем в конец книги
                 if (indexToPaste == 0)
                 {
-                    indexToPaste = lastUsedColumn++;
+                    indexToPaste = ++lastUsedColumn;
+                    Worksheet.Cells[1, indexToPaste].Value = colName + colNum++;
                     headsDictionary.Add(indexToPaste, indexNamePair.Value);
                 }
 
-                var cellToPaste =  Worksheet.Cells[(int) lastUsedRow++, indexToPaste];
+                
                 var copyColumn = dt.Columns[indexNamePair.Key - 1];
 
                 //Вставляем всю колонку построчно
-                foreach (var row in dt.Rows.Cast<DataRow>())
+                for (var i = 0; i < dt.Rows.Count; i++)
+                {
+                    var row = dt.Rows[i];
+                    var cellToPaste = Worksheet.Cells[(int)lastUsedRow + 1 + i, indexToPaste];
                     cellToPaste.Value = row[copyColumn];
+                }
             }
 
-            lastUsedRow = fillingWorksheet.GetLastUsedRow();
-            DeleteLastEmptyRows();
+            lastUsedRow += dt.Rows.Count;
         }
     }
 }

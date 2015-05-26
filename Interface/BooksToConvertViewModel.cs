@@ -11,9 +11,11 @@ namespace UI
     public sealed class BooksToConvertViewModel:INotifyPropertyChanged
     {
         private XlTemplateWorkbookTypes workbooksType;
+        private bool editMode;
 
         public BooksToConvertViewModel()
         {
+            EditMode = true;
             workbooksType = XlTemplateWorkbookTypes.LandProperty;
             Workbooks = new ObservableCollection<SelectedWorkbook>();
         }
@@ -21,6 +23,17 @@ namespace UI
         {
             Workbooks = new ObservableCollection<SelectedWorkbook>(workbooksPaths);
             WorkbooksType = workbooksType;
+        }
+
+        public bool EditMode
+        {
+            get { return editMode; }
+            set
+            {
+                if (editMode == value) return;
+                editMode = value;
+                OnPropertyChanged();
+            }
         }
 
         public ObservableCollection<SelectedWorkbook> Workbooks{ get; set; }

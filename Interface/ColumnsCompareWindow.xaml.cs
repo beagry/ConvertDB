@@ -48,8 +48,8 @@ namespace UI
             var result = typifer.CombineToSingleWorkbook();
             if (result == null) return;
 
-            result.SaveWithDialog();
-
+            result.SaveWithDialog("Обработанная выгрузка");
+            this.Close();
         }
 
         private Dictionary<string, ObservableCollection<string>> DitctToObservDict(
