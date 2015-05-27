@@ -2,12 +2,15 @@
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using Converter;
 using Converter.Models;
 using Converter.Template_workbooks;
+using Converter.Template_workbooks.EFModels;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UI;
+using TemplateWorkbook = Converter.Template_workbooks.EFModels.TemplateWorkbook;
 
 namespace UnitTestProject1
 {
@@ -38,6 +41,23 @@ namespace UnitTestProject1
 
             var w = new ColumnsCompareWindow(binded,allColumns);
             w.ShowDialog();
+        }
+
+    }
+
+
+    [TestClass]
+    public class DbTests
+    {
+
+        [TestMethod]
+        public void TryToCreateWbsDataBase()
+        {
+            var db = new TemplateWbsContext();
+
+            var books = db.TemplateWorkbooks;
+
+            Assert.IsTrue(books.First().Columns.Count == 60, "В первой книге слишком мало колонок");
         }
     }
 }

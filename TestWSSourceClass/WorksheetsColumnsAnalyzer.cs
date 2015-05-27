@@ -23,7 +23,7 @@ namespace Converter
     /// </summary>
     public class WorkbooksAnalyzier: IDisposable
     {
-        private readonly XlTemplateWorkbookTypes wbType;
+        private readonly XlTemplateWorkbookType wbType;
         private readonly ExcelHelper excelHelper;
         private TemplateWorkbook templateWorkbook;
 
@@ -33,7 +33,7 @@ namespace Converter
         public List<WorksheetInfo> WorksheetsInfos { get; set; }
 
 
-        public WorkbooksAnalyzier(XlTemplateWorkbookTypes workbookType)
+        public WorkbooksAnalyzier(XlTemplateWorkbookType workbookType)
         {
             WorksheetsInfos = new List<WorksheetInfo>();
             excelHelper = new ExcelHelper();

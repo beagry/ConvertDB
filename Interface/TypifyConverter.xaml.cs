@@ -87,7 +87,7 @@ namespace UI
 
             DataContext = viewModel;
 
-            foreach (Enum e in Enum.GetValues(typeof(XlTemplateWorkbookTypes)))
+            foreach (Enum e in Enum.GetValues(typeof(XlTemplateWorkbookType)))
                 WorkbookTypesComboBox.Items.Add(e.GetDescription());
         }
     }

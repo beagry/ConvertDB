@@ -12,7 +12,7 @@ namespace Converter.Template_workbooks
     {
         protected List<JustColumn> Columns;
 
-        public String UnUsedColumnCode
+        public string UnUsedColumnCode
     {
             get { return "UNUS"; }
     }

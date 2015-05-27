@@ -14,5 +14,7 @@ namespace Converter.Template_workbooks.EFModels
         {
             db = new TemplateWbsContext();
         }
+
+        public IEnumerable<TemplateWorkbook> TemplateWorkbooks { get; set; }
     }
 }

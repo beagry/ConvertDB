@@ -34,6 +34,8 @@ namespace Converter.Template_workbooks.EFModels
         public int Id { get; set; }
         public string Name { get; set; }
         public string CodeName { get; set; }
+        public int ColumnIndex { get; set; }
+
 
         public virtual List<SearchCritetia> SearchCritetias { get; set; }
 
