@@ -31,8 +31,6 @@ namespace Converter.Template_workbooks
             return column;
         }
 
-        
-
         public static Microsoft.Office.Interop.Excel.Workbook GetTemplateWorkbook()
         {
             throw new Exception("Метод не готов!");
