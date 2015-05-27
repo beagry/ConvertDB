@@ -17,6 +17,14 @@ namespace Converter.Template_workbooks.EFModels
         public DbSet<TemplateWorkbook> TemplateWorkbooks { get; set; }
         public DbSet<TemplateColumn> TemplateColumns { get; set; }
 
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<TemplateWorkbook>()
+                .HasMany(p => p.Columns)
+                .WithMany(p => p.TemplateWorkbooks);
+
+        }
     }
 
     class TemplateWbsInitializer: DropCreateDatabaseAlways<TemplateWbsContext>
@@ -25,7 +33,6 @@ namespace Converter.Template_workbooks.EFModels
         {
             base.Seed(context);
 
-            InitializeCommonColumn();
             InitializeLandWorkbook(context);
 
         }

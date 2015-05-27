@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Text.RegularExpressions;
-using System.Windows.Media.TextFormatting;
 using Converter.Template_workbooks;
+using Converter.Template_workbooks.EFModels;
 using Converter.Tools;
 using ExcelRLibrary;
+using Microsoft.Office.Interop.Excel;
 using DataTable = System.Data.DataTable;
-using Excel = Microsoft.Office.Interop.Excel;
-
+using TemplateWorkbook = Converter.Template_workbooks.TemplateWorkbook;
 
 namespace Converter
 {
@@ -20,6 +19,8 @@ namespace Converter
         private readonly List<int> checkedColumnsList;
         private readonly TemplateWorkbook templateWorkbook;
 
+        private readonly Template_workbooks.EFModels.TemplateWorkbook wb;
+
         private readonly Dictionary<int, string> head; 
         private readonly DataTable wsTable;
 
@@ -27,8 +28,6 @@ namespace Converter
         /// Key = номер столбца, который будет скопирован, Value = Название колонки Куда будет скопирован столбец
         /// </summary>
         private readonly Dictionary<int, string> columnsDictionary = new Dictionary<int, string>();
-
-//        private readonly List<JustColumn> sourceColumns;
 
         public Dictionary<string, List<string>> ResultDictionary
         {
@@ -43,25 +42,37 @@ namespace Converter
 
         public SourceWs(DataTable table, TemplateWorkbook templateWorkbook):this(templateWorkbook)
         {
-            checkedColumnsList = new List<int>();
-
             wsTable = table;
             head = wsTable.Columns.Cast<DataColumn>().ToDictionary(k => wsTable.Columns.IndexOf(k)+1, v => v.ColumnName);
         }
 
-        public SourceWs(Excel.Worksheet worksheet, TemplateWorkbook templateWorkbook):this(templateWorkbook)
+        public SourceWs(Worksheet worksheet, TemplateWorkbook templateWorkbook):this(templateWorkbook)
         {
             var sourceWorksheet = worksheet;
-            checkedColumnsList = new List<int>();
 
-            wsTable = FillDataTable.GetDataTable(((Excel.Workbook) sourceWorksheet.Parent).FullName,
+            wsTable = FillDataTable.GetDataTable(((Workbook) sourceWorksheet.Parent).FullName,
                 sourceWorksheet.Name, TakeFirstItemsQuantity);
             head = worksheet.ReadHead();
         }
 
-        public SourceWs(TemplateWorkbook workbook)
+        public SourceWs(TemplateWorkbook workbook):this()
         {
             this.templateWorkbook = workbook;
+        }
+
+        public SourceWs(DataTable table, XlTemplateWorkbookType wbType)
+            : this()
+        {
+            wsTable = table;
+            head = wsTable.Columns.Cast<DataColumn>().ToDictionary(k => wsTable.Columns.IndexOf(k) + 1, v => v.ColumnName);
+
+            var db = TemplateWbsRepository.Context;
+            wb = db.TemplateWorkbooks.First(w => w.WorkbookType == wbType);
+        }
+
+        private SourceWs()
+        {
+            checkedColumnsList = new List<int>();            
         }
         
         public void CheckColumns()
@@ -70,6 +81,8 @@ namespace Converter
             //Общие колонки
             //
 
+            TryToFindTemplateColumnsFromDbData();
+            return;
             TryToFindTemplateColumns();
 
 //            GetSOURCE_LINK();
@@ -91,14 +104,6 @@ namespace Converter
             GetSOURCE_DESC();
             GetOperationType();
             GetCONTACTS();
-
-            if (templateWorkbook is CountryLiveAreaTemplateWorkbook ||
-                templateWorkbook is CityLivaAreaTemplateWorkbook)
-            {
-                GetAREA_TOTAL();
-                GetOBJECT_TYPE();
-                GetBALCONY();
-            }
 
             //Уникальные поля Зем участков
             if (templateWorkbook is LandPropertyTemplateWorkbook)
@@ -130,7 +135,20 @@ namespace Converter
 
         }
 
+        private void TryToFindTemplateColumnsFromDbData()
+        {
+            var db = TemplateWbsRepository.Context;
+            var wbs = db.TemplateWorkbooks;
+            var wb = wbs.First(t => t.WorkbookType == XlTemplateWorkbookType.LandProperty);
+            var columns = wb.Columns;
 
+            foreach (var column in columns)
+            {
+                var maskList = column.SearchCritetias.Select(s => s.Text).ToList();
+                var columnCode = column.CodeName;
+                GetColumnNumberByColumnName(columnCode, maskList);
+            }
+        }
 
         #region GetColumnMethods
 
@@ -169,10 +187,6 @@ namespace Converter
             }
             if (columnMatchDictionary.Count == 0) return;
             result = columnMatchDictionary.Aggregate((l, r) => l.Value > r.Value ? l : r).Key + 1;
-
-//            JustColumn firstOrDefault = sourceColumns.FirstOrDefault(x => x.Index == result - 1);
-//            if (firstOrDefault != null)
-//                firstOrDefault.CodeName = "SUBJECT";
 
             columnsDictionary.Add(result, "SUBJECT");
             checkedColumnsList.Add(result);
@@ -247,10 +261,7 @@ namespace Converter
             List<string> maskList = new List<string>(new[] { "ССЫЛКА_НА_ИСТОЧНИК_ИНФОРМАЦИИ","ССЫЛКА" });
 
             string columnCode = String.Empty;
-//            if (templateWorkbook is LandPropertyTemplateWorkbook) 
-//                columnCode = "URL_INFO";
-//            else 
-                columnCode = "SOURCE_LINK";
+            columnCode = "SOURCE_LINK";
 
             if (columnCode == String.Empty) return;
 
@@ -493,23 +504,6 @@ namespace Converter
         #endregion
 
         /// <summary>
-        /// формирует список столбцов с названиями, порядковым номером и образцами содержания
-        /// </summary>
-        private void CreateColumnsList()
-        {
-//            int i = 1;
-//            foreach (DataColumn column in wsTable.Columns)
-//            {
-//                sourceColumns.Add(new JustColumn(column.ColumnName, i)
-//                {
-//                    Examples = wsTable.Rows.Cast<DataRow>().Where(x => x[column] != null).Where(x => x[column].ToString() != "")
-//                                    .Select(x => x[column].ToString()).ToList()
-//                });
-//                i++;
-//            }
-        }
-
-        /// <summary>
         /// Метод ищет колонки по названиями используя вшитые правила
         /// </summary>
         private void TryToFindTemplateColumns()
@@ -529,10 +523,14 @@ namespace Converter
         /// <returns></returns>
         private bool GetColumnNumberByColumnName(string columnCode, List<string> masks, bool fullSimilar = false)
         {
+
+            masks.Add(columnCode);
+            masks.Reverse();
+
+            if (masks.Count == 0) return false;
             //Если мы уже находили такую колонку
             var c = 0;
             DataColumn cl;
-
 
             do //Поиск колонки с ПОЛНЫМ совпалением по одному из критериев маски поиска
             {
@@ -557,36 +555,14 @@ namespace Converter
 
             //ничего не нашли
             if (cl == null) return false;
-            checkedColumnsList.Add(cl.Ordinal + 1);
-            
 
+
+            checkedColumnsList.Add(cl.Ordinal + 1);
             //В словарь результатов
             columnsDictionary.Add(cl.Ordinal + 1, columnCode);
-
-
-            //Тоже самое но в списко колонок
-//            JustColumn firstOrDefault = sourceColumns.First(x => x.Index == cl.Ordinal + 1);
-//            firstOrDefault.CodeName = columnCode;
-
             //Результат работы
             return true;
         }
-
-        //public Dictionary<int, int> ResultDictionary { get; set; }
-
-        //public void SetResultDictionary(Dictionary<string, string> dictionary)
-        //{
-        //    Dictionary<int, int> tmpDict = new Dictionary<int, int>();
-        //    foreach (KeyValuePair<string, string> keyValuePair in dictionary)
-        //    {
-        //        JustColumn srColumn = sourceColumns.First(x => x.Name == keyValuePair.Key);
-        //        JustColumn targetColumn =LandPropertyTemplateWorkbook.TemplateColumns.First(x => x.Code == keyValuePair.Value);
-
-        //        tmpDict.Add(srColumn.Index+1,targetColumn.Index);
-        //    }
-        //    //<источник/база>
-        //    ResultDictionary = tmpDict;
-        //}
     }
 }
 // ReSharper restore SuggestUseVarKeywordEvident
