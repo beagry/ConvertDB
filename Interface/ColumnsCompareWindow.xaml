@@ -87,15 +87,6 @@
 <!--                            <telerik:RadListBox.DragDropBehavior>-->
 <!--                                <telerik:ListBoxDragDropBehavior />-->
 <!--                            </telerik:RadListBox.DragDropBehavior>-->
-<!--                            <telerik:RadListBox.Style>-->
-<!--                                <Style TargetType="telerik:RadListBox">-->
-<!--                                    <Style.Triggers>-->
-<!--                                        <Trigger Property="IsMouseOver" Value="False">-->
-<!--                                            <Setter Property="SelectedIndex" Value="-1"></Setter>-->
-<!--                                        </Trigger>-->
-<!--                                    </Style.Triggers>-->
-<!--                                </Style>-->
-<!--                            </telerik:RadListBox.Style>-->
 <!--                        </telerik:RadListBox>-->
 <!--                    </DockPanel>-->
 <!--                </DataTemplate>-->
