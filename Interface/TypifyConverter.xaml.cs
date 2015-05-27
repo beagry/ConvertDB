@@ -45,12 +45,12 @@ namespace UI
                 window.Owner.Close();
         }
 
-        private async void Button_Click(object sender, RoutedEventArgs e)
+        private void Button_Click(object sender, RoutedEventArgs e)
         {
 
             viewModel.EditMode = false;
             var wbAnalyzier = new WorkbooksAnalyzier(viewModel.WorkbooksType);
-            await wbAnalyzier.CheckWorkbooksAsync(viewModel.Workbooks.Select(wb => wb.Path));
+            wbAnalyzier.CheckWorkbooks(viewModel.Workbooks.Select(wb => wb.Path));
             
             var worksheets = wbAnalyzier.WorksheetsInfos;
             var dict = wbAnalyzier.ComparedColumns;

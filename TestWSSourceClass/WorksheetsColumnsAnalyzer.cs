@@ -23,12 +23,9 @@ namespace Converter
     /// Помощник в анализе книг
     /// В результате выдаёт список столбцов наиболее подходящих к шаблону
     /// </summary>
-    public class WorkbooksAnalyzier: IDisposable
+    public class WorkbooksAnalyzier
     {
         private readonly XlTemplateWorkbookType wbType;
-        private readonly ExcelHelper excelHelper;
-        private readonly TemplateWorkbook templateWorkbook;
-
 
         /// <summary>
         ///     Result of CheckWorkbook(s) Method
@@ -38,29 +35,35 @@ namespace Converter
         /// <summary>
         ///     Info about worksheets of WB
         /// </summary>
-        public List<WorksheetInfo> WorksheetsInfos { get; set; }
+        public List<WorksheetInfo> WorksheetsInfos { get; private set; }
 
 
         public WorkbooksAnalyzier(XlTemplateWorkbookType workbookType)
         {
             WorksheetsInfos = new List<WorksheetInfo>();
-            excelHelper = new ExcelHelper();
             wbType = workbookType;
-            templateWorkbook = wbType.GetWorkbook();
             CreateResultDict();
         }
 
 
-        public async Task CheckWorkbooksAsync(IEnumerable<string> wbPaths)
+        /// <summary>
+        ///     Метод пытается найти соотвествующие колонки для шаблонной книги
+        ///     Резултат процедуры будет находиться в переменной ComparedColumns
+        /// </summary>
+        /// <param name="wbPaths"></param>
+        /// <returns></returns>
+        public void CheckWorkbooks(IEnumerable<string> wbPaths)
         {
             foreach (var wbPath in wbPaths)
             {
                 var path = wbPath;
-                await Task.Run(()=>CheckWorkbook(path));
+                CheckWorkbook(path);
             }
         }
 
-        private void CheckWorkbook(string path, string wsName = "1")
+
+
+        private void CheckWorkbook(string path)
         {
             var fi = new FileInfo(path);
             var reader = new ExcelReader();
@@ -94,64 +97,11 @@ namespace Converter
             }
         }
 
-        public void CheckWorkbook(Workbook wb, byte wsIndex = 1)
-        {
-            Worksheet ws;
-            try
-            {
-                ws = (Worksheet) wb.Worksheets[wsIndex];
-                try
-                {
-                    ws.ShowAllData();
-
-                }
-                catch (Exception)
-                {
-                    //ignored
-                }
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
-
-            //Создаем модель рабочего листа
-            WorksheetsInfos.Add(new WorksheetInfo(ws){Workbook = new SelectedWorkbook(wb.FullName) });
-
-            //Анализируем содержание рабочего листа
-            var sourceWs = new SourceWs(ws,templateWorkbook);
-            sourceWs.CheckColumns();
-            var result = sourceWs.ResultDictionary;
-
-            //Add to compareResultDictionary
-            foreach (var keyPair in result)
-            {
-                var templateColumnName = keyPair.Key;
-                var comparedColumnNames = keyPair.Value;
-
-                if (!ComparedColumns.ContainsKey(templateColumnName))
-                    ComparedColumns.Add(templateColumnName, new List<string>());
-
-                comparedColumnNames.ForEach(s =>
-                {
-                    if (!ComparedColumns[templateColumnName].Contains(s))
-                        ComparedColumns[templateColumnName].Add(s);
-                });
-                
-            }
-        }
-
         private void CreateResultDict()
         {
             ComparedColumns = TemplateWbsRepository.Context.TemplateWorkbooks.First(w => w.WorkbookType == wbType)
                 .Columns.ToDictionary(j => j.CodeName, j2 => new List<string>());
         }
 
-
-        public void Dispose()
-        {
-            if (excelHelper != null)
-                excelHelper.Dispose();
-        }
     }
 }

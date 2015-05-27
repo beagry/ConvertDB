@@ -10,7 +10,5 @@
         {
             
         }
-
-//        public IEnumerable<TemplateWorkbook> TemplateWorkbooks { get; set; }
     }
 }
