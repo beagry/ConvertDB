@@ -99,8 +99,9 @@ namespace Converter
 
         private void CreateResultDict()
         {
-            ComparedColumns = TemplateWbsRepository.Context.TemplateWorkbooks.First(w => w.WorkbookType == wbType)
-                .Columns.ToDictionary(j => j.CodeName, j2 => new List<string>());
+            var wb = TemplateWbsRepository.Context.TemplateWorkbooks.First(w => w.WorkbookType == wbType);
+            var columns = wb.Columns.Select(c => c.CodeName);
+            ComparedColumns = columns.ToDictionary(j => j, j2 => new List<string>());
         }
 
     }
