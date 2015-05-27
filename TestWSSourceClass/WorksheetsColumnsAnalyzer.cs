@@ -9,10 +9,12 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Converter.Models;
 using Converter.Template_workbooks;
+using Converter.Template_workbooks.EFModels;
 using Converter.Tools;
 using ExcelRLibrary;
 using Microsoft.Office.Interop.Excel;
 using DataTable = System.Data.DataTable;
+using TemplateWorkbook = Converter.Template_workbooks.TemplateWorkbook;
 
 namespace Converter
 {
@@ -25,11 +27,17 @@ namespace Converter
     {
         private readonly XlTemplateWorkbookType wbType;
         private readonly ExcelHelper excelHelper;
-        private TemplateWorkbook templateWorkbook;
+        private readonly TemplateWorkbook templateWorkbook;
 
 
-        //Result properties
+        /// <summary>
+        ///     Result of CheckWorkbook(s) Method
+        /// </summary>
         public Dictionary<string,List<string>> ComparedColumns { get; private set; }
+
+        /// <summary>
+        ///     Info about worksheets of WB
+        /// </summary>
         public List<WorksheetInfo> WorksheetsInfos { get; set; }
 
 
@@ -52,7 +60,7 @@ namespace Converter
             }
         }
 
-        public void CheckWorkbook(string path, string wsName = "1")
+        private void CheckWorkbook(string path, string wsName = "1")
         {
             var fi = new FileInfo(path);
             var reader = new ExcelReader();
@@ -65,7 +73,7 @@ namespace Converter
             WorksheetsInfos.Add(new WorksheetInfo(dt){Workbook = new SelectedWorkbook(fi.FullName)});
 
             //Анализируем содержание рабочего листа
-            var sourceWs = new SourceWs(dt, templateWorkbook);
+            var sourceWs = new SourceWs(dt, wbType);
             sourceWs.CheckColumns();
             var result = sourceWs.ResultDictionary;
 
@@ -135,7 +143,8 @@ namespace Converter
 
         private void CreateResultDict()
         {
-            ComparedColumns = templateWorkbook.TemplateColumns.ToDictionary(j => j.CodeName, j2 => new List<string>());
+            ComparedColumns = TemplateWbsRepository.Context.TemplateWorkbooks.First(w => w.WorkbookType == wbType)
+                .Columns.ToDictionary(j => j.CodeName, j2 => new List<string>());
         }
 
 
