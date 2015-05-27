@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 using System.Windows.Forms;
 
 namespace Converter.Template_workbooks.EFModels
@@ -30,16 +31,19 @@ namespace Converter.Template_workbooks.EFModels
         {
             SearchCritetias = new List<SearchCritetia>();
             BindedColumns = new List<BindedColumn>();
+            TemplateWorkbooks = new List<TemplateWorkbook>();
         }
         public int Id { get; set; }
         public string Name { get; set; }
         public string CodeName { get; set; }
         public int ColumnIndex { get; set; }
 
+        public virtual List<TemplateWorkbook> TemplateWorkbooks { get; set; }
 
         public virtual List<SearchCritetia> SearchCritetias { get; set; }
 
         public virtual List<BindedColumn> BindedColumns { get; set; }
+
     }
 
     public class BindedColumn

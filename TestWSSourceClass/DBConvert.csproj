@@ -124,8 +124,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Template workbooks\EFModels\Reposotory.cs" />
     <Compile Include="Template workbooks\EFModels\TemplateWbsContext.cs" />
-    <Compile Include="Template workbooks\EFModels\TemplateWbsProxy.cs" />
+    <Compile Include="Template workbooks\EFModels\TemplateWbsRepository.cs" />
     <Compile Include="Template workbooks\EFModels\TemplateWorkbook.cs" />
     <Compile Include="Template workbooks\JustColumn.cs" />
     <Compile Include="Tools\ExcelExtensions.cs" />

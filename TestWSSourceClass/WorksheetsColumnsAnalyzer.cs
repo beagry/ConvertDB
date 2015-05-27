@@ -77,7 +77,6 @@ namespace Converter
 
                 if (!ComparedColumns.ContainsKey(templateColumnName))
                     continue;
-//                    ComparedColumns.Add(templateColumnName, new List<string>());
 
                 comparedColumnNames.ForEach(s =>
                 {
