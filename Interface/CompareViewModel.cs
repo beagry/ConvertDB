@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Converter;
 using Converter.Models;
+using Telerik.Windows.Controls;
 using UI.Annotations;
 
 namespace UI
@@ -17,8 +18,6 @@ namespace UI
         private string lastSelectedItem;
 
 
-
-        public byte ItemsSelectQnt { get; set; }
 
         public Dictionary<string, ObservableCollection<string>> BindedColumnsDictionary
         {
@@ -40,7 +39,7 @@ namespace UI
             {
                 if (Equals(value, lastSelectedItem)) return;
                 lastSelectedItem = value;
-                OnPropertyChanged("LastSelectedItem");
+                OnPropertyChanged();
             }
         }
 
@@ -48,13 +47,14 @@ namespace UI
         {
             get
             {
-                return GetColumnValuesExamples(LastSelectedItem, ItemsSelectQnt);
+                return GetColumnValuesExamples(LastSelectedItem);
             }
         }
 
 
 
-        public CompareViewModel(Dictionary<string, ObservableCollection<string>> bindedColumns, ICollection<WorksheetInfo> worksheetsSamples)
+        public CompareViewModel(Dictionary<string, ObservableCollection<string>> bindedColumns,
+            ICollection<WorksheetInfo> worksheetsSamples):this()
         {
             worksheets = worksheetsSamples;
 
@@ -68,14 +68,15 @@ namespace UI
                     .ToList());
         }
 
-        public CompareViewModel()
+        private CompareViewModel()
         {
+            StyleManager.ApplicationTheme = new ModernTheme();
             worksheets = new List<WorksheetInfo>();
             UnbindedColumns = new ObservableCollection<string>();
             bindedColumnsDictionary = new Dictionary<string, ObservableCollection<string>>();
         }
 
-        private List<string> GetColumnValuesExamples(string columnName, byte quantity)
+        private IEnumerable<string> GetColumnValuesExamples(string columnName)
         {
             if (string.IsNullOrEmpty(columnName)) return new List<string>();
 
@@ -104,5 +105,10 @@ namespace UI
             if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
         }
         #endregion
+
+        public void UpdateValuesExamples()
+        {
+            OnPropertyChanged("LastSelectedColumnValuesExamples");
+        }
     }
 }

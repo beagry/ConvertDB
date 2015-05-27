@@ -16,28 +16,26 @@ namespace UI
     /// </summary>
     public partial class ColumnsCompareWindow : Window
     {
-        private CompareViewModel view;
-        private ICollection<WorksheetInfo> wsInfos; 
+        private readonly CompareViewModel viewModel;
+        private readonly ICollection<WorksheetInfo> wsInfos; 
 
-        public ColumnsCompareWindow(Dictionary<string, List<string>> rulesDictionary, List<WorksheetInfo> wsInfos)
+        public ColumnsCompareWindow(Dictionary<string, List<string>> rulesDictionary, ICollection<WorksheetInfo> wsInfos)
         {
             InitializeComponent();
             this.wsInfos = wsInfos;
-            view = new CompareViewModel(DitctToObservDict(rulesDictionary), wsInfos);
-            UnbindexListBox.ItemsSource = view.UnbindedColumns;
-            BindedColumnsListBox.ItemsSource = view.BindedColumnsDictionary;
-            ValuesExamplesListBox.ItemsSource = view.LastSelectedColumnValuesExamples;
+            viewModel = new CompareViewModel(DitctToObservDict(rulesDictionary), wsInfos);
+            DataContext = viewModel;
         }
 
         private void ListBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            view.LastSelectedItem = ((RadListBox) sender).SelectedItem as string;
-            ValuesExamplesListBox.ItemsSource = view.LastSelectedColumnValuesExamples;
+            viewModel.LastSelectedItem = ((RadListBox) sender).SelectedItem as string;
+            viewModel.UpdateValuesExamples();
         }
 
         private void StartButton_OnClick(object sender, RoutedEventArgs e)
         {
-            var dict = ObservDictToDict(view.BindedColumnsDictionary);
+            var dict = ObservDictToDict(viewModel.BindedColumnsDictionary);
 
             var typifer = new WorkbookTypifier<LandPropertyTemplateWorkbook>()
             {
