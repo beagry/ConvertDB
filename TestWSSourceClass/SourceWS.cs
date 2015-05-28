@@ -29,7 +29,7 @@ namespace Converter
 
 
         /// <summary>
-        ///     Старый констуктор для UpdateWB проекта
+        ///     Старый коонстуктор для UpdateWB проекта
         /// </summary>
         /// <param name="worksheet"></param>
         /// <param name="templateWorkbook"></param>
