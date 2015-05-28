@@ -180,6 +180,11 @@ namespace Converter.Template_workbooks.EFModels
             return Context.TemplateWorkbooks;
         }
 
+        public TemplateWorkbook GetTypedWorkbook(XlTemplateWorkbookType wbType)
+        {
+            return Context.TemplateWorkbooks.FirstOrDefault(w => w.WorkbookType == wbType);
+        }
+
         public TemplateWorkbook GetObject(int id)
         {
             return Context.TemplateWorkbooks.Find(id);

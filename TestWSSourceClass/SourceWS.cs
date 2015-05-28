@@ -24,8 +24,8 @@ namespace Converter
 
         private readonly Dictionary<int, string> head;
         private readonly TemplateWorkbook templateWorkbook;
-        private readonly Template_workbooks.EFModels.TemplateWorkbook wb;
         private readonly DataTable wsTable;
+        private Template_workbooks.EFModels.TemplateWorkbook wb;
 
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace Converter
             head = wsTable.Columns.Cast<DataColumn>()
                 .ToDictionary(k => wsTable.Columns.IndexOf(k) + 1, v => v.ColumnName);
 
-            var db = TemplateWbsRepository.Context;
+            var db = TemplateWbsRepositorySingleton.Context;
             wb = db.TemplateWorkbooks.First(w => w.WorkbookType == wbType);
         }
 
@@ -85,6 +85,8 @@ namespace Converter
             //Общие колонки
             //
 
+            FindOneToOneColumn();
+            GetBindedColumnsFromDb();
             TryToFindTemplateColumnsFromDbData();
             return;
 
@@ -117,11 +119,44 @@ namespace Converter
             }
         }
 
+        private void GetBindedColumnsFromDb()
+        {
+            var columns = wb.Columns;
+
+            var tableColumns =
+                    wsTable.Columns.Cast<DataColumn>()
+                        .Select(c => new { Index = wsTable.Columns.IndexOf(c) + 1, Name = c.ColumnName }).ToList();
+            foreach (var column in columns.Where(c => c.BindedColumns.Any()))
+            {
+                for (var i = tableColumns.Count - 1; i >= 0; i--)
+                {
+                    var tableColumn = tableColumns[i];
+                    if (!column.BindedColumns.Any(bc => bc.Name.Equals(tableColumn.Name))) continue;
+
+                    columnsDictionary.Add(tableColumn.Index, column.CodeName);
+                    tableColumns.Remove(tableColumn);
+                }
+            }
+        }
+
+
+        /// <summary>
+        ///     Поиск колонок с точно такими же именами как в конечной книге
+        /// </summary>
+        private void FindOneToOneColumn()
+        {
+            var columns = wb.Columns;
+
+            foreach (var column in columns)
+            {
+                var columnCode = column.CodeName;
+                var maskList = new List<string>() { columnCode };
+                GetColumnNumberByColumnName(columnCode, maskList);
+            }
+        }
+
         private void TryToFindTemplateColumnsFromDbData()
         {
-            var db = TemplateWbsRepository.Context;
-            var wbs = db.TemplateWorkbooks;
-            var wb = wbs.First(t => t.WorkbookType == XlTemplateWorkbookType.LandProperty);
             var columns = wb.Columns;
 
             foreach (var column in columns)
@@ -141,8 +176,8 @@ namespace Converter
         /// <returns></returns>
         private bool GetColumnNumberByColumnName(string columnCode, List<string> masks, bool fullSimilar = false)
         {
-            masks.Add(columnCode);
-            masks.Reverse();
+//            masks.Add(columnCode);
+//            masks.Reverse();
 
             if (masks.Count == 0) return false;
             //Если мы уже находили такую колонку

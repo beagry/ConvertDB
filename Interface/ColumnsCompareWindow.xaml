@@ -24,7 +24,7 @@
         <ListView ItemsSource="{Binding BindedColumns}"
                   Margin="10,20,10,10" Grid.Column="0"
                   MaxHeight="600" MinHeight="100"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Шапка итоговая" Width="180"
@@ -33,10 +33,10 @@
                     <GridViewColumn x:Name="DragColumn" Header="Шапка из источников" Width="240">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <telerik:RadListBox Width="{Binding Path=Width, ElementName=DragColumn}" Margin="0"
+                                <telerik:RadListBox Width="{Binding Path=Width, ElementName=DragColumn}"
                                                     FontSize="12"
                                                     HorizontalAlignment="Stretch"
-                                                    HorizontalContentAlignment="Left"
+                                                    HorizontalContentAlignment="Stretch"
                                                     ItemsSource="{Binding SuitedColumns}" Text="{Binding Name}"
                                                     ItemContainerStyle="{StaticResource DraggableListBoxItem}"
                                                     SelectionChanged="ListBox_OnSelectionChanged"
@@ -52,12 +52,12 @@
             </ListView.View>
         </ListView>
 
-        <DockPanel Margin="10" Grid.Column="1">
+        <DockPanel Margin="10" Grid.Column="1" VerticalAlignment="Stretch">
             <StackPanel DockPanel.Dock="Top">
                 <Label Content="Не распределенные столбцы"
                        FontSize="14" Height="29" />
                 <telerik:RadListBox ItemsSource="{Binding UnbindedColumns}"
-                                    HorizontalAlignment="Stretch" MinHeight="100" MaxHeight="300"
+                                    HorizontalAlignment="Stretch" MinHeight="200" MaxHeight="300"
                                     Margin="0,5,0,0"
                                     ItemContainerStyle="{StaticResource DraggableListBoxItem}"
                                     SelectionMode="Single" SelectionChanged="ListBox_OnSelectionChanged"
@@ -72,10 +72,10 @@
                        FontSize="14" Height="29" />
                 <ListBox Margin="0,5,0,0" ItemsSource="{Binding LastSelectedColumnValuesExamples}" MinHeight="200"
                          MaxHeight="300"
-                         HorizontalAlignment="Stretch"
+                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                          VerticalAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
             </StackPanel>
-            <DockPanel Margin="0,15,0,0" Height="32">
+            <DockPanel Margin="0,15,0,0" Height="32" VerticalAlignment="Bottom">
                 <Button HorizontalAlignment="Left" Content="&#60;&#61;Добавить" Width="90" Click="AddColumnButtton_Click" />
                 <Button HorizontalAlignment="Right" Content="OK" Click="StartButton_OnClick" Width="90"/>
             </DockPanel>
