@@ -77,8 +77,8 @@ namespace UI
             worksheets = new List<WorksheetInfo>();
             UnbindedColumns = new ObservableCollection<string>();
 
-            db = TemplateWbsRepositorySingleton.Context;
-            repository = TemplateWbsRepositorySingleton.Respository;
+            repository = UnitOfWorkSingleton.UnitOfWork.TemplateWbsRespository;
+            db = repository.Context;
         }
 
 

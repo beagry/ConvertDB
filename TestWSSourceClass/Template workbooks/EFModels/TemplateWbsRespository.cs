@@ -72,7 +72,7 @@ namespace Converter.Template_workbooks.EFModels
 
         public TemplateColumnRepository()
         {
-            Context = TemplateWbsRepositorySingleton.Context;
+            Context = UnitOfWorkSingleton.Context;
         }
 
         public TemplateWbsContext Context { get; private set; }
@@ -138,7 +138,7 @@ namespace Converter.Template_workbooks.EFModels
         }
         public TemplateWbsRespository()
         {
-            Context = TemplateWbsRepositorySingleton.Context;
+            Context = UnitOfWorkSingleton.Context;
         }
 
         public TemplateWbsContext Context { get; private set; } 

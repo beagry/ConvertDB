@@ -59,8 +59,7 @@ namespace Converter
             head = wsTable.Columns.Cast<DataColumn>()
                 .ToDictionary(k => wsTable.Columns.IndexOf(k) + 1, v => v.ColumnName);
 
-            var db = TemplateWbsRepositorySingleton.Context;
-            wb = db.TemplateWorkbooks.First(w => w.WorkbookType == wbType);
+            wb = UnitOfWorkSingleton.UnitOfWork.TemplateWbsRespository.GetObjectsList().First(w => w.WorkbookType == wbType);
         }
 
         private SourceWs()

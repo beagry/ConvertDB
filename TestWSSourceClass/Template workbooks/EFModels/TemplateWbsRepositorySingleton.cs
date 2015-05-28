@@ -2,19 +2,24 @@
 
 namespace Converter.Template_workbooks.EFModels
 {
-    public class TemplateWbsRepositorySingleton 
+    public class UnitOfWorkSingleton
     {
-        private static TemplateWbsContext db;
+        private static TemplateWbsContext _db;
 
-        private static TemplateWbsRespository respository;
+        private static UnitOfWork _unitOfWork;
 
-        public static TemplateWbsContext Context { get { return db ?? (db = new TemplateWbsContext()); } }
-
-        public static TemplateWbsRespository Respository { get { return respository ?? (respository = new TemplateWbsRespository()); } }
-
-        protected TemplateWbsRepositorySingleton()
+        public static TemplateWbsContext Context
         {
-            
+            get { return _db ?? (_db = new TemplateWbsContext()); }
+        }
+
+        public static UnitOfWork UnitOfWork
+        {
+            get { return _unitOfWork ?? (_unitOfWork = new UnitOfWork()); }
+        }
+
+        protected UnitOfWorkSingleton()
+        {
         }
     }
 }
