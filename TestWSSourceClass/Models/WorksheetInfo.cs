@@ -17,7 +17,7 @@ namespace Converter.Models
         public WorksheetInfo(DataTable dt):this()
         {
             var head = dt.Columns.Cast<DataColumn>().ToDictionary(k => dt.Columns.IndexOf(k) + 1, v => v.ColumnName);
-
+            Name = dt.TableName;
             foreach (var pair in head)
                 Columns.Add(new ColumnInfo(dt,pair.Key,pair.Value));
         }

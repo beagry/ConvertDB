@@ -84,6 +84,9 @@
       <DependentUpon>ColumnsCompareWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="CompareViewModel.cs" />
+    <Compile Include="EnterNameWindow.xaml.cs">
+      <DependentUpon>EnterNameWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ExtentionConverterWindow.xaml.cs">
       <DependentUpon>ExtentionConverterWindow.xaml</DependentUpon>
     </Compile>
@@ -91,6 +94,10 @@
     <Page Include="ColumnsCompareWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="EnterNameWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ExtentionConverterWindow.xaml">
       <SubType>Designer</SubType>

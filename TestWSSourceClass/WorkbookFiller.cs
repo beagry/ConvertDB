@@ -159,6 +159,14 @@ namespace Converter
                         kv.Value.Any(s => string.Equals(s, columnNameToSearch, StringComparison.OrdinalIgnoreCase)))
                 .Key;
 
+            if (!headsDictionary.ContainsValue(columnNameToPaste))
+            {
+                var indexToPaste = ++lastUsedColumn;
+                headsDictionary.Add(indexToPaste,columnNameToPaste);
+                Worksheet.Cells[1, indexToPaste].Value = columnNameToPaste;
+                return indexToPaste;
+            }
+
             return
                 headsDictionary.First(
                     kv => string.Equals(kv.Value, columnNameToPaste, StringComparison.OrdinalIgnoreCase)).Key;
@@ -179,7 +187,7 @@ namespace Converter
                 var pasteColumnName = indexNamePair.Value;
 
                 //ищем подготовленную для неё колонку вставки
-                var indexToPaste = GetColumnIndexToPaste(indexNamePair.Value);
+                var indexToPaste = GetColumnIndexToPaste(pasteColumnName);
 
                 //если правил нет, колонку вставляем в конец книги
                 if (indexToPaste == 0)
@@ -187,15 +195,17 @@ namespace Converter
                     indexToPaste = ++lastUsedColumn;
 
                     if (!headsDictionary.ContainsValue(pasteColumnName))
+                    {
                         headsDictionary.Add(indexToPaste, pasteColumnName);
+                        Worksheet.Cells[1, indexToPaste].Value = pasteColumnName;
+                    }
                     else
                     {
                         Worksheet.Cells[1, indexToPaste].Value = colName + colNum++;
                         headsDictionary.Add(indexToPaste, indexNamePair.Value);
                     }
                 }
-
-                
+ 
                 var copyColumn = dt.Columns[indexNamePair.Key - 1];
 
                 //Вставляем всю колонку построчно

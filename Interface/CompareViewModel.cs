@@ -4,32 +4,29 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows.Controls;
 using Converter;
 using Converter.Models;
+using Converter.Template_workbooks;
+using Converter.Template_workbooks.EFModels;
+using ExcelRLibrary;
 using ExcelRLibrary.TemplateWorkbooks;
+using OfficeOpenXml.FormulaParsing.Excel.Functions;
 using Telerik.Windows.Controls;
 using UI.Annotations;
+using LandPropertyTemplateWorkbook = Converter.Template_workbooks.LandPropertyTemplateWorkbook;
 
 namespace UI
 {
     public sealed class CompareViewModel:INotifyPropertyChanged
     {
         private readonly ICollection<WorksheetInfo> worksheets;
-        private Dictionary<JustColumn, ObservableCollection<string>> bindedColumnsDictionary;
         private string lastSelectedItem;
+        private TemplateWbsContext db;
+        private TemplateWbsRespository repository;
+        private XlTemplateWorkbookType wbType;
 
-
-
-        public Dictionary<JustColumn, ObservableCollection<string>> BindedColumnsDictionary
-        {
-            get { return bindedColumnsDictionary; }
-            set
-            {
-                if (Equals(value, bindedColumnsDictionary)) return;
-                bindedColumnsDictionary = value;
-                OnPropertyChanged();
-            }
-        }
+        public ObservableCollection<JustColumnViewModel> BindedColumns { get; set; }
 
         public ObservableCollection<string> UnbindedColumns { get; set; }
 
@@ -55,11 +52,14 @@ namespace UI
 
 
         public CompareViewModel(Dictionary<JustColumn, ObservableCollection<string>> bindedColumns,
-            ICollection<WorksheetInfo> worksheetsSamples):this()
+            ICollection<WorksheetInfo> worksheetsSamples, XlTemplateWorkbookType wbType):this()
         {
+            this.wbType = wbType;
             worksheets = worksheetsSamples;
 
-            bindedColumnsDictionary = bindedColumns;
+            BindedColumns =
+                new ObservableCollection<JustColumnViewModel>(
+                    bindedColumns.Select(c => new JustColumnViewModel(c.Key) {SuitedColumns = c.Value}));
 
             UnbindedColumns = new ObservableCollection<string>(
                 worksheets.SelectMany(w => w.Columns) //Единый список колонок
@@ -67,6 +67,8 @@ namespace UI
                     .Distinct()
                     .Except(bindedColumns.SelectMany(kp => kp.Value)) //исключить уже выбранные 
                     .ToList());
+
+            UpdateListsFromDb();
         }
 
         private CompareViewModel()
@@ -74,8 +76,18 @@ namespace UI
             StyleManager.ApplicationTheme = new ModernTheme();
             worksheets = new List<WorksheetInfo>();
             UnbindedColumns = new ObservableCollection<string>();
-            bindedColumnsDictionary = new Dictionary<JustColumn, ObservableCollection<string>>();
+
+            db = TemplateWbsRepositorySingleton.Context;
+            repository = TemplateWbsRepositorySingleton.Respository;
         }
+
+
+        public void AddNewcolumn(string columnName)
+        {
+            var newColumnIndex = BindedColumns.Max(j => j.Index) + 1;
+            BindedColumns.Add(new JustColumnViewModel(columnName,columnName,newColumnIndex));
+        }
+
 
         private IEnumerable<string> GetColumnValuesExamples(string columnName)
         {
@@ -96,7 +108,8 @@ namespace UI
                     .ToList();
         }
 
-        #region inotifyChanged
+
+        #region INotifyChanged
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
@@ -107,9 +120,67 @@ namespace UI
         }
         #endregion
 
+
         public void UpdateValuesExamples()
         {
             OnPropertyChanged("LastSelectedColumnValuesExamples");
         }
+
+        public void CombineWorkbooks()
+        {
+            var dict = BindedColumns.ToDictionary(k => k.CodeName, v => v.SuitedColumns.ToList());
+
+            var typifer = new WorkbookTypifier<LandPropertyTemplateWorkbook>()
+            {
+                RulesDictionary = dict,
+                WorkbooksPaths = worksheets.Select(w => w.Workbook.Path).Distinct().ToList()
+            };
+
+            var result = typifer.CombineToSingleWorkbook();
+            if (result == null) return;
+
+            result.SaveWithDialog("Обработанная выгрузка");
+        }
+
+        private void UpdateListsFromDb()
+        {
+            //Нам нужны попытаться найти неразнесённые колонки
+            //В базе
+
+        }
+
+        private void SaveBindedColumnToDb()
+        {
+
+
+        }
+
+
+        public static Dictionary<JustColumn, ObservableCollection<string>> DitctToObservDict(
+            Dictionary<JustColumn, List<string>> sourceDict)
+        {
+            return sourceDict.ToDictionary(k => k.Key, v => new ObservableCollection<string>(v.Value));
+        }
+
+        public static Dictionary<JustColumn, List<string>> ObservDictToDict(
+            Dictionary<JustColumn, ObservableCollection<string>> sourceDict)
+        {
+            return sourceDict.ToDictionary(k => k.Key, v => v.Value.ToList());
+        }
+    }
+
+    public class JustColumnViewModel:JustColumn
+    {
+        public JustColumnViewModel(JustColumn column):base(column.CodeName,column.Description,column.Index)
+        {
+            SuitedColumns = new ObservableCollection<string>();
+        }
+
+        public JustColumnViewModel(string codename, string description, int index) : base(codename, description, index)
+        {
+            SuitedColumns = new ObservableCollection<string>();
+        }
+
+        public ObservableCollection<string> SuitedColumns { get; set; }
     }
 }

@@ -126,7 +126,8 @@
   <ItemGroup>
     <Compile Include="Template workbooks\EFModels\Reposotory.cs" />
     <Compile Include="Template workbooks\EFModels\TemplateWbsContext.cs" />
-    <Compile Include="Template workbooks\EFModels\TemplateWbsRepository.cs" />
+    <Compile Include="Template workbooks\EFModels\TemplateWbsRepositorySingleton.cs" />
+    <Compile Include="Template workbooks\EFModels\TemplateWbsRespository.cs" />
     <Compile Include="Template workbooks\EFModels\TemplateWorkbook.cs" />
     <Compile Include="Tools\ExcelExtensions.cs" />
     <Compile Include="ExcelResaver.cs" />

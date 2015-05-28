@@ -24,7 +24,7 @@ namespace UI
         {
             InitializeComponent();
             this.wsInfos = wsInfos;
-            viewModel = new CompareViewModel(DitctToObservDict(rulesDictionary), wsInfos);
+            viewModel = new CompareViewModel(CompareViewModel.DitctToObservDict(rulesDictionary), wsInfos, XlTemplateWorkbookType.LandProperty);
             DataContext = viewModel;
         }
 
@@ -36,31 +36,17 @@ namespace UI
 
         private void StartButton_OnClick(object sender, RoutedEventArgs e)
         {
-            var dict = ObservDictToDict(viewModel.BindedColumnsDictionary).ToDictionary(k => k.Key.CodeName,v => v.Value);
-
-            var typifer = new WorkbookTypifier<LandPropertyTemplateWorkbook>()
-            {
-                RulesDictionary = dict,
-                WorkbooksPaths = wsInfos.Select(w => w.Workbook.Path).Distinct().ToList()
-            };
-
-            var result = typifer.CombineToSingleWorkbook();
-            if (result == null) return;
-
-            result.SaveWithDialog("Обработанная выгрузка");
+            viewModel.CombineWorkbooks();
             Close();
         }
 
-        private Dictionary<JustColumn, ObservableCollection<string>> DitctToObservDict(
-            Dictionary<JustColumn, List<string>> sourceDict)
-        {
-            return sourceDict.ToDictionary(k => k.Key, v => new ObservableCollection<string>(v.Value));
-        }
 
-        private Dictionary<JustColumn, List<string>> ObservDictToDict(
-            Dictionary<JustColumn, ObservableCollection<string>> sourceDict)
+        private void AddColumnButtton_Click(object sender, RoutedEventArgs e)
         {
-            return sourceDict.ToDictionary(k => k.Key, v => v.Value.ToList());
+            var w = new EnterNameWindow();
+            w.ShowDialog();
+            var name = w.Name;
+            viewModel.AddNewcolumn(name);
         }
     }
 }
