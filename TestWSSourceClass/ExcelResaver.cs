@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Converter.Tools;
-using Excel = Microsoft.Office.Interop.Excel;
+using Microsoft.Office.Interop.Excel;
 
 namespace Converter
 {
     /// <summary>
-    /// Упрощённый список форматов для сохранения Excel книги
+    ///     Упрощённый список форматов для сохранения Excel книги
     /// </summary>
     public enum XlSaveType
     {
@@ -20,30 +19,20 @@ namespace Converter
         Xlsb
     }
 
-    class WorkbookSaver:IDisposable
+    internal class WorkbookSaver : IDisposable
     {
         private const string OutFolderName = "Out";
-        private readonly string workFolder;
-        private readonly Excel.Application app;
         private static readonly List<WBExtentionInfo> Extentions;
-
-        public string SaveFolder { get; set; }
-        public bool CreateSaveFolderIfMissing { get; set; }
-
-        private struct WBExtentionInfo
-        {
-            public string Extention { get; set; }
-            public Excel.XlFileFormat SaveFormatNum { get; set; }
-            public XlSaveType SimpleSaveType { get; set; }
-        }
+        private readonly Application app;
+        private readonly string workFolder;
 
         static WorkbookSaver()
         {
             Extentions = new List<WBExtentionInfo>
             {
-                new WBExtentionInfo(){Extention = ".xls",SaveFormatNum = Excel.XlFileFormat.xlWorkbookNormal},
-                new WBExtentionInfo(){Extention = ".xlsx",SaveFormatNum = Excel.XlFileFormat.xlOpenXMLWorkbook},
-                new WBExtentionInfo(){Extention = ".xlsb",SaveFormatNum = Excel.XlFileFormat.xlExcel12}
+                new WBExtentionInfo {Extention = ".xls", SaveFormatNum = XlFileFormat.xlWorkbookNormal},
+                new WBExtentionInfo {Extention = ".xlsx", SaveFormatNum = XlFileFormat.xlOpenXMLWorkbook},
+                new WBExtentionInfo {Extention = ".xlsb", SaveFormatNum = XlFileFormat.xlExcel12}
             };
         }
 
@@ -58,13 +47,23 @@ namespace Converter
             app.DisplayAlerts = false;
         }
 
-        public void SaveWorkbookAs(Excel.Workbook wb, XlSaveType saveType)
+        public string SaveFolder { get; set; }
+        public bool CreateSaveFolderIfMissing { get; set; }
+
+        public void Dispose()
         {
-            var folderToSave = SetSaveFolderWithCreate(wb.Path);
-            SaveWorkbookAs(wb,saveType,SaveFolder);
+            if (app == null) return;
+            app.Quit();
+            Marshal.ReleaseComObject(app);
         }
 
-        public void SaveWorkbookAs(Excel.Workbook wb, XlSaveType saveType, string saveFolder)
+        public void SaveWorkbookAs(Workbook wb, XlSaveType saveType)
+        {
+            var folderToSave = SetSaveFolderWithCreate(wb.Path);
+            SaveWorkbookAs(wb, saveType, SaveFolder);
+        }
+
+        public void SaveWorkbookAs(Workbook wb, XlSaveType saveType, string saveFolder)
         {
             if (wb == null) return;
             if (saveFolder == null) throw new ArgumentNullException("saveFolder");
@@ -77,7 +76,7 @@ namespace Converter
             app.DisplayAlerts = false;
             wb.SaveAs(saveFolder + "\\" + fileNameToSave,
                 extParams.SaveFormatNum,
-                ConflictResolution: Excel.XlSaveConflictResolution.xlLocalSessionChanges);
+                ConflictResolution: XlSaveConflictResolution.xlLocalSessionChanges);
             app.DisplayAlerts = true;
         }
 
@@ -86,8 +85,8 @@ namespace Converter
             var files = Directory.GetFiles(workFolder, "*.xlsb");
             var ends = files.Count() == 1 ? "a" : files.Count() < 5 ? "и" : "";
             Console.WriteLine(@"Всего найдено {0} книг", files.Count());
-            
-            foreach (string s in files)
+
+            foreach (var s in files)
                 ResaveWbAsXlsx(s);
         }
 
@@ -100,9 +99,9 @@ namespace Converter
                 try
                 {
                     app.DisplayAlerts = false;
-                    wb.SaveAs(SaveFolder + wbName, 
-                        Excel.XlFileFormat.xlOpenXMLWorkbook,
-                        ConflictResolution: Excel.XlSaveConflictResolution.xlLocalSessionChanges);
+                    wb.SaveAs(SaveFolder + wbName,
+                        XlFileFormat.xlOpenXMLWorkbook,
+                        ConflictResolution: XlSaveConflictResolution.xlLocalSessionChanges);
                     app.DisplayAlerts = true;
                     wb.Close();
                 }
@@ -128,12 +127,11 @@ namespace Converter
             return s;
         }
 
-        public void Dispose()
+        private struct WBExtentionInfo
         {
-            if (app == null) return;
-            app.Quit();
-            Marshal.ReleaseComObject(app);
+            public string Extention { get; set; }
+            public XlFileFormat SaveFormatNum { get; set; }
+            public XlSaveType SimpleSaveType { get; set; }
         }
-        
     }
 }

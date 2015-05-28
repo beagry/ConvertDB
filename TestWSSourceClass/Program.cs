@@ -53,7 +53,7 @@
 //            Console.WriteLine("Поиск книг с уникальными шапками..");
 //            var groupedWorkbook = GroupWorkBooksByHead(workbooksList, xlApplication);
 //            uniqWorkbooks = groupedWorkbook.DistinctBy(x => x.Value).Select(x => x.Key).ToList();
-            
+
 //            Console.WriteLine("Найдено {0} различных видов книг",uniqWorkbooks.Count);
 //            Console.WriteLine("Анализ книг...");
 
@@ -111,7 +111,7 @@
 //                Excel.Workbook workbook = xlApplication.Workbooks.Cast<Excel.Workbook>().FirstOrDefault(x => x.Name == workbookName);
 //                progressForm.UpdateStatus(workbookName);
 //                if (workbook == null) continue;
-                       
+
 //                worksheet = workbook.Worksheets[1];
 //                var sourceWs = new SourceWs(worksheet, xlApplication,templateWorkbook);
 
@@ -182,7 +182,7 @@
 //                {
 //                    throw new Exception(String.Format("Не удаётся получить доступ к книге {0}, необходим доступ с возможнстью редактирования \nПпопробуйте скопировать книги к себе на компьютер и объединить их там"));
 //                }
-                
+
 
 //#if DEBUG
 //                Debug.Assert(workbook != null);
@@ -222,3 +222,4 @@
 //    }
 
 //}
+

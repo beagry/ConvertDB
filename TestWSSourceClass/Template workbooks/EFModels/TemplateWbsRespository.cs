@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.Entity;
-using System.Drawing;
 using System.Linq;
-using System.Runtime.Remoting.Contexts;
-using System.Windows;
 
 namespace Converter.Template_workbooks.EFModels
 {
-
-    interface IRepository<T>:IDisposable where T: class
+    internal interface IRepository<T> : IDisposable where T : class
     {
         IEnumerable<T> GetObjectsList();
         T GetObject(int id);
@@ -21,11 +16,12 @@ namespace Converter.Template_workbooks.EFModels
     }
 
 
-    public class UnitOfWork:IDisposable
+    public class UnitOfWork : IDisposable
     {
         private readonly TemplateWbsContext db = new TemplateWbsContext();
-        private TemplateWbsRespository templateWbsRespository;
+        private bool disposed;
         private TemplateColumnRepository templateColumnRepository;
+        private TemplateWbsRespository templateWbsRespository;
 
         public TemplateWbsRespository TemplateWbsRespository
         {
@@ -34,15 +30,19 @@ namespace Converter.Template_workbooks.EFModels
 
         public TemplateColumnRepository TemplateColumnRepository
         {
-            get { return templateColumnRepository??(templateColumnRepository = new TemplateColumnRepository(db)); }
+            get { return templateColumnRepository ?? (templateColumnRepository = new TemplateColumnRepository(db)); }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         public void Save()
         {
             db.SaveChanges();
         }
-
-        private bool disposed = false;
 
         public virtual void Dispose(bool disposing)
         {
@@ -55,16 +55,12 @@ namespace Converter.Template_workbooks.EFModels
             }
             disposed = true;
         }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
     }
 
-    public sealed class TemplateColumnRepository:IRepository<TemplateColumn>
+    public sealed class TemplateColumnRepository : IRepository<TemplateColumn>
     {
+        private bool disposed;
+
         public TemplateColumnRepository(TemplateWbsContext db)
         {
             Context = db;
@@ -76,20 +72,6 @@ namespace Converter.Template_workbooks.EFModels
         }
 
         public TemplateWbsContext Context { get; private set; }
-
-        private bool disposed = false;
-
-        public void Dispose(bool disposing)
-        {
-            if (!disposed)
-            {
-                if (disposing)
-                {
-                    Context.Dispose();
-                }
-            }
-            disposed = true;
-        }
 
         public void Dispose()
         {
@@ -128,61 +110,39 @@ namespace Converter.Template_workbooks.EFModels
         {
             Context.SaveChanges();
         }
+
+        public void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    Context.Dispose();
+                }
+            }
+            disposed = true;
+        }
     }
 
-    public sealed class TemplateWbsRespository:IRepository<TemplateWorkbook>
+    public sealed class TemplateWbsRespository : IRepository<TemplateWorkbook>
     {
+        private bool disposed;
+
         public TemplateWbsRespository(TemplateWbsContext db)
         {
             Context = db;
         }
+
         public TemplateWbsRespository()
         {
             Context = UnitOfWorkSingleton.Context;
         }
 
-        public TemplateWbsContext Context { get; private set; } 
-
-        public void AddColumnColumnPair(string templateColumName, string bindingColumnName)
-        {
-            //Remove old bindingColumn reference
-            var oldReference =
-                Context.TemplateColumns.FirstOrDefault(tc => tc.BindedColumns.Any(bc => bc.Name.Equals(bindingColumnName)));
-            if (oldReference != null)
-            {
-                var bc = oldReference.BindedColumns.First(c => c.Name.Equals(bindingColumnName));
-                oldReference.BindedColumns.Remove(bc);
-            }
-
-            //add new reference
-            var newOnwerColumn = Context.TemplateColumns.First(c => c.CodeName.Equals(templateColumName));
-            newOnwerColumn.BindedColumns.Add(new BindedColumn(){Name = bindingColumnName});
-        }
-
-        public void RemoveColumnColumnPair(string bindingColumnName)
-        {
-            //Remove old bindingColumn reference
-            var oldReference =
-                Context.TemplateColumns.FirstOrDefault(
-                    tc => tc.BindedColumns.Any(c => c.Name.Equals(bindingColumnName)));
-            if (oldReference == null) return;
-            var bc = oldReference.BindedColumns.First(c => c.Name.Equals(bindingColumnName));
-            oldReference.BindedColumns.Remove(bc);
-        }
-
-        public IEnumerable<TemplateColumn> TemplateColumnsOfWorkbook(XlTemplateWorkbookType wbType)
-        {
-            return Context.TemplateColumns.Where(c => c.TemplateWorkbooks.Any(w => w.WorkbookType == wbType));
-        }
+        public TemplateWbsContext Context { get; private set; }
 
         public IEnumerable<TemplateWorkbook> GetObjectsList()
         {
             return Context.TemplateWorkbooks;
-        }
-
-        public TemplateWorkbook GetTypedWorkbook(XlTemplateWorkbookType wbType)
-        {
-            return Context.TemplateWorkbooks.FirstOrDefault(w => w.WorkbookType == wbType);
         }
 
         public TemplateWorkbook GetObject(int id)
@@ -213,7 +173,49 @@ namespace Converter.Template_workbooks.EFModels
             Context.SaveChanges();
         }
 
-        private bool disposed = false;
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        public void AddColumnColumnPair(string templateColumName, string bindingColumnName)
+        {
+            //Remove old bindingColumn reference
+            var oldReference =
+                Context.TemplateColumns.FirstOrDefault(
+                    tc => tc.BindedColumns.Any(bc => bc.Name.Equals(bindingColumnName)));
+            if (oldReference != null)
+            {
+                var bc = oldReference.BindedColumns.First(c => c.Name.Equals(bindingColumnName));
+                oldReference.BindedColumns.Remove(bc);
+            }
+
+            //add new reference
+            var newOnwerColumn = Context.TemplateColumns.First(c => c.CodeName.Equals(templateColumName));
+            newOnwerColumn.BindedColumns.Add(new BindedColumn {Name = bindingColumnName});
+        }
+
+        public void RemoveColumnColumnPair(string bindingColumnName)
+        {
+            //Remove old bindingColumn reference
+            var oldReference =
+                Context.TemplateColumns.FirstOrDefault(
+                    tc => tc.BindedColumns.Any(c => c.Name.Equals(bindingColumnName)));
+            if (oldReference == null) return;
+            var bc = oldReference.BindedColumns.First(c => c.Name.Equals(bindingColumnName));
+            oldReference.BindedColumns.Remove(bc);
+        }
+
+        public IEnumerable<TemplateColumn> TemplateColumnsOfWorkbook(XlTemplateWorkbookType wbType)
+        {
+            return Context.TemplateColumns.Where(c => c.TemplateWorkbooks.Any(w => w.WorkbookType == wbType));
+        }
+
+        public TemplateWorkbook GetTypedWorkbook(XlTemplateWorkbookType wbType)
+        {
+            return Context.TemplateWorkbooks.FirstOrDefault(w => w.WorkbookType == wbType);
+        }
 
         public void Dispose(bool disposing)
         {
@@ -225,11 +227,6 @@ namespace Converter.Template_workbooks.EFModels
                 }
             }
             disposed = true;
-        }
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
     }
 }

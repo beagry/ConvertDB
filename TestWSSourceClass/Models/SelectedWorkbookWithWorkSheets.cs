@@ -4,12 +4,8 @@ namespace Converter.Models
 {
     public class SelectedWorkbookWithWorkSheets : SelectedWorkbook
     {
-
-        public WorksheetInfo WorksheetInfo { get; private set; }
-
-        public SelectedWorkbookWithWorkSheets():base()
+        public SelectedWorkbookWithWorkSheets()
         {
-            
         }
 
         public SelectedWorkbookWithWorkSheets(SelectedWorkbook simpleWorkbook, WorksheetInfo wsInfo)
@@ -19,5 +15,6 @@ namespace Converter.Models
             WorksheetInfo = wsInfo;
         }
 
+        public WorksheetInfo WorksheetInfo { get; private set; }
     }
 }

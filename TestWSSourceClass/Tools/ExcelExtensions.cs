@@ -8,14 +8,13 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.Office.Interop.Excel;
 using DataTable = System.Data.DataTable;
-using Excel = Microsoft.Office.Interop.Excel;
 
 namespace Converter.Tools
 {
-    static class ExcelExtensions
+    internal static class ExcelExtensions
     {
         /// <summary>
-        /// Метод возвращает текущий лист как DataTable
+        ///     Метод возвращает текущий лист как DataTable
         /// </summary>
         /// <param name="worksheet">Лист для концертации</param>
         /// <returns></returns>
@@ -25,13 +24,15 @@ namespace Converter.Tools
             var noth = worksheet.UsedRange.Rows.Count;
             noth = worksheet.UsedRange.Columns.Count;
 
-            object[,] rangeArray = worksheet.Range[worksheet.Cells[1,1],worksheet.Cells.SpecialCells(XlCellType.xlCellTypeLastCell)].Value2;
-            DataTable dataTable = new DataTable();
+            object[,] rangeArray =
+                worksheet.Range[worksheet.Cells[1, 1], worksheet.Cells.SpecialCells(XlCellType.xlCellTypeLastCell)]
+                    .Value2;
+            var dataTable = new DataTable();
 
             //create heads
             for (var j = 1; j <= rangeArray.GetLength(1); j++)
             {
-                string columnName = (string) (rangeArray[1, j] ?? "NoName");
+                var columnName = (string) (rangeArray[1, j] ?? "NoName");
 
                 if (columnName == "NoName")
                     dataTable.Columns.Add(
@@ -45,13 +46,13 @@ namespace Converter.Tools
             //for each row
             for (var i = 2; i <= rangeArray.GetLength(0); i++)
             {
-                DataRow dataRow = dataTable.NewRow();
+                var dataRow = dataTable.NewRow();
 
                 //fill row
                 //for each column
                 for (var j = 1; j <= rangeArray.GetLength(1); j++)
                 {
-                    dataRow[j-1] = rangeArray[i, j]??string.Empty;
+                    dataRow[j - 1] = rangeArray[i, j] ?? string.Empty;
                 }
                 dataTable.Rows.Add(dataRow);
             }
@@ -62,8 +63,8 @@ namespace Converter.Tools
         {
             var datatable = worksheet.GetDataTableFromWorksheet();
 
-            DataTable newTable = datatable.Clone();
-            for (int i = 0; i <= rows; i++)
+            var newTable = datatable.Clone();
+            for (var i = 0; i <= rows; i++)
             {
                 newTable.ImportRow(datatable.Rows[i]);
             }
@@ -78,10 +79,11 @@ namespace Converter.Tools
             var s = worksheet.UsedRange.Rows.Count; //reset usedrange
             for (var row = lasRow; row >= 0; row--)
             {
-                Range rowRange =
+                var rowRange =
                     worksheet.UsedRange.Range[
                         worksheet.Cells[row, 1],
-                        worksheet.Cells[row, worksheet.UsedRange.Cells.SpecialCells(XlCellType.xlCellTypeLastCell).Column]];
+                        worksheet.Cells[
+                            row, worksheet.UsedRange.Cells.SpecialCells(XlCellType.xlCellTypeLastCell).Column]];
 
                 var j = rowRange.Cells.Cast<Range>().Count(cellInRow => cellInRow.Value2 != null);
                 if (j != 0) continue; // if row has not empty cell we move next
@@ -92,8 +94,8 @@ namespace Converter.Tools
         public static IEnumerable<TSource> DistinctBy<TSource, TKey>
             (this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
         {
-            HashSet<TKey> seenKeys = new HashSet<TKey>();
-            foreach (TSource element in source)
+            var seenKeys = new HashSet<TKey>();
+            foreach (var element in source)
             {
                 if (seenKeys.Add(keySelector(element)))
                 {
@@ -103,7 +105,7 @@ namespace Converter.Tools
         }
 
         /// <summary>
-        /// Метод возвращает таблицу, с той же структурой, но с содержанием из выборки
+        ///     Метод возвращает таблицу, с той же структурой, но с содержанием из выборки
         /// </summary>
         /// <returns></returns>
         public static DataTable GetCustomDataTable(this DataTable table, Func<DataRow, bool> pred)
@@ -114,19 +116,12 @@ namespace Converter.Tools
             foreach (var row in table.Rows.Cast<DataRow>())
             {
                 if (pred(row))
-                resTable.ImportRow(row);
+                    resTable.ImportRow(row);
             }
             return resTable;
         }
 
-        internal enum CellColors
-        {
-            BadColor,
-            GoodColor,
-            Clear
-        }
-
-        public static void ColorCell(this Range cell,CellColors cellColor)
+        public static void ColorCell(this Range cell, CellColors cellColor)
         {
             switch (cellColor)
             {
@@ -139,18 +134,24 @@ namespace Converter.Tools
                 case CellColors.Clear:
                     cell.Interior.ColorIndex = 0;
                     break;
-
             }
         }
 
         [DllImport("user32.dll")]
-        static extern int GetWindowThreadProcessId(int hWnd, out int lpdwProcessId);
+        private static extern int GetWindowThreadProcessId(int hWnd, out int lpdwProcessId);
 
-        public static Process GetExcelProcess(Excel.Application excelApp)
+        public static Process GetExcelProcess(Application excelApp)
         {
             int id;
             GetWindowThreadProcessId(excelApp.Hwnd, out id);
             return Process.GetProcessById(id);
+        }
+
+        internal enum CellColors
+        {
+            BadColor,
+            GoodColor,
+            Clear
         }
     }
 
@@ -158,29 +159,29 @@ namespace Converter.Tools
     {
         public ExcelApp()
         {
-            XlApplication = new Excel.Application();//GetExcelApplication();
+            XlApplication = new Application(); //GetExcelApplication();
             XlProcess = ExcelExtensions.GetExcelProcess(XlApplication);
         }
 
         /// <summary>
-        /// COM объект текущего Excel приложения
+        ///     COM объект текущего Excel приложения
         /// </summary>
         public Application XlApplication { get; private set; }
 
         /// <summary>
-        /// Объект - процесс текущего Excel приложения
+        ///     Объект - процесс текущего Excel приложения
         /// </summary>
         public Process XlProcess { get; private set; }
 
         /// <summary>
-        /// Метод возвращает книгу, открытую в текущем процессе
+        ///     Метод возвращает книгу, открытую в текущем процессе
         /// </summary>
         /// <param name="workbookPath">путь к книге</param>
         /// <returns>COM объект workbook книги, открытой по переданному адресу в текущем процессе</returns>
-        public Excel.Workbook OpenWorkbook(string workbookPath)
+        public Workbook OpenWorkbook(string workbookPath)
         {
             if (!File.Exists(workbookPath)) return null;
-            
+
 
             XlProcess.StartInfo = new ProcessStartInfo(workbookPath);
             XlProcess.Start();
@@ -191,22 +192,21 @@ namespace Converter.Tools
             return workbook;
         }
 
-        public static Microsoft.Office.Interop.Excel.Application GetExcelApplication()
+        public static Application GetExcelApplication()
         {
-
 #if (DEBUG)
             return new Excel.Application { Visible = true, ScreenUpdating = true };
 #endif
-            Excel.Application xlApplication = null;
+            Application xlApplication = null;
             try
             {
-                xlApplication = (Excel.Application)Marshal.GetActiveObject("Excel.Application");
+                xlApplication = (Application) Marshal.GetActiveObject("Excel.Application");
             }
             catch (COMException exception)
             {
                 if (xlApplication == null)
                 {
-                    xlApplication = new Excel.Application() { Visible = true };
+                    xlApplication = new Application {Visible = true};
                 }
                 else
                 {
@@ -216,5 +216,4 @@ namespace Converter.Tools
             return xlApplication;
         }
     }
-
 }

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Converter.Models;
@@ -12,44 +10,37 @@ using DataTable = System.Data.DataTable;
 
 namespace Converter
 {
-
     public interface IFiller
     {
-        Dictionary<string,List<string>> RulesDictionary { get; set; }
+        Dictionary<string, List<string>> RulesDictionary { get; set; }
     }
 
-    interface IWorksheetFiller:IFiller
+    internal interface IWorksheetFiller : IFiller
     {
         void InsertOneToOneWorksheet(Worksheet ws, int firstRowWithData = 1);
         void InsertWorksheet(Worksheet ws, int firstRowWithData = 1, bool copyFormat = false);
     }
 
-    interface IEPPlusWorksheetFiller:IFiller
+    internal interface IEPPlusWorksheetFiller : IFiller
     {
-        ExcelWorksheet Worksheet{ get; }
+        ExcelWorksheet Worksheet { get; }
         void AppendDataTable(DataTable dt);
     }
 
     /// <summary>
-    /// Простой помощни для записи информации в книгу.
+    ///     Простой помощни для записи информации в книгу.
     /// </summary>
-    public class WorksheetFiller:IWorksheetFiller,IEPPlusWorksheetFiller
+    public class WorksheetFiller : IWorksheetFiller, IEPPlusWorksheetFiller
     {
-        private long lastUsedRow;
-        private int lastUsedColumn;
-        private bool oneToOneMode;
-        private int colNum = 1;
         private const string colName = "AddColumn_";
-
         private readonly Worksheet fillingWorksheet;
+        private int colNum = 1;
         private Dictionary<int, string> headsDictionary;
+        private int lastUsedColumn;
+        private long lastUsedRow;
+        private bool oneToOneMode;
 
-
-        public Dictionary<string, List<string>> RulesDictionary { get; set; }
-        public string WorksheetName { get { return fillingWorksheet.Name; } }
-
-
-        public WorksheetFiller(ExcelWorksheet worksheet, Dictionary<string, List<string>> rulesDictionary):this()
+        public WorksheetFiller(ExcelWorksheet worksheet, Dictionary<string, List<string>> rulesDictionary) : this()
         {
             Worksheet = worksheet;
             headsDictionary = worksheet.ReadHead();
@@ -58,13 +49,14 @@ namespace Converter
             lastUsedRow = Worksheet.Dimension.Rows;
         }
 
-        public WorksheetFiller(Worksheet fillingWorksheet, Dictionary<string, List<string>> rulesDictionary):this(fillingWorksheet)
+        public WorksheetFiller(Worksheet fillingWorksheet, Dictionary<string, List<string>> rulesDictionary)
+            : this(fillingWorksheet)
         {
             RulesDictionary = rulesDictionary;
             headsDictionary = fillingWorksheet.ReadHead();
         }
 
-        public WorksheetFiller(Worksheet fillingWorksheet):this()
+        public WorksheetFiller(Worksheet fillingWorksheet) : this()
         {
             this.fillingWorksheet = fillingWorksheet;
             lastUsedRow = fillingWorksheet.GetLastUsedRow();
@@ -77,31 +69,88 @@ namespace Converter
             headsDictionary = new Dictionary<int, string>();
         }
 
+        public string WorksheetName
+        {
+            get { return fillingWorksheet.Name; }
+        }
+
+        public ExcelWorksheet Worksheet { get; private set; }
+
+        public void AppendDataTable(DataTable dt)
+        {
+            var tableColumns = dt.ReadHead();
+
+            //Поколоночно
+            foreach (var indexNamePair in tableColumns)
+            {
+                var pasteColumnName = indexNamePair.Value;
+
+                //ищем подготовленную для неё колонку вставки
+                var indexToPaste = GetColumnIndexToPaste(pasteColumnName);
+
+                //если правил нет, колонку вставляем в конец книги
+                if (indexToPaste == 0)
+                {
+                    indexToPaste = ++lastUsedColumn;
+
+                    if (!headsDictionary.ContainsValue(pasteColumnName))
+                    {
+                        headsDictionary.Add(indexToPaste, pasteColumnName);
+                        Worksheet.Cells[1, indexToPaste].Value = pasteColumnName;
+                    }
+                    else
+                    {
+                        Worksheet.Cells[1, indexToPaste].Value = colName + colNum++;
+                        headsDictionary.Add(indexToPaste, indexNamePair.Value);
+                    }
+                }
+
+                var copyColumn = dt.Columns[indexNamePair.Key - 1];
+
+                //Вставляем всю колонку построчно
+                for (var i = 0; i < dt.Rows.Count; i++)
+                {
+                    var row = dt.Rows[i];
+                    var cellToPaste = Worksheet.Cells[(int) lastUsedRow + 1 + i, indexToPaste];
+                    var currVal = (cellToPaste.Value ?? "").ToString();
+                    if (currVal != "")
+                    {
+                        if (row[copyColumn].ToString() != "")
+                            cellToPaste.Value = currVal + " | " + row[copyColumn];
+                    }
+                    else
+                        cellToPaste.Value = row[copyColumn];
+                }
+            }
+
+            lastUsedRow += dt.Rows.Count;
+        }
+
+        public Dictionary<string, List<string>> RulesDictionary { get; set; }
 
         public void InsertOneToOneWorksheet(Worksheet ws, int firstRowWithData = 1)
         {
-
-            var copyRange = ws.Range[ws.Cells[firstRowWithData, 1], ws.Cells[ws.GetLastUsedRow(), ws.GetLastUsedColumn()]];
-            var cellTopaste = fillingWorksheet.Cells[lastUsedRow,1];
+            var copyRange =
+                ws.Range[ws.Cells[firstRowWithData, 1], ws.Cells[ws.GetLastUsedRow(), ws.GetLastUsedColumn()]];
+            var cellTopaste = fillingWorksheet.Cells[lastUsedRow, 1];
             copyRange.Copy(cellTopaste);
             lastUsedRow += copyRange.Rows.Count + 1;
 
             Marshal.FinalReleaseComObject(copyRange);
             Marshal.FinalReleaseComObject(cellTopaste);
-
         }
 
         public void InsertWorksheet(Worksheet ws, int firstRowWithData = 1, bool copyFormat = false)
         {
             CheckRulesDict();
 
-            var wsWithData = new WorksheetToCopy(ws) { FirstRowWithData = (byte) firstRowWithData };
+            var wsWithData = new WorksheetToCopy(ws) {FirstRowWithData = (byte) firstRowWithData};
 
             //Каждую колонку из копируемого листа
             foreach (var indexNamePair in wsWithData.HeadsDictionary)
             {
                 //ищем подготовленную для неё колонку вставки
-                int indexToPaste = oneToOneMode? indexNamePair.Key : GetColumnIndexToPaste(indexNamePair.Value);
+                var indexToPaste = oneToOneMode ? indexNamePair.Key : GetColumnIndexToPaste(indexNamePair.Value);
 
                 //если правил нет, колонку вставляем в конец книги
                 if (indexToPaste == 0)
@@ -113,7 +162,7 @@ namespace Converter
                 var cellToPaste = fillingWorksheet.Cells[lastUsedRow + 1, indexToPaste] as Range;
                 var copyColumnIndex = indexNamePair.Key;
 
-                wsWithData.CopyColumn(copyColumnIndex,cellToPaste,copyFormat);
+                wsWithData.CopyColumn(copyColumnIndex, cellToPaste, copyFormat);
             }
 
             lastUsedRow = fillingWorksheet.GetLastUsedRow();
@@ -129,15 +178,17 @@ namespace Converter
         private void SetOneToOneRulesDict()
         {
             headsDictionary = fillingWorksheet.ReadHead().ToDictionary(k => k.Key, v => v.Key.ToString());
-            RulesDictionary = headsDictionary.ToDictionary(k => k.Key.ToString(), v => new List<string> { v.Key.ToString() }); 
+            RulesDictionary = headsDictionary.ToDictionary(k => k.Key.ToString(),
+                v => new List<string> {v.Key.ToString()});
         }
 
         private void DeleteLastEmptyRows()
         {
             while (
-                ((Range)fillingWorksheet.Range[
+                fillingWorksheet.Range[
                     fillingWorksheet.Cells[lastUsedRow, 1],
-                    fillingWorksheet.Cells[lastUsedRow, fillingWorksheet.Cells.SpecialCells(XlCellType.xlCellTypeLastCell).Column]]).Cells
+                    fillingWorksheet.Cells[
+                        lastUsedRow, fillingWorksheet.Cells.SpecialCells(XlCellType.xlCellTypeLastCell).Column]].Cells
                     .Cast<Range>().All(cl => cl.Value2 == null))
             {
                 lastUsedRow --;
@@ -161,7 +212,7 @@ namespace Converter
             if (!headsDictionary.ContainsValue(columnNameToPaste))
             {
                 var indexToPaste = ++lastUsedColumn;
-                headsDictionary.Add(indexToPaste,columnNameToPaste);
+                headsDictionary.Add(indexToPaste, columnNameToPaste);
                 Worksheet.Cells[1, indexToPaste].Value = columnNameToPaste;
                 return indexToPaste;
             }
@@ -169,61 +220,6 @@ namespace Converter
             return
                 headsDictionary.First(
                     kv => string.Equals(kv.Value, columnNameToPaste, StringComparison.OrdinalIgnoreCase)).Key;
-        }
-
-
-
-        public ExcelWorksheet Worksheet { get; private set; }
-
-        public void AppendDataTable(DataTable dt)
-        {
-            var tableColumns = dt.ReadHead();
-            
-            //Поколоночно
-            foreach (var indexNamePair in tableColumns)
-            {
-
-                var pasteColumnName = indexNamePair.Value;
-
-                //ищем подготовленную для неё колонку вставки
-                var indexToPaste = GetColumnIndexToPaste(pasteColumnName);
-
-                //если правил нет, колонку вставляем в конец книги
-                if (indexToPaste == 0)
-                {
-                    indexToPaste = ++lastUsedColumn;
-
-                    if (!headsDictionary.ContainsValue(pasteColumnName))
-                    {
-                        headsDictionary.Add(indexToPaste, pasteColumnName);
-                        Worksheet.Cells[1, indexToPaste].Value = pasteColumnName;
-                    }
-                    else
-                    {
-                        Worksheet.Cells[1, indexToPaste].Value = colName + colNum++;
-                        headsDictionary.Add(indexToPaste, indexNamePair.Value);
-                    }
-                }
- 
-                var copyColumn = dt.Columns[indexNamePair.Key - 1];
-
-                //Вставляем всю колонку построчно
-                for (var i = 0; i < dt.Rows.Count; i++)
-                {
-                    var row = dt.Rows[i];
-                    var cellToPaste = Worksheet.Cells[(int)lastUsedRow + 1 + i, indexToPaste];
-                    var currVal = (cellToPaste.Value ??"").ToString();
-                    if (currVal != "")
-                    {
-                        if (row[copyColumn].ToString() != "")
-                            cellToPaste.Value = currVal + " | " + row[copyColumn];
-                    }
-                    else
-                        cellToPaste.Value = row[copyColumn];
-                }
-            }
-
-            lastUsedRow += dt.Rows.Count;
         }
     }
 }

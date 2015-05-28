@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
-
-namespace Converter.Template_workbooks.EFModels
+﻿namespace Converter.Template_workbooks.EFModels
 {
     public class UnitOfWorkSingleton
     {
         private static TemplateWbsContext _db;
-
         private static UnitOfWork _unitOfWork;
+
+        protected UnitOfWorkSingleton()
+        {
+        }
 
         public static TemplateWbsContext Context
         {
@@ -16,10 +17,6 @@ namespace Converter.Template_workbooks.EFModels
         public static UnitOfWork UnitOfWork
         {
             get { return _unitOfWork ?? (_unitOfWork = new UnitOfWork()); }
-        }
-
-        protected UnitOfWorkSingleton()
-        {
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.Office.Interop.Excel;
 using DataTable = System.Data.DataTable;
@@ -11,14 +10,8 @@ namespace Converter.Models
     public class ColumnInfo
     {
         public static byte ExamplesQnt = 10;
-        public int Index { get; private set; }
-        public String Name { get; private set; }
-        public ICollection<string> ValuesExamples { get; set; }
 
-
-
-
-        public ColumnInfo(Worksheet ws, int index, string name):this(index,name)
+        public ColumnInfo(Worksheet ws, int index, string name) : this(index, name)
         {
             Index = index;
             SetValuesExamples(ws);
@@ -32,7 +25,6 @@ namespace Converter.Models
 
         public ColumnInfo()
         {
-
         }
 
         public ColumnInfo(DataTable table, int index, string name)
@@ -42,6 +34,9 @@ namespace Converter.Models
             SetValuesExamples(table);
         }
 
+        public int Index { get; private set; }
+        public string Name { get; private set; }
+        public ICollection<string> ValuesExamples { get; set; }
 
         private void SetValuesExamples(DataTable table)
         {
@@ -52,6 +47,7 @@ namespace Converter.Models
                 .Select(s => s.ToString())
                 .Distinct().Take(ExamplesQnt).ToList();
         }
+
         private void SetValuesExamples(Worksheet ws)
         {
             var columnRange = (Range) ws.Columns[Index, Type.Missing];

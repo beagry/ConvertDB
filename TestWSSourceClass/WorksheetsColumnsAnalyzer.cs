@@ -1,43 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using Converter.Models;
 using Converter.Template_workbooks;
 using Converter.Template_workbooks.EFModels;
-using Converter.Tools;
 using ExcelRLibrary;
 using ExcelRLibrary.TemplateWorkbooks;
-using Microsoft.Office.Interop.Excel;
-using DataTable = System.Data.DataTable;
-using TemplateWorkbook = Converter.Template_workbooks.TemplateWorkbook;
 
 namespace Converter
 {
-
     /// <summary>
-    /// Помощник в анализе книг
-    /// В результате выдаёт список столбцов наиболее подходящих к шаблону
+    ///     Помощник в анализе книг
+    ///     В результате выдаёт список столбцов наиболее подходящих к шаблону
     /// </summary>
     public class WorkbooksAnalyzier
     {
         private readonly XlTemplateWorkbookType wbType;
-
-        /// <summary>
-        ///     Result of CheckWorkbook(s) Method
-        /// </summary>
-        public Dictionary<JustColumn,List<string>> ComparedColumns { get; private set; }
-
-        /// <summary>
-        ///     Info about worksheets of WB
-        /// </summary>
-        public List<WorksheetInfo> WorksheetsInfos { get; private set; }
-
 
         public WorkbooksAnalyzier(XlTemplateWorkbookType workbookType)
         {
@@ -46,6 +25,15 @@ namespace Converter
             CreateResultDict();
         }
 
+        /// <summary>
+        ///     Result of CheckWorkbook(s) Method
+        /// </summary>
+        public Dictionary<JustColumn, List<string>> ComparedColumns { get; private set; }
+
+        /// <summary>
+        ///     Info about worksheets of WB
+        /// </summary>
+        public List<WorksheetInfo> WorksheetsInfos { get; private set; }
 
         /// <summary>
         ///     Метод пытается найти соотвествующие колонки для шаблонной книги
@@ -62,8 +50,6 @@ namespace Converter
             }
         }
 
-
-
         private void CheckWorkbook(string path)
         {
             var fi = new FileInfo(path);
@@ -74,7 +60,7 @@ namespace Converter
 
 
             //Создаем модель рабочего листа
-            WorksheetsInfos.Add(new WorksheetInfo(dt){Workbook = new SelectedWorkbook(fi.FullName)});
+            WorksheetsInfos.Add(new WorksheetInfo(dt) {Workbook = new SelectedWorkbook(fi.FullName)});
 
             //Анализируем содержание рабочего листа
             var sourceWs = new SourceWs(dt, wbType);
@@ -103,9 +89,8 @@ namespace Converter
         private void CreateResultDict()
         {
             var wb = UnitOfWorkSingleton.Context.TemplateWorkbooks.First(w => w.WorkbookType == wbType);
-            var columns = wb.Columns.Select(c =>  new JustColumn(c.CodeName,c.Name,c.ColumnIndex));
+            var columns = wb.Columns.Select(c => new JustColumn(c.CodeName, c.Name, c.ColumnIndex));
             ComparedColumns = columns.ToDictionary(j => j, j2 => new List<string>());
         }
-
     }
 }

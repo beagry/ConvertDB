@@ -7,8 +7,6 @@ namespace Converter.Template_workbooks
     {
         public LandPropertyTemplateWorkbook()
         {
-
-
             Columns = new List<JustColumn>
                 #region Columns Initialize
 
@@ -68,17 +66,14 @@ namespace Converter.Template_workbooks
                 new JustColumn("DATE_IS_RINGING", "Дата прозвона", 53),
                 new JustColumn("RESULT", "Результат прозвона", 54),
                 new JustColumn("COMMENT", "Комментарий", 55),
-                new JustColumn("ADDITIONAL", "Уточненные (дополненные) характеристики",56),
-                new JustColumn("ASSOCIATIONS", "Товарищества и корпоративы",57),
+                new JustColumn("ADDITIONAL", "Уточненные (дополненные) характеристики", 56),
+                new JustColumn("ASSOCIATIONS", "Товарищества и корпоративы", 57),
                 new JustColumn("DATE_PARSING", "ДАТА_ПАРСИНГА", 58),
                 new JustColumn("LAND_MARK", "Ориентиры", 59),
-                new JustColumn("SNT", "Товарищества", 60),
+                new JustColumn("SNT", "Товарищества", 60)
 
                 #endregion
-
             };
         }
     }
-
-    
 }

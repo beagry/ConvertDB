@@ -24,9 +24,8 @@ namespace Converter
 
         private readonly Dictionary<int, string> head;
         private readonly TemplateWorkbook templateWorkbook;
+        private readonly Template_workbooks.EFModels.TemplateWorkbook wb;
         private readonly DataTable wsTable;
-        private Template_workbooks.EFModels.TemplateWorkbook wb;
-
 
         /// <summary>
         ///     Старый коонстуктор для UpdateWB проекта
@@ -59,7 +58,9 @@ namespace Converter
             head = wsTable.Columns.Cast<DataColumn>()
                 .ToDictionary(k => wsTable.Columns.IndexOf(k) + 1, v => v.ColumnName);
 
-            wb = UnitOfWorkSingleton.UnitOfWork.TemplateWbsRespository.GetObjectsList().First(w => w.WorkbookType == wbType);
+            wb =
+                UnitOfWorkSingleton.UnitOfWork.TemplateWbsRespository.GetObjectsList()
+                    .First(w => w.WorkbookType == wbType);
         }
 
         private SourceWs()
@@ -123,8 +124,8 @@ namespace Converter
             var columns = wb.Columns;
 
             var tableColumns =
-                    wsTable.Columns.Cast<DataColumn>()
-                        .Select(c => new { Index = wsTable.Columns.IndexOf(c) + 1, Name = c.ColumnName }).ToList();
+                wsTable.Columns.Cast<DataColumn>()
+                    .Select(c => new {Index = wsTable.Columns.IndexOf(c) + 1, Name = c.ColumnName}).ToList();
             foreach (var column in columns.Where(c => c.BindedColumns.Any()))
             {
                 for (var i = tableColumns.Count - 1; i >= 0; i--)
@@ -138,7 +139,6 @@ namespace Converter
             }
         }
 
-
         /// <summary>
         ///     Поиск колонок с точно такими же именами как в конечной книге
         /// </summary>
@@ -149,7 +149,7 @@ namespace Converter
             foreach (var column in columns)
             {
                 var columnCode = column.CodeName;
-                var maskList = new List<string>() { columnCode };
+                var maskList = new List<string> {columnCode};
                 GetColumnNumberByColumnName(columnCode, maskList);
             }
         }

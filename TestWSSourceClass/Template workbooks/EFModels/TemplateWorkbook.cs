@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Documents;
-using System.Windows.Forms;
 
 namespace Converter.Template_workbooks.EFModels
 {
@@ -15,14 +9,17 @@ namespace Converter.Template_workbooks.EFModels
         {
             Columns = new List<TemplateColumn>();
         }
+
         public int Id { get; set; }
 
         [NotMapped]
-        public string Name { get { return "SuperName"; } }
+        public string Name
+        {
+            get { return "SuperName"; }
+        }
 
         public XlTemplateWorkbookType WorkbookType { get; set; }
-
-        public virtual List<TemplateColumn> Columns { get; set; } 
+        public virtual List<TemplateColumn> Columns { get; set; }
     }
 
     public class TemplateColumn
@@ -33,17 +30,14 @@ namespace Converter.Template_workbooks.EFModels
             BindedColumns = new List<BindedColumn>();
             TemplateWorkbooks = new List<TemplateWorkbook>();
         }
+
         public int Id { get; set; }
         public string Name { get; set; }
         public string CodeName { get; set; }
         public int ColumnIndex { get; set; }
-
         public virtual List<TemplateWorkbook> TemplateWorkbooks { get; set; }
-
         public virtual List<SearchCritetia> SearchCritetias { get; set; }
-
         public virtual List<BindedColumn> BindedColumns { get; set; }
-
     }
 
     public class BindedColumn

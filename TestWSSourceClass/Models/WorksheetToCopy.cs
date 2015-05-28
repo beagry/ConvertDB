@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -8,14 +7,26 @@ using Microsoft.Office.Interop.Excel;
 
 namespace Converter.Models
 {
-    class WorksheetToCopy
+    internal class WorksheetToCopy
     {
-        private Worksheet worksheet;
-        private long lastUsedRow ;
+        private readonly long lastUsedRow;
+        private readonly Worksheet worksheet;
         private byte headRow;
+
+        public WorksheetToCopy(Worksheet worksheet, byte headRow = 1, bool oneToOne = false)
+        {
+            this.worksheet = worksheet;
+            lastUsedRow = worksheet.GetLastUsedRow();
+            this.headRow = headRow;
+
+            HeadsDictionary = oneToOne
+                ? worksheet.ReadHead(headRow).ToDictionary(k => k.Key, v => v.Key.ToString())
+                : worksheet.ReadHead(headRow);
+        }
 
         public Dictionary<int, string> HeadsDictionary { get; private set; }
         public byte FirstRowWithData { get; set; }
+
         public long DataRowsQnt
         {
             get
@@ -25,24 +36,19 @@ namespace Converter.Models
             }
         }
 
-
-        public WorksheetToCopy(Worksheet worksheet, byte headRow = 1, bool oneToOne = false)
-        {
-            this.worksheet = worksheet;
-            lastUsedRow = worksheet.GetLastUsedRow();
-            this.headRow = headRow;
-
-            HeadsDictionary = oneToOne ? worksheet.ReadHead(headRow).ToDictionary(k => k.Key, v => v.Key.ToString()) : worksheet.ReadHead(headRow);
-        }
-
         public void CopyColumn(int column, Range firstTargetCell, bool withFormat = false)
         {
-            var copyRange = worksheet.Range[worksheet.Cells[FirstRowWithData, column], worksheet.Cells[lastUsedRow, column]] as Range;
+            var copyRange =
+                worksheet.Range[worksheet.Cells[FirstRowWithData, column], worksheet.Cells[lastUsedRow, column]];
             var pasteRange = GetRangeProjection(copyRange, firstTargetCell);
 
             if (withFormat)
             {
-                var groupedByFormat = copyRange.Cast<Range>().Take(100).GroupBy(c => c.NumberFormat).ToDictionary(g => g.Key, v => v.Count());
+                var groupedByFormat =
+                    copyRange.Cast<Range>()
+                        .Take(100)
+                        .GroupBy(c => c.NumberFormat)
+                        .ToDictionary(g => g.Key, v => v.Count());
                 if (groupedByFormat.Count > 1)
                 {
                     if (groupedByFormat.ContainsKey("General"))
@@ -70,7 +76,7 @@ namespace Converter.Models
             object[,] copyArray = copyRange.Value2;
             object[,] pasteArray = pasteRange.Value2;
 
-            for (int i = 1; i <= copyArray.GetLength(0); i++)
+            for (var i = 1; i <= copyArray.GetLength(0); i++)
             {
                 if (pasteArray[i, 1] == null)
                     pasteArray[i, 1] = copyArray[i, 1];
@@ -92,7 +98,7 @@ namespace Converter.Models
                         var reg = new Regex(pattern);
 
                         //Исправляем формат "=аывав" на "аывав"
-                        for (int i = 1; i < copyArray.GetLength(0); i++)
+                        for (var i = 1; i < copyArray.GetLength(0); i++)
                         {
                             if (copyArray[i, 1] == null) continue;
                             var newVal = copyArray[i, 1].ToString();
@@ -108,7 +114,6 @@ namespace Converter.Models
                         }
                         catch (COMException)
                         {
-
                             //ignored
                         }
                     }
@@ -120,13 +125,13 @@ namespace Converter.Models
 
         private Range GetRangeProjection(Range range, Range firstCell)
         {
-            if (range.Columns.Count > 1 ) return null;
+            if (range.Columns.Count > 1) return null;
 
             var rowsQnt = range.Cells.Count;
-            var lastCell = firstCell.Offset[rowsQnt - 1, range.Columns.Count - 1] as Range;
+            var lastCell = firstCell.Offset[rowsQnt - 1, range.Columns.Count - 1];
 
-            var projectionWS = (Worksheet)firstCell.Parent;
-            var projectionRange = projectionWS.Range[firstCell,lastCell];
+            var projectionWS = (Worksheet) firstCell.Parent;
+            var projectionRange = projectionWS.Range[firstCell, lastCell];
 
             return projectionRange;
         }

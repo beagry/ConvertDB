@@ -3,14 +3,12 @@ using System.ComponentModel;
 namespace Converter.Template_workbooks
 {
     /// <summary>
-    /// Перечень шаблонных книг
+    ///     Перечень шаблонных книг
     /// </summary>
     public enum XlTemplateWorkbookType
     {
-        [Description("Земельные участки")]
-        LandProperty, //Земельные участки
-        [Description("Коммерция")]
-        CommerceProperty, //Коммерческая нд
+        [Description("Земельные участки")] LandProperty, //Земельные участки
+        [Description("Коммерция")] CommerceProperty //Коммерческая нд
 //        [Description("Загородка")]
 //        CountyLiveArea,//Загородка
 //        [Description("Городское жильё")]
@@ -25,11 +23,11 @@ namespace Converter.Template_workbooks
             {
 //                    case XlTemplateWorkbookTypes.CityLivaArea:
 //                    return new CityLivaAreaTemplateWorkbook();
-                    case XlTemplateWorkbookType.CommerceProperty:
+                case XlTemplateWorkbookType.CommerceProperty:
                     return new CommercePropertyTemplateWorkbook();
 //                    case XlTemplateWorkbookTypes.CountyLiveArea:
 //                    return new CountryLiveAreaTemplateWorkbook();
-                    case XlTemplateWorkbookType.LandProperty:
+                case XlTemplateWorkbookType.LandProperty:
                     return new LandPropertyTemplateWorkbook();
             }
             return null;
