@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ExcelRLibrary.TemplateWorkbooks;
 
 namespace Converter.Template_workbooks
 {
@@ -12,7 +13,7 @@ namespace Converter.Template_workbooks
     {
         protected List<JustColumn> Columns;
 
-        public String UnUsedColumnCode
+        public string UnUsedColumnCode
     {
             get { return "UNUS"; }
     }
@@ -30,8 +31,6 @@ namespace Converter.Template_workbooks
                 column = firstOrDefault.Index;
             return column;
         }
-
-        
 
         public static Microsoft.Office.Interop.Excel.Workbook GetTemplateWorkbook()
         {

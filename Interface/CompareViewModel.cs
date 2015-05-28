@@ -6,6 +6,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Converter;
 using Converter.Models;
+using ExcelRLibrary.TemplateWorkbooks;
+using Telerik.Windows.Controls;
 using UI.Annotations;
 
 namespace UI
@@ -13,21 +15,19 @@ namespace UI
     public sealed class CompareViewModel:INotifyPropertyChanged
     {
         private readonly ICollection<WorksheetInfo> worksheets;
-        private Dictionary<string, ObservableCollection<string>> bindedColumnsDictionary;
+        private Dictionary<JustColumn, ObservableCollection<string>> bindedColumnsDictionary;
         private string lastSelectedItem;
 
 
 
-        public byte ItemsSelectQnt { get; set; }
-
-        public Dictionary<string, ObservableCollection<string>> BindedColumnsDictionary
+        public Dictionary<JustColumn, ObservableCollection<string>> BindedColumnsDictionary
         {
             get { return bindedColumnsDictionary; }
             set
             {
                 if (Equals(value, bindedColumnsDictionary)) return;
                 bindedColumnsDictionary = value;
-                OnPropertyChanged("BindedColumnsDictionary");
+                OnPropertyChanged();
             }
         }
 
@@ -40,7 +40,7 @@ namespace UI
             {
                 if (Equals(value, lastSelectedItem)) return;
                 lastSelectedItem = value;
-                OnPropertyChanged("LastSelectedItem");
+                OnPropertyChanged();
             }
         }
 
@@ -48,13 +48,14 @@ namespace UI
         {
             get
             {
-                return GetColumnValuesExamples(LastSelectedItem, ItemsSelectQnt);
+                return GetColumnValuesExamples(LastSelectedItem);
             }
         }
 
 
 
-        public CompareViewModel(Dictionary<string, ObservableCollection<string>> bindedColumns, ICollection<WorksheetInfo> worksheetsSamples)
+        public CompareViewModel(Dictionary<JustColumn, ObservableCollection<string>> bindedColumns,
+            ICollection<WorksheetInfo> worksheetsSamples):this()
         {
             worksheets = worksheetsSamples;
 
@@ -68,14 +69,15 @@ namespace UI
                     .ToList());
         }
 
-        public CompareViewModel()
+        private CompareViewModel()
         {
+            StyleManager.ApplicationTheme = new ModernTheme();
             worksheets = new List<WorksheetInfo>();
             UnbindedColumns = new ObservableCollection<string>();
-            bindedColumnsDictionary = new Dictionary<string, ObservableCollection<string>>();
+            bindedColumnsDictionary = new Dictionary<JustColumn, ObservableCollection<string>>();
         }
 
-        private List<string> GetColumnValuesExamples(string columnName, byte quantity)
+        private IEnumerable<string> GetColumnValuesExamples(string columnName)
         {
             if (string.IsNullOrEmpty(columnName)) return new List<string>();
 
@@ -104,5 +106,10 @@ namespace UI
             if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
         }
         #endregion
+
+        public void UpdateValuesExamples()
+        {
+            OnPropertyChanged("LastSelectedColumnValuesExamples");
+        }
     }
 }

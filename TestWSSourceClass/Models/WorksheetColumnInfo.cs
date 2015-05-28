@@ -16,21 +16,7 @@ namespace Converter.Models
         public ICollection<string> ValuesExamples { get; set; }
 
 
-        public ColumnInfo(DataTable table, int index, string name):this(index,name)
-        {
-            Index = index;
-            SetValuesExamples(table);
-        }
 
-        private void SetValuesExamples(DataTable table)
-        {
-            var column = table.Columns[Index - 1];
-            ValuesExamples = table.Rows.Cast<DataRow>().Take(500)
-                .Select(r => r[column])
-                .Where(o => o != null)
-                .Select(s => s.ToString())
-                .Distinct().Take(ExamplesQnt).ToList();
-        }
 
         public ColumnInfo(Worksheet ws, int index, string name):this(index,name)
         {
@@ -49,7 +35,23 @@ namespace Converter.Models
 
         }
 
+        public ColumnInfo(DataTable table, int index, string name)
+            : this(index, name)
+        {
+            Index = index;
+            SetValuesExamples(table);
+        }
 
+
+        private void SetValuesExamples(DataTable table)
+        {
+            var column = table.Columns[Index - 1];
+            ValuesExamples = table.Rows.Cast<DataRow>().Take(500)
+                .Select(r => r[column])
+                .Where(o => o != null)
+                .Select(s => s.ToString())
+                .Distinct().Take(ExamplesQnt).ToList();
+        }
         private void SetValuesExamples(Worksheet ws)
         {
             var columnRange = (Range) ws.Columns[Index, Type.Missing];

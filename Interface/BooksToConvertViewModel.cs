@@ -4,22 +4,23 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Converter;
 using Converter.Properties;
+using Converter.Template_workbooks;
 using ExcelRLibrary;
 
 namespace UI
 {
     public sealed class BooksToConvertViewModel:INotifyPropertyChanged
     {
-        private XlTemplateWorkbookTypes workbooksType;
+        private XlTemplateWorkbookType workbooksType;
         private bool editMode;
 
         public BooksToConvertViewModel()
         {
             EditMode = true;
-            workbooksType = XlTemplateWorkbookTypes.LandProperty;
+            workbooksType = XlTemplateWorkbookType.LandProperty;
             Workbooks = new ObservableCollection<SelectedWorkbook>();
         }
-        public BooksToConvertViewModel(IEnumerable<SelectedWorkbook> workbooksPaths, XlTemplateWorkbookTypes workbooksType)
+        public BooksToConvertViewModel(IEnumerable<SelectedWorkbook> workbooksPaths, XlTemplateWorkbookType workbooksType)
         {
             Workbooks = new ObservableCollection<SelectedWorkbook>(workbooksPaths);
             WorkbooksType = workbooksType;
@@ -38,7 +39,7 @@ namespace UI
 
         public ObservableCollection<SelectedWorkbook> Workbooks{ get; set; }
 
-        public XlTemplateWorkbookTypes WorkbooksType
+        public XlTemplateWorkbookType WorkbooksType
         {
             get { return workbooksType; }
             set
