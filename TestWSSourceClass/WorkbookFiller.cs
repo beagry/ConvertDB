@@ -51,7 +51,7 @@ namespace Converter
 
         public WorksheetFiller(ExcelWorksheet worksheet, Dictionary<string, List<string>> rulesDictionary):this()
         {
-            this.Worksheet = worksheet;
+            Worksheet = worksheet;
             headsDictionary = worksheet.ReadHead();
             RulesDictionary = rulesDictionary;
             lastUsedColumn = Worksheet.Dimension.Columns;
@@ -63,7 +63,6 @@ namespace Converter
             RulesDictionary = rulesDictionary;
             headsDictionary = fillingWorksheet.ReadHead();
         }
-
 
         public WorksheetFiller(Worksheet fillingWorksheet):this()
         {
@@ -213,7 +212,14 @@ namespace Converter
                 {
                     var row = dt.Rows[i];
                     var cellToPaste = Worksheet.Cells[(int)lastUsedRow + 1 + i, indexToPaste];
-                    cellToPaste.Value = row[copyColumn];
+                    var currVal = (cellToPaste.Value ??"").ToString();
+                    if (currVal != "")
+                    {
+                        if (row[copyColumn].ToString() != "")
+                            cellToPaste.Value = currVal + " | " + row[copyColumn];
+                    }
+                    else
+                        cellToPaste.Value = row[copyColumn];
                 }
             }
 

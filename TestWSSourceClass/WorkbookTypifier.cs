@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
 using System.Linq;
 using Converter.Template_workbooks;
+using Converter.Template_workbooks.EFModels;
 using ExcelRLibrary;
 using Microsoft.Office.Interop.Excel;
 using OfficeOpenXml;
 using DataTable = System.Data.DataTable;
+using TemplateWorkbook = Converter.Template_workbooks.TemplateWorkbook;
 
 namespace Converter
 {
@@ -22,6 +25,8 @@ namespace Converter
         /// </summary>
         public Dictionary<string, List<string>> RulesDictionary { get; set; }
 
+        public XlTemplateWorkbookType WorkbookType { get; set; }
+
 
 
         public WorkbookTypifier(Dictionary<string, List<string>> rulesDictionary, ICollection<string> workbooksPaths)
@@ -34,7 +39,7 @@ namespace Converter
         {
             RulesDictionary = new Dictionary<string, List<string>>();
             WorkbooksPaths = new List<string>();
-            
+            WorkbookType = XlTemplateWorkbookType.LandProperty;
         }
 
 
@@ -50,10 +55,13 @@ namespace Converter
             var result = new ExcelPackage();
             var resultWS =  result.Workbook.Worksheets.Add("Combined");
 
-
             //подготовить конечный лист
-            var templateHead = new T().TemplateColumns.ToDictionary(k => k.Index, v => v.CodeName);
-            resultWS.WriteHead(templateHead);
+            var wbRepo = new TemplateWbsRespository();
+
+            var wb = wbRepo.GetTypedWorkbook(WorkbookType);
+            var columns = wb.Columns.Select(c => new {Index = c.ColumnIndex, c.Name, Code = c.CodeName}).ToList();
+            resultWS.WriteHead(columns.ToDictionary(k => k.Index, v => v.Code),1);
+            resultWS.WriteHead(columns.ToDictionary(k => k.Index, v => v.Name),2);
 
             var wsWriter = new WorksheetFiller(resultWS, RulesDictionary);
 
