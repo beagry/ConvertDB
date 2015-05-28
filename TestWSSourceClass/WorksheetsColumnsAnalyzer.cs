@@ -12,6 +12,7 @@ using Converter.Template_workbooks;
 using Converter.Template_workbooks.EFModels;
 using Converter.Tools;
 using ExcelRLibrary;
+using ExcelRLibrary.TemplateWorkbooks;
 using Microsoft.Office.Interop.Excel;
 using DataTable = System.Data.DataTable;
 using TemplateWorkbook = Converter.Template_workbooks.TemplateWorkbook;
@@ -30,7 +31,7 @@ namespace Converter
         /// <summary>
         ///     Result of CheckWorkbook(s) Method
         /// </summary>
-        public Dictionary<string,List<string>> ComparedColumns { get; private set; }
+        public Dictionary<JustColumn,List<string>> ComparedColumns { get; private set; }
 
         /// <summary>
         ///     Info about worksheets of WB
@@ -86,13 +87,15 @@ namespace Converter
                 var templateColumnName = keyPair.Key;
                 var comparedColumnNames = keyPair.Value;
 
-                if (!ComparedColumns.ContainsKey(templateColumnName))
+                if (!ComparedColumns.Keys.Any(j => j.CodeName.Equals(templateColumnName)))
                     continue;
+
+                var list = ComparedColumns.First(pair => pair.Key.CodeName.Equals(templateColumnName)).Value;
 
                 comparedColumnNames.ForEach(s =>
                 {
-                    if (!ComparedColumns[templateColumnName].Contains(s))
-                        ComparedColumns[templateColumnName].Add(s);
+                    if (!list.Contains(s))
+                        list.Add(s);
                 });
             }
         }
@@ -100,7 +103,7 @@ namespace Converter
         private void CreateResultDict()
         {
             var wb = TemplateWbsRepository.Context.TemplateWorkbooks.First(w => w.WorkbookType == wbType);
-            var columns = wb.Columns.Select(c => c.CodeName);
+            var columns = wb.Columns.Select(c =>  new JustColumn(c.CodeName,c.Name,c.ColumnIndex));
             ComparedColumns = columns.ToDictionary(j => j, j2 => new List<string>());
         }
 

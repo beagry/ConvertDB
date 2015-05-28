@@ -6,10 +6,11 @@ using System.Linq;
 using System.Windows;
 using Converter;
 using Converter.Models;
-using Converter.Template_workbooks;
 using Converter.Template_workbooks.EFModels;
+using ExcelRLibrary.TemplateWorkbooks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UI;
+using LandPropertyTemplateWorkbook = Converter.Template_workbooks.LandPropertyTemplateWorkbook;
 using TemplateWorkbook = Converter.Template_workbooks.EFModels.TemplateWorkbook;
 
 namespace UnitTestProject1
@@ -22,13 +23,13 @@ namespace UnitTestProject1
         {
             var wb = new LandPropertyTemplateWorkbook();
 
-            var binded = new Dictionary<string, List<string>>()
+            var binded = new Dictionary<JustColumn, List<string>>()
             {
-                {"SUBJECT",new List<string>(){"COLUMN1","COLUMN2","ADDITIONAL_1","ONE_MORE"}},
-                {"REGION",new List<string>(){"REGION1","SOME_OTHER_REGION"}},
-                {"NEAR_CITY",new List<string>(){"CITY","SUPER_CITY"}},
-                {"DESCTIPTION",new List<string>(){"MY_BLA_BLA_BLA","TELL_SOME_PURE"}},
-                {"COMMENTS",new List<string>()}
+                {new JustColumn( "SUBJECT", 0)   , new List<string>(){"COLUMN1","COLUMN2","ADDITIONAL_1","ONE_MORE"}},
+                {new JustColumn("REGION",     0),  new List<string>(){"REGION1","SOME_OTHER_REGION"}},
+                {new JustColumn("NEAR_CITY",  0),  new List<string>(){"CITY","SUPER_CITY"}},
+                {new JustColumn("DESCTIPTION",0),  new List<string>(){"MY_BLA_BLA_BLA","TELL_SOME_PURE"}},
+                {new JustColumn("COMMENTS",   0),  new List<string>()}
             };
 
             var allColumns = new List<WorksheetInfo>()

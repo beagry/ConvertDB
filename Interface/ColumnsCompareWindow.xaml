@@ -27,11 +27,11 @@
                 HorizontalAlignment="Stretch" VerticalAlignment="Top">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Шапка итоговая" Width="180" DisplayMemberBinding="{Binding Key}"></GridViewColumn>
+                    <GridViewColumn Header="Шапка итоговая" Width="180" DisplayMemberBinding="{Binding Key.Description}"></GridViewColumn>
                     <GridViewColumn Header="Шапка из источников" Width="240">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <telerik:RadListBox Width="240" Margin="3" FontSize="12"
+                                <telerik:RadListBox Width="240" Margin="0" FontSize="12"
                                                         HorizontalAlignment="Stretch"
                                                         HorizontalContentAlignment="Left"
                                                         ItemsSource="{Binding Value}" Text="{Binding Name}"

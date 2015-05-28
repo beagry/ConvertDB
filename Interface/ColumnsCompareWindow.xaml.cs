@@ -8,6 +8,7 @@ using Converter.Models;
 using Converter.Template_workbooks;
 using ExcelRLibrary;
 using Telerik.Windows.Controls;
+using JustColumn = ExcelRLibrary.TemplateWorkbooks.JustColumn;
 
 namespace UI
 {
@@ -19,7 +20,7 @@ namespace UI
         private readonly CompareViewModel viewModel;
         private readonly ICollection<WorksheetInfo> wsInfos; 
 
-        public ColumnsCompareWindow(Dictionary<string, List<string>> rulesDictionary, ICollection<WorksheetInfo> wsInfos)
+        public ColumnsCompareWindow(Dictionary<JustColumn, List<string>> rulesDictionary, ICollection<WorksheetInfo> wsInfos)
         {
             InitializeComponent();
             this.wsInfos = wsInfos;
@@ -35,7 +36,7 @@ namespace UI
 
         private void StartButton_OnClick(object sender, RoutedEventArgs e)
         {
-            var dict = ObservDictToDict(viewModel.BindedColumnsDictionary);
+            var dict = ObservDictToDict(viewModel.BindedColumnsDictionary).ToDictionary(k => k.Key.CodeName,v => v.Value);
 
             var typifer = new WorkbookTypifier<LandPropertyTemplateWorkbook>()
             {
@@ -47,17 +48,17 @@ namespace UI
             if (result == null) return;
 
             result.SaveWithDialog("Обработанная выгрузка");
-            this.Close();
+            Close();
         }
 
-        private Dictionary<string, ObservableCollection<string>> DitctToObservDict(
-            Dictionary<string, List<string>> sourceDict)
+        private Dictionary<JustColumn, ObservableCollection<string>> DitctToObservDict(
+            Dictionary<JustColumn, List<string>> sourceDict)
         {
             return sourceDict.ToDictionary(k => k.Key, v => new ObservableCollection<string>(v.Value));
         }
 
-        private Dictionary<string, List<string>> ObservDictToDict(
-            Dictionary<string, ObservableCollection<string>> sourceDict)
+        private Dictionary<JustColumn, List<string>> ObservDictToDict(
+            Dictionary<JustColumn, ObservableCollection<string>> sourceDict)
         {
             return sourceDict.ToDictionary(k => k.Key, v => v.Value.ToList());
         }
