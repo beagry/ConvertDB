@@ -175,6 +175,9 @@ namespace Converter
             //Поколоночно
             foreach (var indexNamePair in tableColumns)
             {
+
+                var pasteColumnName = indexNamePair.Value;
+
                 //ищем подготовленную для неё колонку вставки
                 var indexToPaste = GetColumnIndexToPaste(indexNamePair.Value);
 
@@ -182,8 +185,14 @@ namespace Converter
                 if (indexToPaste == 0)
                 {
                     indexToPaste = ++lastUsedColumn;
-                    Worksheet.Cells[1, indexToPaste].Value = colName + colNum++;
-                    headsDictionary.Add(indexToPaste, indexNamePair.Value);
+
+                    if (!headsDictionary.ContainsValue(pasteColumnName))
+                        headsDictionary.Add(indexToPaste, pasteColumnName);
+                    else
+                    {
+                        Worksheet.Cells[1, indexToPaste].Value = colName + colNum++;
+                        headsDictionary.Add(indexToPaste, indexNamePair.Value);
+                    }
                 }
 
                 
