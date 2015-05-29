@@ -4,17 +4,16 @@ using System.Data;
 using System.Linq;
 using Converter.Template_workbooks;
 using Converter.Template_workbooks.EFModels;
-using Converter.Tools;
-using ExcelRLibrary;
 using ExcelRLibrary.TemplateWorkbooks;
-using Microsoft.Office.Interop.Excel;
-using DataTable = System.Data.DataTable;
+using TemplateWorkbook = Converter.Template_workbooks.EFModels.TemplateWorkbook;
 
 namespace Converter
 {
     public class SourceWs
     {
+/*
         private const int TakeFirstItemsQuantity = 300;
+*/
         private readonly List<int> checkedColumnsList;
 
         /// <summary>
@@ -22,7 +21,7 @@ namespace Converter
         /// </summary>
         private readonly Dictionary<int, string> columnsDictionary = new Dictionary<int, string>();
         private readonly Dictionary<int, string> head;
-        private readonly Template_workbooks.EFModels.TemplateWorkbook wb;
+        private readonly TemplateWorkbook wb;
         private readonly DataTable wsTable;
 
         /// <summary>

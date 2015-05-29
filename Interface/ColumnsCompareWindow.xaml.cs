@@ -1,14 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using Converter;
 using Converter.Models;
 using Converter.Template_workbooks;
-using ExcelRLibrary;
+using ExcelRLibrary.TemplateWorkbooks;
 using Telerik.Windows.Controls;
-using JustColumn = ExcelRLibrary.TemplateWorkbooks.JustColumn;
 
 namespace UI
 {

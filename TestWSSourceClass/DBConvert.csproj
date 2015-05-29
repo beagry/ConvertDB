@@ -130,9 +130,7 @@
     <Compile Include="Template workbooks\EFModels\TemplateWbsRepositorySingleton.cs" />
     <Compile Include="Template workbooks\EFModels\TemplateWbsRespository.cs" />
     <Compile Include="Template workbooks\EFModels\TemplateWorkbook.cs" />
-    <Compile Include="Tools\ExcelExtensions.cs" />
     <Compile Include="ExcelResaver.cs" />
-    <Compile Include="Tools\FillDataTable.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Models\SelectedWorkbookWithWorkSheets.cs" />
     <Compile Include="Program.cs" />

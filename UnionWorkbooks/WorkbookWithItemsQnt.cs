@@ -65,14 +65,14 @@ namespace UnionWorkbooks
             if (System.IO.Path.GetExtension(Path) == ".csv")
                 wsList = new List<Worksheet>(){wb.Worksheets[1]};
             else
-                wsList = wb.Worksheets.Cast<Microsoft.Office.Interop.Excel.Worksheet>().ToList();
+                wsList = wb.Worksheets.Cast<Worksheet>().ToList();
 
             worksheetsRowsQntDictionary =  wsList.ToDictionary(toKey => toKey.Name,w =>
             {
                 Console.WriteLine(w.UsedRange.Rows.Count);
                 try
                 {
-                    return (long) w.Cells.SpecialCells(Microsoft.Office.Interop.Excel.XlCellType.xlCellTypeLastCell).Row - 1;
+                    return (long) w.Cells.SpecialCells(XlCellType.xlCellTypeLastCell).Row - 1;
                 }
                 catch (Exception)
                 {
@@ -82,7 +82,7 @@ namespace UnionWorkbooks
 
             });
 
-            WorksheetsNamesList = wb.Worksheets.Cast<Microsoft.Office.Interop.Excel.Worksheet>().Select(w => w.Name).ToList();
+            WorksheetsNamesList = wb.Worksheets.Cast<Worksheet>().Select(w => w.Name).ToList();
             wb.Close();
         }
 

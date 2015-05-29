@@ -5,14 +5,12 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows.Controls;
 using Converter;
 using Converter.Models;
 using Converter.Template_workbooks;
 using Converter.Template_workbooks.EFModels;
 using ExcelRLibrary;
 using ExcelRLibrary.TemplateWorkbooks;
-using OfficeOpenXml.FormulaParsing.Excel.Functions;
 using Telerik.Windows.Controls;
 using UI.Annotations;
 

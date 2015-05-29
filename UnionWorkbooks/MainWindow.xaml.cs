@@ -1,20 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Threading;
 using Converter;
 using ExcelRLibrary;
+using Microsoft.Office.Interop.Excel;
 using Telerik.Windows.Controls;
-using Excel = Microsoft.Office.Interop.Excel;
+using Application = Microsoft.Office.Interop.Excel.Application;
+using ListBox = System.Windows.Controls.ListBox;
+using TextBox = System.Windows.Controls.TextBox;
+using Window = System.Windows.Window;
 
 namespace UnionWorkbooks
 {
@@ -25,7 +27,7 @@ namespace UnionWorkbooks
     {
         private ViewModel viewModel;
 
-        public Excel.Application ExcelApp { get { return ExcelHelper.App; } }
+        public Application ExcelApp { get { return ExcelHelper.App; } }
 
         public MainWindow()
         {
@@ -37,7 +39,7 @@ namespace UnionWorkbooks
             ExcelHelper.App = ExcelHelper.GetApplication();
         }
 
-        void WorksheetsToCopy_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        void WorksheetsToCopy_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             var coll = sender as ObservableCollection<string>;
             if (coll == null) return;
@@ -157,18 +159,18 @@ namespace UnionWorkbooks
 
 
             
-            Excel.Workbook sampleWb = ExcelHelper.GetWorkbook(ExcelApp, viewModel.Workbooks.First().Path);
-            Excel.Workbook resultWb;
+            Workbook sampleWb = ExcelHelper.GetWorkbook(ExcelApp, viewModel.Workbooks.First().Path);
+            Workbook resultWb;
 
             if (viewModel.AllSheetsInOne)
             {
                 resultWb = ExcelHelper.CreateNewWorkbook(ExcelHelper.App);
 
-                var resultWs = (Excel.Worksheet)resultWb.Worksheets[1];
+                var resultWs = (Worksheet)resultWb.Worksheets[1];
                 resultWs.Name = selectedWorksheets.First();
 
                 var sourceWs =
-                    sampleWb.Worksheets.Cast<Excel.Worksheet>().First();
+                    sampleWb.Worksheets.Cast<Worksheet>().First();
 
                 WriteWideHead(resultWs, sourceWs, viewModel.HeadSize);
             }
@@ -178,11 +180,11 @@ namespace UnionWorkbooks
                 //Create result worksheets
                 for (int i = 1; i <= selectedWorksheets.Count(); i++)
                 {
-                    var resultWs = (Excel.Worksheet)resultWb.Worksheets[i];
+                    var resultWs = (Worksheet)resultWb.Worksheets[i];
                     resultWs.Name = selectedWorksheets[i - 1];
 
                     var sourceWs =
-                        sampleWb.Worksheets.Cast<Excel.Worksheet>()
+                        sampleWb.Worksheets.Cast<Worksheet>()
                             .FirstOrDefault(w => string.Equals(resultWs.Name, w.Name, StringComparison.OrdinalIgnoreCase));
 
                     WriteWideHead(resultWs, sourceWs, viewModel.HeadSize);
@@ -191,7 +193,7 @@ namespace UnionWorkbooks
             }
             
             var fillers =
-                resultWb.Worksheets.Cast<Excel.Worksheet>().Select(w => new WorksheetFiller(w)).ToList();
+                resultWb.Worksheets.Cast<Worksheet>().Select(w => new WorksheetFiller(w)).ToList();
 
             
 
@@ -202,7 +204,7 @@ namespace UnionWorkbooks
                 foreach (var targetWs in selectedWorksheets)
                 {
                     var sourceWs =
-                        wb.Worksheets.Cast<Excel.Worksheet>()
+                        wb.Worksheets.Cast<Worksheet>()
                             .FirstOrDefault(
                                 w => String.Equals(w.Name, targetWs, StringComparison.OrdinalIgnoreCase));
 
@@ -236,7 +238,7 @@ namespace UnionWorkbooks
                 ExcelApp.EnableEvents = false;
                 ExcelApp.Visible = true;
                 resultWb.Activate();
-                ((Excel.Worksheet)resultWb.Worksheets[1]).Activate();
+                ((Worksheet)resultWb.Worksheets[1]).Activate();
             }
             catch (COMException)
             {
@@ -286,11 +288,11 @@ namespace UnionWorkbooks
 //            TotalItemsQntTextBox.Text = viewModel.Workbooks.Sum(w => w.MaxRowsInWorkbook).ToString();
         }
 
-        private void WriteWideHead(Excel.Worksheet targetWs, Excel.Worksheet soureWs, byte headSize)
+        private void WriteWideHead(Worksheet targetWs, Worksheet soureWs, byte headSize)
         {
             for (int i = 1; i <= headSize; i++)
             {
-                ((Excel.Range)targetWs.Rows[i]).EntireRow.Value2 = ((Excel.Range)soureWs.Rows[i]).EntireRow.Value2;
+                ((Range)targetWs.Rows[i]).EntireRow.Value2 = ((Range)soureWs.Rows[i]).EntireRow.Value2;
             }
         }
     }

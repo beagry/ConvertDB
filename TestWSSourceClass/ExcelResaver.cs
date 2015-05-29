@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Converter.Tools;
+using ExcelRLibrary;
 using Microsoft.Office.Interop.Excel;
 
 namespace Converter
@@ -42,7 +43,7 @@ namespace Converter
 
             SaveFolder = SetSaveFolderWithCreate(workPath);
 
-            app = ExcelApp.GetExcelApplication();
+            app = ExcelHelper.GetApplication();
             app.Visible = false;
             app.DisplayAlerts = false;
         }

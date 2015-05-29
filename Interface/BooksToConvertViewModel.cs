@@ -2,8 +2,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Windows;
-using Converter;
 using Converter.Properties;
 using Converter.Template_workbooks;
 using ExcelRLibrary;
