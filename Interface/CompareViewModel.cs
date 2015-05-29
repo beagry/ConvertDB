@@ -23,12 +23,17 @@ namespace UI
     {
         private readonly ICollection<WorksheetInfo> worksheets;
         private string lastSelectedItem;
-        private TemplateWbsRespository repository;
+        private readonly TemplateWbsRespository repository;
         private XlTemplateWorkbookType wbType;
 
         public ObservableCollection<JustColumnViewModel> BindedColumns { get; set; }
 
         public ObservableCollection<string> UnbindedColumns { get; set; }
+
+
+        public bool EditMode { get; set; } = true;
+        public bool WorkInProgress { get; set; }
+        public string Status { get; set; } = "Готово к работе";
 
         public string LastSelectedItem
         {
@@ -41,14 +46,7 @@ namespace UI
             }
         }
 
-        public IEnumerable<string> LastSelectedColumnValuesExamples
-        {
-            get
-            {
-                return GetColumnValuesExamples(LastSelectedItem);
-            }
-        }
-
+        public IEnumerable<string> LastSelectedColumnValuesExamples => GetColumnValuesExamples(LastSelectedItem);
 
 
         public CompareViewModel(Dictionary<JustColumn, ObservableCollection<string>> bindedColumns,
@@ -82,17 +80,16 @@ namespace UI
 
         private void OnBindedCollectionChange(object sender, NotifyCollectionChangedEventArgs args)
         {
-            if (args.NewItems != null)
+            if (args.NewItems == null) return;
+            
+            foreach (var newItem in args.NewItems.Cast<JustColumnViewModel>())
             {
-                foreach (var newItem in args.NewItems.Cast<JustColumnViewModel>())
-                {
-                    var item = newItem;
-                    newItem.SuitedColumns.CollectionChanged += (o, eventArgs) => OnColumnNameCollectionChange(item, eventArgs);
-                }
+                var item = newItem;
+                newItem.SuitedColumns.CollectionChanged += (o, eventArgs) => OnColumnNameCollectionChange(item, eventArgs);
             }
         }
 
-        private void OnColumnNameCollectionChange(JustColumnViewModel owner, NotifyCollectionChangedEventArgs args)
+        private void OnColumnNameCollectionChange(JustColumn owner, NotifyCollectionChangedEventArgs args)
         {
             if (args.NewItems != null)
             {

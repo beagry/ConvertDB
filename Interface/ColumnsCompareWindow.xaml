@@ -5,82 +5,108 @@
     x:Class="UI.ColumnsCompareWindow"
     SizeToContent="WidthAndHeight"
     Title="Compare Columns">
-    <Grid>
-        <Grid.Resources>
-            <Style x:Key="DraggableListBoxItem" TargetType="telerik:RadListBoxItem">
-                <Style.Resources>
-                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
-                                     Color="LightBlue" />
-                </Style.Resources>
-                <Setter Property="telerik:DragDropManager.AllowCapturedDrag" Value="True" />
-            </Style>
-        </Grid.Resources>
+    <StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <StackPanel.Resources>
+                <Style x:Key="DraggableListBoxItem" TargetType="telerik:RadListBoxItem">
+                    <Style.Resources>
+                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
+                                         Color="LightBlue" />
+                    </Style.Resources>
+                    <Setter Property="telerik:DragDropManager.AllowCapturedDrag" Value="True" />
+                </Style>
+            </StackPanel.Resources>
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="400*" />
-            <ColumnDefinition Width="180*" />
-        </Grid.ColumnDefinitions>
+            <ListView ItemsSource="{Binding BindedColumns}"
+                      Margin="10,20,10,10"
+                      MaxHeight="600" MinHeight="100"
+                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                      x:Name="ColumnsListView">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Шапка итоговая" Width="180"
+                                        DisplayMemberBinding="{Binding Description}">
+                        </GridViewColumn>
+                        <GridViewColumn x:Name="DragColumn" Header="Шапка из источников" Width="240">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <telerik:RadListBox Width="{Binding Path=Width, ElementName=DragColumn}"
+                                                        FontSize="12"
+                                                        HorizontalAlignment="Stretch"
+                                                        HorizontalContentAlignment="Stretch"
+                                                        ItemsSource="{Binding SuitedColumns}" Text="{Binding Name}"
+                                                        ItemContainerStyle="{StaticResource DraggableListBoxItem}"
+                                                        SelectionChanged="ListBox_OnSelectionChanged"
+                                                        ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <telerik:RadListBox.DragDropBehavior>
+                                            <telerik:ListBoxDragDropBehavior />
+                                        </telerik:RadListBox.DragDropBehavior>
+                                    </telerik:RadListBox>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
 
-        <ListView ItemsSource="{Binding BindedColumns}"
-                  Margin="10,20,10,10" Grid.Column="0"
-                  MaxHeight="600" MinHeight="100"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Шапка итоговая" Width="180"
-                                    DisplayMemberBinding="{Binding Description}">
-                    </GridViewColumn>
-                    <GridViewColumn x:Name="DragColumn" Header="Шапка из источников" Width="240">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <telerik:RadListBox Width="{Binding Path=Width, ElementName=DragColumn}"
-                                                    FontSize="12"
-                                                    HorizontalAlignment="Stretch"
-                                                    HorizontalContentAlignment="Stretch"
-                                                    ItemsSource="{Binding SuitedColumns}" Text="{Binding Name}"
-                                                    ItemContainerStyle="{StaticResource DraggableListBoxItem}"
-                                                    SelectionChanged="ListBox_OnSelectionChanged"
-                                                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                                    <telerik:RadListBox.DragDropBehavior>
-                                        <telerik:ListBoxDragDropBehavior />
-                                    </telerik:RadListBox.DragDropBehavior>
-                                </telerik:RadListBox>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                </GridView>
-            </ListView.View>
-        </ListView>
+            <DockPanel Margin="10" Grid.Column="1" VerticalAlignment="Stretch">
+                <StackPanel DockPanel.Dock="Top">
+                    <Label Content="Не распределенные столбцы"
+                           FontSize="14" Height="29" />
+                    <telerik:RadListBox ItemsSource="{Binding UnbindedColumns}"
+                                        HorizontalAlignment="Stretch" MinHeight="200" MaxHeight="300"
+                                        Margin="0,5,0,0"
+                                        ItemContainerStyle="{StaticResource DraggableListBoxItem}"
+                                        SelectionMode="Single" SelectionChanged="ListBox_OnSelectionChanged"
+                                        ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <telerik:RadListBox.DragDropBehavior>
+                            <telerik:ListBoxDragDropBehavior />
+                        </telerik:RadListBox.DragDropBehavior>
+                    </telerik:RadListBox>
+                </StackPanel>
+                <StackPanel DockPanel.Dock="Top" Margin="0,10,0,0">
+                    <Label Content="Содержание" HorizontalAlignment="Left"
+                           FontSize="14" Height="29" />
+                    <ListBox Margin="0,5,0,0" ItemsSource="{Binding LastSelectedColumnValuesExamples}" MinHeight="200"
+                             MaxHeight="300"
+                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                             VerticalAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+                </StackPanel>
+                <DockPanel Margin="0,15,0,0" Height="32" VerticalAlignment="Bottom">
+                    <Button HorizontalAlignment="Left" Content="&#60;&#61;Добавить" Width="90"
+                            Click="AddColumnButtton_Click" />
+                    <Button HorizontalAlignment="Right" Content="OK" Click="StartButton_OnClick" Width="90" />
+                </DockPanel>
 
-        <DockPanel Margin="10" Grid.Column="1" VerticalAlignment="Stretch">
-            <StackPanel DockPanel.Dock="Top">
-                <Label Content="Не распределенные столбцы"
-                       FontSize="14" Height="29" />
-                <telerik:RadListBox ItemsSource="{Binding UnbindedColumns}"
-                                    HorizontalAlignment="Stretch" MinHeight="200" MaxHeight="300"
-                                    Margin="0,5,0,0"
-                                    ItemContainerStyle="{StaticResource DraggableListBoxItem}"
-                                    SelectionMode="Single" SelectionChanged="ListBox_OnSelectionChanged"
-                                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                    <telerik:RadListBox.DragDropBehavior>
-                        <telerik:ListBoxDragDropBehavior />
-                    </telerik:RadListBox.DragDropBehavior>
-                </telerik:RadListBox>
-            </StackPanel>
-            <StackPanel DockPanel.Dock="Top" Margin="0,10,0,0">
-                <Label Content="Содержание" HorizontalAlignment="Left"
-                       FontSize="14" Height="29" />
-                <ListBox Margin="0,5,0,0" ItemsSource="{Binding LastSelectedColumnValuesExamples}" MinHeight="200"
-                         MaxHeight="300"
-                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                         VerticalAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
-            </StackPanel>
-            <DockPanel Margin="0,15,0,0" Height="32" VerticalAlignment="Bottom">
-                <Button HorizontalAlignment="Left" Content="&#60;&#61;Добавить" Width="90" Click="AddColumnButtton_Click" />
-                <Button HorizontalAlignment="Right" Content="OK" Click="StartButton_OnClick" Width="90"/>
+
             </DockPanel>
-            
+        </StackPanel>
+        <StatusBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Margin="0,15,0,0">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
 
-        </DockPanel>
-    </Grid>
+            <StatusBarItem Margin="10,0,0,0" Grid.Column="0" HorizontalContentAlignment="Stretch">
+                <ProgressBar Height="13"  Width="{Binding Path=ActualWidth, ElementName=ColumnsListView}"
+                             IsIndeterminate="{Binding WorkInProgress}"
+                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                </ProgressBar>
+            </StatusBarItem>
+
+            <Separator Grid.Column="1"></Separator>
+
+            <StatusBarItem Grid.Column="2" HorizontalContentAlignment="Stretch">
+                <TextBlock Margin="5,0,0,0" TextAlignment="Right" HorizontalAlignment="Stretch" Text="{Binding Status}"></TextBlock>
+            </StatusBarItem>
+
+        </StatusBar>
+    </StackPanel>
 </Window>

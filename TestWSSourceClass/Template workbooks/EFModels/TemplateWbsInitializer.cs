@@ -15,6 +15,9 @@ namespace Converter.Template_workbooks.EFModels
 
         private void InitializeLandWorkbook(TemplateWbsContext context)
         {
+
+            var LandPlusCommerceColumns = 
+
             var columns = new[]
             {
                 new TemplateColumn

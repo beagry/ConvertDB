@@ -102,7 +102,7 @@ namespace UI
             {
                 if (value == workbooksType) return;
                 workbooksType = value;
-                OnPropertyChanged("WorkbooksType");
+                OnPropertyChanged();
             }
         }
 
