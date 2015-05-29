@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Converter.Template_workbooks.EFModels
 {
-    internal class TemplateWbsInitializer : DropCreateDatabaseIfModelChanges<TemplateWbsContext>
+    internal class TemplateWbsInitializer : DropCreateDatabaseAlways<TemplateWbsContext>
     {
         protected override void Seed(TemplateWbsContext context)
         {
@@ -15,9 +15,6 @@ namespace Converter.Template_workbooks.EFModels
 
         private void InitializeLandWorkbook(TemplateWbsContext context)
         {
-
-            var LandPlusCommerceColumns = 
-
             var columns = new[]
             {
                 new TemplateColumn

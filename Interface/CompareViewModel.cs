@@ -31,9 +31,9 @@ namespace UI
         public ObservableCollection<string> UnbindedColumns { get; set; }
 
 
-        public bool EditMode { get; set; } = true;
+        public bool EditMode { get; set; }
         public bool WorkInProgress { get; set; }
-        public string Status { get; set; } = "Готово к работе";
+        public string Status { get; set; }
 
         public string LastSelectedItem
         {
@@ -46,7 +46,10 @@ namespace UI
             }
         }
 
-        public IEnumerable<string> LastSelectedColumnValuesExamples => GetColumnValuesExamples(LastSelectedItem);
+        public IEnumerable<string> LastSelectedColumnValuesExamples
+        {
+            get { return GetColumnValuesExamples(LastSelectedItem); }
+        }
 
 
         public CompareViewModel(Dictionary<JustColumn, ObservableCollection<string>> bindedColumns,
@@ -74,6 +77,9 @@ namespace UI
             StyleManager.ApplicationTheme = new ModernTheme();
             worksheets = new List<WorksheetInfo>();
             UnbindedColumns = new ObservableCollection<string>();
+
+            Status = "Готово к работе";
+            EditMode = true;
 
             repository =  UnitOfWorkSingleton.UnitOfWork.TemplateWbsRespository;
         }

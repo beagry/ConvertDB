@@ -1,4 +1,5 @@
-﻿using System.Data.Entity;
+﻿using System;
+using System.Data.Entity;
 
 namespace Converter.Template_workbooks.EFModels
 {
@@ -6,6 +7,7 @@ namespace Converter.Template_workbooks.EFModels
     {
         public TemplateWbsContext() : base("TWBsContext")
         {
+            AppDomain.CurrentDomain.SetData("DataDirectory", System.IO.Directory.GetCurrentDirectory());
             Database.SetInitializer(new TemplateWbsInitializer());
         }
 
