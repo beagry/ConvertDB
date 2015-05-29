@@ -17,18 +17,21 @@ namespace Converter
     public class WorkbooksAnalyzier
     {
         private readonly XlTemplateWorkbookType wbType;
+        private Dictionary<JustColumn, List<string>> comparedColumns;
 
         public WorkbooksAnalyzier(XlTemplateWorkbookType workbookType)
         {
             WorksheetsInfos = new List<WorksheetInfo>();
             wbType = workbookType;
-            CreateResultDict();
         }
 
         /// <summary>
         ///     Result of CheckWorkbook(s) Method
         /// </summary>
-        public Dictionary<JustColumn, List<string>> ComparedColumns { get; private set; }
+        public Dictionary<JustColumn, List<string>> ComparedColumns
+        {
+            get { return comparedColumns ?? (comparedColumns = CreateResultDict()); }
+        }
 
         /// <summary>
         ///     Info about worksheets of WB
@@ -86,11 +89,11 @@ namespace Converter
             }
         }
 
-        private void CreateResultDict()
+        private Dictionary<JustColumn, List<string>> CreateResultDict()
         {
             var wb = UnitOfWorkSingleton.UnitOfWork.TemplateWbsRespository.GetTypedWorkbook(wbType);
             var columns = wb.Columns.Select(c => new JustColumn(c.CodeName, c.Name, c.ColumnIndex));
-            ComparedColumns = columns.ToDictionary(j => j, j2 => new List<string>());
+            return columns.ToDictionary(j => j, j2 => new List<string>());
         }
     }
 }

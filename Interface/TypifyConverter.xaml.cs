@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Converter;
@@ -45,15 +46,24 @@ namespace UI
                 window.Owner.Close();
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private async void Button_Click(object sender, RoutedEventArgs e)
         {
 
             viewModel.EditMode = false;
             var wbAnalyzier = new WorkbooksAnalyzier(viewModel.WorkbooksType);
-            wbAnalyzier.CheckWorkbooks(viewModel.Workbooks.Select(wb => wb.Path));
+
+            viewModel.StartWork();
+            await Task.Run(() =>
+            {
+                var paths = viewModel.Workbooks.Select(wb => wb.Path);
+                wbAnalyzier.CheckWorkbooks(paths);
+            });
+            
             
             var worksheets = wbAnalyzier.WorksheetsInfos;
             var dict = wbAnalyzier.ComparedColumns;
+
+            viewModel.EndWork();
 
             var w = new ColumnsCompareWindow(dict, worksheets);
             w.Closed += (o, args) => 

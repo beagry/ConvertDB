@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using Converter;
 using Converter.Properties;
 using Converter.Template_workbooks;
@@ -13,14 +14,17 @@ namespace UI
     {
         private XlTemplateWorkbookType workbooksType;
         private bool editMode;
+        private string status;
+        private bool workInProgress;
 
         public BooksToConvertViewModel()
         {
             EditMode = true;
             workbooksType = XlTemplateWorkbookType.LandProperty;
             Workbooks = new ObservableCollection<SelectedWorkbook>();
+            Status = "Готово к работе";
         }
-        public BooksToConvertViewModel(IEnumerable<SelectedWorkbook> workbooksPaths, XlTemplateWorkbookType workbooksType)
+        public BooksToConvertViewModel(IEnumerable<SelectedWorkbook> workbooksPaths, XlTemplateWorkbookType workbooksType):this()
         {
             Workbooks = new ObservableCollection<SelectedWorkbook>(workbooksPaths);
             WorkbooksType = workbooksType;
@@ -36,6 +40,58 @@ namespace UI
                 OnPropertyChanged();
             }
         }
+
+        public bool WorkInProgress
+        {
+            get { return workInProgress; }
+            set
+            {
+                if (workInProgress == value)return;
+                workInProgress = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string Status
+        {
+            get
+            {
+                return status;
+            }
+            set
+            {
+                if (status == value) return;
+                status = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public void StartWork()
+        {
+            var message = "В процессе...";
+            StartWork(message);
+        }
+
+        public void StartWork(string message)
+        {
+            EditMode = false;
+            WorkInProgress = true;
+            Status = message;
+        }
+
+
+        public void EndWork()
+        {
+            EndWork("Готово");
+        }
+
+        public void EndWork(string message)
+        {
+            EditMode = true;
+            WorkInProgress = true;
+            Status = message;
+        }
+
 
         public ObservableCollection<SelectedWorkbook> Workbooks{ get; set; }
 

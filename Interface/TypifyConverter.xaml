@@ -1,21 +1,62 @@
 ﻿<Window x:Class="UI.ConverterWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Преобразователь в шаблонную книгу" Height="300" Width="449" WindowStyle="ToolWindow" Closing="Window_Closing"
-        KeyDown="ConverterWindow_OnKeyDown">
-    <Grid IsEnabled="{Binding EditMode}">
-        <ComboBox SelectedItem="{Binding WorkbooksType}"  x:Name="WorkbookTypesComboBox" HorizontalAlignment="Left" Margin="239,29,0,0" VerticalAlignment="Top" Width="174" Height="25" FontSize="16"/>
-        <Button Content="Обработать" HorizontalAlignment="Left" Margin="266,132,0,0" VerticalAlignment="Top" Width="108" Height="32" FontSize="16" Click="Button_Click"/>
-        <Label Content="Список книг" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.421,0.115" Width="180" FontSize="16"/>
-        <Label Content="Тип книг" HorizontalAlignment="Left" Margin="239,0,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.421,0.115" Width="180" FontSize="16"/>
-        <ListBox x:Name="WorkbooksListBox" SelectionMode="Multiple" ItemsSource="{Binding Workbooks}"  HorizontalAlignment="Left" Height="218" Margin="10,29,0,0" VerticalAlignment="Top" Width="180" AllowDrop="True" Drop="ListBox_Drop" FontSize="16">
-            <ListBox.ItemTemplate>
-            <DataTemplate>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding Name}"></TextBlock>
+        Title="Преобразователь в шаблонную книгу" SizeToContent="WidthAndHeight" WindowStyle="ToolWindow"
+        Closing="Window_Closing"
+        KeyDown="ConverterWindow_OnKeyDown"
+        FontFamily="calibri" >
+    <StackPanel IsEnabled="{Binding EditMode}">
+        <StackPanel Margin="10" Orientation="Horizontal">
+            <StackPanel>
+                <Label Content="Список книг" Width="180" FontSize="16" />
+                <ListBox x:Name="WorkbooksListBox" SelectionMode="Multiple" ItemsSource="{Binding Workbooks}"
+                         Height="218"
+                         Width="180" AllowDrop="True" Drop="ListBox_Drop" FontSize="16">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding Name}"></TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+            <DockPanel Margin="15,0,0,0">
+                <StackPanel DockPanel.Dock="Top">
+                <Label Content="Тип" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="16" />
+                    <ComboBox SelectedItem="{Binding WorkbooksType}" VerticalAlignment="Top"
+                              x:Name="WorkbookTypesComboBox" Width="170" Height="25"
+                              FontSize="16" />
                 </StackPanel>
-            </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
-    </Grid>
+                <Button VerticalAlignment="Center" Content="Обработать" Width="108" Height="32" FontSize="16"
+                        Click="Button_Click" />
+            </DockPanel>
+        </StackPanel>
+        <StatusBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Margin="0,15,0,0">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="180*"></ColumnDefinition>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                            <ColumnDefinition Width="170*"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+
+            <StatusBarItem Grid.Column="0" HorizontalContentAlignment="Stretch">
+                <ProgressBar Margin="5,0,5,0" Height="13" Width="auto" IsIndeterminate="{Binding WorkInProgress}"
+                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                </ProgressBar>
+            </StatusBarItem>
+
+            <Separator Grid.Column="1"></Separator>
+
+            <StatusBarItem Grid.Column="2" HorizontalContentAlignment="Stretch">
+                <TextBlock Margin="5,0,0,0" TextAlignment="Right" HorizontalAlignment="Stretch" Text="{Binding Status}"></TextBlock>
+            </StatusBarItem>
+
+        </StatusBar>
+    </StackPanel>
 </Window>
