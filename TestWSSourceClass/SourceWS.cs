@@ -6,6 +6,7 @@ using Converter.Template_workbooks;
 using Converter.Template_workbooks.EFModels;
 using Converter.Tools;
 using ExcelRLibrary;
+using ExcelRLibrary.TemplateWorkbooks;
 using Microsoft.Office.Interop.Excel;
 using DataTable = System.Data.DataTable;
 using TemplateWorkbook = Converter.Template_workbooks.TemplateWorkbook;
@@ -173,20 +174,21 @@ namespace Converter
         /// <param name="masks">Маски для сопоставления</param>
         /// <param name="fullSimilar">Обязательно полное совпадение</param>
         /// <returns></returns>
-        private bool GetColumnNumberByColumnName(string columnCode, List<string> masks, bool fullSimilar = false)
+        private bool GetColumnNumberByColumnName(string columnCode, IReadOnlyList<string> masks, bool fullSimilar = false)
         {
-//            masks.Add(columnCode);
-//            masks.Reverse();
 
             if (masks.Count == 0) return false;
             //Если мы уже находили такую колонку
             var c = 0;
-            DataColumn cl;
+            JustColumn cl;
+
+            var tableColumns =
+                wsTable.Columns.Cast<DataColumn>().Select(col => new JustColumn() {Index = col.Ordinal + 1, CodeName = col.ColumnName}).ToList();
 
             do //Поиск колонки с ПОЛНЫМ совпалением по одному из критериев маски поиска
             {
-                cl = wsTable.Columns.Cast<DataColumn>().Where(x => !checkedColumnsList.Contains(x.Ordinal + 1)).
-                    FirstOrDefault(x => string.Equals(x.ColumnName, masks[c], StringComparison.CurrentCultureIgnoreCase));
+                cl = tableColumns.Where(x => !checkedColumnsList.Contains(x.Index)).
+                    FirstOrDefault(x => string.Equals(x.CodeName, masks[c], StringComparison.CurrentCultureIgnoreCase));
                 c++;
             } while (cl == null & masks.Count - 1 >= c);
 
@@ -197,16 +199,17 @@ namespace Converter
                 c = 0;
                 do
                 {
-                    cl = wsTable.Columns.Cast<DataColumn>().Where(x => !checkedColumnsList.Contains(x.Ordinal + 1)).
-                        FirstOrDefault(x => x.ColumnName.IndexOf(masks[c], StringComparison.OrdinalIgnoreCase) > -1);
+                    cl = tableColumns.Where(x => !checkedColumnsList.Contains(x.Index)).
+                        FirstOrDefault(x => x.CodeName.IndexOf(masks[c], StringComparison.OrdinalIgnoreCase) > -1);
                     c++;
                 } while (cl == null & masks.Count - 1 >= c);
             }
 
             if (cl == null) return false;
 
-            checkedColumnsList.Add(cl.Ordinal + 1);
-            columnsDictionary.Add(cl.Ordinal + 1, columnCode);
+            //bug если колонка была уже найдена через базу данных, то в этот месте будет вылетать ошибка Dict.Already Contains Key
+            checkedColumnsList.Add(cl.Index);
+            columnsDictionary.Add(cl.Index, columnCode);
             return true;
         }
 
