@@ -79,7 +79,7 @@ namespace Converter.Tools
             var s = worksheet.UsedRange.Rows.Count; //reset usedrange
             for (var row = lasRow; row >= 0; row--)
             {
-                var rowRange =
+                Range rowRange =
                     worksheet.UsedRange.Range[
                         worksheet.Cells[row, 1],
                         worksheet.Cells[
@@ -202,7 +202,7 @@ namespace Converter.Tools
             {
                 xlApplication = (Application) Marshal.GetActiveObject("Excel.Application");
             }
-            catch (COMException exception)
+            catch (COMException)
             {
                 if (xlApplication == null)
                 {

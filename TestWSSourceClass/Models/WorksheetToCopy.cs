@@ -39,7 +39,7 @@ namespace Converter.Models
         public void CopyColumn(int column, Range firstTargetCell, bool withFormat = false)
         {
             var copyRange =
-                worksheet.Range[worksheet.Cells[FirstRowWithData, column], worksheet.Cells[lastUsedRow, column]];
+                (Range)worksheet.Range[worksheet.Cells[FirstRowWithData, column], worksheet.Cells[lastUsedRow, column]];
             var pasteRange = GetRangeProjection(copyRange, firstTargetCell);
 
             if (withFormat)

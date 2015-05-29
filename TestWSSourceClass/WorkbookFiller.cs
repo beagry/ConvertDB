@@ -166,7 +166,7 @@ namespace Converter
             }
 
             lastUsedRow = fillingWorksheet.GetLastUsedRow();
-            DeleteLastEmptyRows();
+//            DeleteLastEmptyRows();
         }
 
         private void CheckRulesDict()
@@ -184,15 +184,15 @@ namespace Converter
 
         private void DeleteLastEmptyRows()
         {
-            while (
-                fillingWorksheet.Range[
-                    fillingWorksheet.Cells[lastUsedRow, 1],
-                    fillingWorksheet.Cells[
-                        lastUsedRow, fillingWorksheet.Cells.SpecialCells(XlCellType.xlCellTypeLastCell).Column]].Cells
-                    .Cast<Range>().All(cl => cl.Value2 == null))
-            {
-                lastUsedRow --;
-            }
+//            while (
+//                fillingWorksheet.Range[
+//                    fillingWorksheet.Cells[lastUsedRow, 1],
+//                    fillingWorksheet.Cells[
+//                        lastUsedRow, fillingWorksheet.Cells.SpecialCells(XlCellType.xlCellTypeLastCell).Column]].Cells
+//                    .Cast<Range>().All(cl => cl.Value2 == null))
+//            {
+//                lastUsedRow --;
+//            }
         }
 
         private int GetColumnIndexToPaste(string columnNameToSearch)

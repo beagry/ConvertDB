@@ -181,30 +181,22 @@ namespace Converter.Template_workbooks.EFModels
 
         public void AddColumnColumnPair(string templateColumName, string bindingColumnName)
         {
-            //Remove old bindingColumn reference
-            var oldReference =
-                Context.TemplateColumns.FirstOrDefault(
-                    tc => tc.BindedColumns.Any(bc => bc.Name.Equals(bindingColumnName)));
-            if (oldReference != null)
-            {
-                var bc = oldReference.BindedColumns.First(c => c.Name.Equals(bindingColumnName));
-                oldReference.BindedColumns.Remove(bc);
-            }
-
             //add new reference
             var newOnwerColumn = Context.TemplateColumns.First(c => c.CodeName.Equals(templateColumName));
             newOnwerColumn.BindedColumns.Add(new BindedColumn {Name = bindingColumnName});
+            Context.Entry(newOnwerColumn).State = EntityState.Modified;
         }
 
-        public void RemoveColumnColumnPair(string bindingColumnName)
+        public void RemoveColumnColumnPair(string templateColumName, string bindingColumnName)
         {
             //Remove old bindingColumn reference
-            var oldReference =
-                Context.TemplateColumns.FirstOrDefault(
-                    tc => tc.BindedColumns.Any(c => c.Name.Equals(bindingColumnName)));
-            if (oldReference == null) return;
-            var bc = oldReference.BindedColumns.First(c => c.Name.Equals(bindingColumnName));
-            oldReference.BindedColumns.Remove(bc);
+
+            var col = Context.TemplateColumns.First(c => c.CodeName.Equals(templateColumName));
+            var bindedColumn = col.BindedColumns.FirstOrDefault(b => b.Name.Equals(bindingColumnName));
+            if (bindedColumn == null) return;
+
+            col.BindedColumns.Remove(bindedColumn);
+            Context.BindedColumns.Remove(bindedColumn);
         }
 
         public IEnumerable<TemplateColumn> TemplateColumnsOfWorkbook(XlTemplateWorkbookType wbType)

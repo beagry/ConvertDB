@@ -24,7 +24,7 @@ namespace UI
             InitializeComponent();
         }
 
-        public string Name { get { return this.TextBox.Text; } }
+        public new string Name { get { return this.TextBox.Text; } }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {

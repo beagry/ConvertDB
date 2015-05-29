@@ -9,6 +9,7 @@ using ExcelRLibrary;
 using ExcelRLibrary.TemplateWorkbooks;
 using Microsoft.Office.Interop.Excel;
 using DataTable = System.Data.DataTable;
+using LandPropertyTemplateWorkbook = Converter.Template_workbooks.LandPropertyTemplateWorkbook;
 using TemplateWorkbook = Converter.Template_workbooks.TemplateWorkbook;
 
 namespace Converter
@@ -168,41 +169,41 @@ namespace Converter
         }
 
         /// <summary>
-        ///     Метод находит колонку с полным или частичным совпадением в имени по пеерданному списку критериев поиска
+        ///     Метод находит колонку с полным или частичным совпадением в имени
         /// </summary>
         /// <param name="columnCode">Название колонки для записи результата</param>
         /// <param name="masks">Маски для сопоставления</param>
         /// <param name="fullSimilar">Обязательно полное совпадение</param>
         /// <returns></returns>
-        private bool GetColumnNumberByColumnName(string columnCode, IReadOnlyList<string> masks, bool fullSimilar = false)
+        private bool GetColumnNumberByColumnName(string columnCode, IReadOnlyCollection<string> masks, bool fullSimilar = false)
         {
-
             if (masks.Count == 0) return false;
-            //Если мы уже находили такую колонку
-            var c = 0;
-            JustColumn cl;
-
+            
+            JustColumn cl = null;
             var tableColumns =
-                wsTable.Columns.Cast<DataColumn>().Select(col => new JustColumn() {Index = col.Ordinal + 1, CodeName = col.ColumnName}).ToList();
+                wsTable.Columns.Cast<DataColumn>()
+                .Select(col => new JustColumn {Index = col.Ordinal + 1, CodeName = col.ColumnName})
+                .ToList();
 
-            do //Поиск колонки с ПОЛНЫМ совпалением по одному из критериев маски поиска
+            //Поиск колонки с ПОЛНЫМ совпалением по одному из критериев маски поиска
+            foreach (var mask in masks)
             {
-                cl = tableColumns.Where(x => !checkedColumnsList.Contains(x.Index)).
-                    FirstOrDefault(x => string.Equals(x.CodeName, masks[c], StringComparison.CurrentCultureIgnoreCase));
-                c++;
-            } while (cl == null & masks.Count - 1 >= c);
+                cl = tableColumns.Where(x => !columnsDictionary.ContainsKey(x.Index))
+                    .FirstOrDefault(x => string.Equals(x.CodeName, mask, StringComparison.CurrentCultureIgnoreCase));
 
+                if (cl != null) break;
+            }
 
             //Поиск колонки с ЧАСТИЧНЫМ совпалением по одному из критериев маски поиска
             if (cl == null && !fullSimilar)
             {
-                c = 0;
-                do
+                foreach (var mask in masks)
                 {
-                    cl = tableColumns.Where(x => !checkedColumnsList.Contains(x.Index)).
-                        FirstOrDefault(x => x.CodeName.IndexOf(masks[c], StringComparison.OrdinalIgnoreCase) > -1);
-                    c++;
-                } while (cl == null & masks.Count - 1 >= c);
+                    cl = tableColumns.Where(x => !columnsDictionary.ContainsKey(x.Index))
+                        .FirstOrDefault(x => x.CodeName.IndexOf(mask, StringComparison.OrdinalIgnoreCase) > -1);
+
+                    if (cl != null) break;
+                }
             }
 
             if (cl == null) return false;

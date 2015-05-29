@@ -77,6 +77,7 @@ namespace Converter.Tools
         [Obsolete("Метод не готов", false)]
         private static DataTable GetDataTable(string fileName, object sheetIndexOrName)
         {
+            throw new NotImplementedException();
             const string csvExtension = ".csv";
             DataTable dataTable;
 

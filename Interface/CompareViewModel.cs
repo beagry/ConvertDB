@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -22,7 +23,6 @@ namespace UI
     {
         private readonly ICollection<WorksheetInfo> worksheets;
         private string lastSelectedItem;
-        private TemplateWbsContext db;
         private TemplateWbsRespository repository;
         private XlTemplateWorkbookType wbType;
 
@@ -57,9 +57,9 @@ namespace UI
             this.wbType = wbType;
             worksheets = worksheetsSamples;
 
-            BindedColumns =
-                new ObservableCollection<JustColumnViewModel>(
-                    bindedColumns.Select(c => new JustColumnViewModel(c.Key) {SuitedColumns = c.Value}));
+            BindedColumns = new ObservableCollection<JustColumnViewModel>();
+            BindedColumns.CollectionChanged += OnBindedCollectionChange;
+            bindedColumns.Select(c => new JustColumnViewModel(c.Key) {SuitedColumns = c.Value}).ForEach(jc =>BindedColumns.Add(jc));
 
             UnbindedColumns = new ObservableCollection<string>(
                 worksheets.SelectMany(w => w.Columns) //Единый список колонок
@@ -77,8 +77,40 @@ namespace UI
             worksheets = new List<WorksheetInfo>();
             UnbindedColumns = new ObservableCollection<string>();
 
-            repository = UnitOfWorkSingleton.UnitOfWork.TemplateWbsRespository;
-            db = repository.Context;
+            repository =  UnitOfWorkSingleton.UnitOfWork.TemplateWbsRespository;
+        }
+
+        private void OnBindedCollectionChange(object sender, NotifyCollectionChangedEventArgs args)
+        {
+            if (args.NewItems != null)
+            {
+                foreach (var newItem in args.NewItems.Cast<JustColumnViewModel>())
+                {
+                    var item = newItem;
+                    newItem.SuitedColumns.CollectionChanged += (o, eventArgs) => OnColumnNameCollectionChange(item, eventArgs);
+                }
+            }
+        }
+
+        private void OnColumnNameCollectionChange(JustColumnViewModel owner, NotifyCollectionChangedEventArgs args)
+        {
+            if (args.NewItems != null)
+            {
+                foreach (var newBindedColumnName in args.NewItems.Cast<string>())
+                {
+                    repository.AddColumnColumnPair(owner.CodeName,newBindedColumnName);
+                }
+                repository.Save();
+            }
+
+            if (args.OldItems != null)
+            {
+                foreach (var removeBindedColumn in args.OldItems.Cast<string>())
+                {
+                    repository.RemoveColumnColumnPair(owner.CodeName,removeBindedColumn);
+                }
+                repository.Save();
+            }
         }
 
 

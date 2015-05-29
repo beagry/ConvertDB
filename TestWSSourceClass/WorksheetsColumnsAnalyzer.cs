@@ -88,7 +88,7 @@ namespace Converter
 
         private void CreateResultDict()
         {
-            var wb = UnitOfWorkSingleton.Context.TemplateWorkbooks.First(w => w.WorkbookType == wbType);
+            var wb = UnitOfWorkSingleton.UnitOfWork.TemplateWbsRespository.GetTypedWorkbook(wbType);
             var columns = wb.Columns.Select(c => new JustColumn(c.CodeName, c.Name, c.ColumnIndex));
             ComparedColumns = columns.ToDictionary(j => j, j2 => new List<string>());
         }
