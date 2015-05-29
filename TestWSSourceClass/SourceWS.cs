@@ -9,8 +9,6 @@ using ExcelRLibrary;
 using ExcelRLibrary.TemplateWorkbooks;
 using Microsoft.Office.Interop.Excel;
 using DataTable = System.Data.DataTable;
-using LandPropertyTemplateWorkbook = Converter.Template_workbooks.LandPropertyTemplateWorkbook;
-using TemplateWorkbook = Converter.Template_workbooks.TemplateWorkbook;
 
 namespace Converter
 {
@@ -23,30 +21,9 @@ namespace Converter
         ///     Key = номер столбца, который будет скопирован, Value = Название колонки Куда будет скопирован столбец
         /// </summary>
         private readonly Dictionary<int, string> columnsDictionary = new Dictionary<int, string>();
-
         private readonly Dictionary<int, string> head;
-        private readonly TemplateWorkbook templateWorkbook;
         private readonly Template_workbooks.EFModels.TemplateWorkbook wb;
         private readonly DataTable wsTable;
-
-        /// <summary>
-        ///     Старый коонстуктор для UpdateWB проекта
-        /// </summary>
-        /// <param name="worksheet"></param>
-        /// <param name="templateWorkbook"></param>
-        public SourceWs(Worksheet worksheet, TemplateWorkbook templateWorkbook) : this(templateWorkbook)
-        {
-            var sourceWorksheet = worksheet;
-
-            wsTable = FillDataTable.GetDataTable(((Workbook) sourceWorksheet.Parent).FullName,
-                sourceWorksheet.Name, TakeFirstItemsQuantity);
-            head = worksheet.ReadHead();
-        }
-
-        private SourceWs(TemplateWorkbook workbook) : this()
-        {
-            templateWorkbook = workbook;
-        }
 
         /// <summary>
         ///     Самый продуктивный конструктор
@@ -98,15 +75,15 @@ namespace Converter
             GetSOURCE_DESC();
 
             //Уникальные поля Зем участков
-            if (templateWorkbook is LandPropertyTemplateWorkbook)
-            {
+//            if (templateWorkbook is LandPropertyTemplateWorkbook)
+//            {
                 GetRights();
                 GetBuildings();
                 GetSeller();
-            }
+//            }
             //Уникальные поля Коммерции
-            if (templateWorkbook is CommercePropertyTemplateWorkbook)
-            {
+//            if (templateWorkbook is CommercePropertyTemplateWorkbook)
+//            {
                 GetHEIGHT_FLOOR();
                 GetMATERIAL_WALL();
                 GetCONDITION();
@@ -118,7 +95,7 @@ namespace Converter
                 GetFLOORITY();
                 GetYEAR_BUILD();
                 GetCLASS_TYPE();
-            }
+//            }
         }
 
         private void GetBindedColumnsFromDb()

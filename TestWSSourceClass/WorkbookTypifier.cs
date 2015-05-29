@@ -5,7 +5,6 @@ using Converter.Template_workbooks;
 using Converter.Template_workbooks.EFModels;
 using ExcelRLibrary;
 using OfficeOpenXml;
-using TemplateWorkbook = Converter.Template_workbooks.TemplateWorkbook;
 
 namespace Converter
 {
@@ -13,15 +12,8 @@ namespace Converter
     ///     Тупо создает новую книгу по переданным правилам
     ///     Класс для объединения книг в шаблон на основе переданных правил
     /// </summary>
-    /// <typeparam name="T">Книга-шаблон. Используется для создаения Excel обеъкта</typeparam>
-    public class WorkbookTypifier<T> where T : TemplateWorkbook, new()
+    public class WorkbookTypifier
     {
-        public WorkbookTypifier(Dictionary<string, List<string>> rulesDictionary, ICollection<string> workbooksPaths)
-        {
-            RulesDictionary = rulesDictionary;
-            WorkbooksPaths = workbooksPaths;
-        }
-
         public WorkbookTypifier()
         {
             RulesDictionary = new Dictionary<string, List<string>>();

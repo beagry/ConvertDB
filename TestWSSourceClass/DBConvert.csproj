@@ -135,10 +135,6 @@
     <Compile Include="Tools\FillDataTable.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Models\SelectedWorkbookWithWorkSheets.cs" />
-    <Compile Include="Template workbooks\CityLivaAreaTemplateWorkbook.cs" />
-    <Compile Include="Template workbooks\CommercePropertyTemplateWorkbook.cs" />
-    <Compile Include="Template workbooks\CountryLiveAreaTemplateWorkbook.cs" />
-    <Compile Include="Template workbooks\LandPropertyTemplateWorkbook.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -148,7 +144,6 @@
     </Compile>
     <Compile Include="Tools\SimilarityTool.cs" />
     <Compile Include="SourceWS.cs" />
-    <Compile Include="Template workbooks\TemplateWorkbook.cs" />
     <Compile Include="WorkbookFiller.cs" />
     <Compile Include="WorkbookTypifier.cs" />
     <Compile Include="Models\WorksheetColumnInfo.cs" />

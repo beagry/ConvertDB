@@ -1,17 +1,10 @@
-﻿using System;
-using System.CodeDom;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Windows;
-using Converter;
 using Converter.Models;
 using Converter.Template_workbooks.EFModels;
 using ExcelRLibrary.TemplateWorkbooks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UI;
-using LandPropertyTemplateWorkbook = Converter.Template_workbooks.LandPropertyTemplateWorkbook;
-using TemplateWorkbook = Converter.Template_workbooks.EFModels.TemplateWorkbook;
 
 namespace UnitTestProject1
 {
@@ -21,7 +14,7 @@ namespace UnitTestProject1
         [TestMethod]
         public void CompareWindow()
         {
-            var wb = new LandPropertyTemplateWorkbook();
+//            var wb = new LandPropertyTemplateWorkbook();
 
             var binded = new Dictionary<JustColumn, List<string>>()
             {

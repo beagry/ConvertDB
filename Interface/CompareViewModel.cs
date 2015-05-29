@@ -15,7 +15,6 @@ using ExcelRLibrary.TemplateWorkbooks;
 using OfficeOpenXml.FormulaParsing.Excel.Functions;
 using Telerik.Windows.Controls;
 using UI.Annotations;
-using LandPropertyTemplateWorkbook = Converter.Template_workbooks.LandPropertyTemplateWorkbook;
 
 namespace UI
 {
@@ -165,10 +164,11 @@ namespace UI
         {
             var dict = BindedColumns.ToDictionary(k => k.CodeName, v => v.SuitedColumns.ToList());
 
-            var typifer = new WorkbookTypifier<LandPropertyTemplateWorkbook>()
+            var typifer = new WorkbookTypifier()
             {
                 RulesDictionary = dict,
-                WorkbooksPaths = worksheets.Select(w => w.Workbook.Path).Distinct().ToList()
+                WorkbooksPaths = worksheets.Select(w => w.Workbook.Path).Distinct().ToList(),
+                WorkbookType = wbType
             };
 
             var result = typifer.CombineToSingleWorkbook();
