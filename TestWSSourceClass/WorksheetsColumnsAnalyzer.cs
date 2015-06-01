@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
@@ -46,10 +47,17 @@ namespace Converter
         /// <returns></returns>
         public void CheckWorkbooks(IEnumerable<string> wbPaths)
         {
-            foreach (var wbPath in wbPaths)
+            try
             {
-                var path = wbPath;
-                CheckWorkbook(path);
+                foreach (var wbPath in wbPaths)
+                {
+                    var path = wbPath;
+                    CheckWorkbook(path);
+                }
+            }
+            catch (IOException)
+            {
+                throw new IOException("Не удалось прочитать файлы.");
             }
         }
 
@@ -57,7 +65,9 @@ namespace Converter
         {
             var fi = new FileInfo(path);
             var reader = new ExcelReader();
-            var ds = reader.ReadExcelFile(fi.FullName);
+            DataSet ds = reader.ReadExcelFile(fi.FullName);
+            if (ds == null) throw new IOException("Не удалось прочитать файл.");
+
             var dt = ds.Tables.Cast<DataTable>().First();
             if (dt == null) return;
 
@@ -92,7 +102,7 @@ namespace Converter
         private Dictionary<JustColumn, List<string>> CreateResultDict()
         {
             var wb = UnitOfWorkSingleton.UnitOfWork.TemplateWbsRespository.GetTypedWorkbook(wbType);
-            var columns = wb.Columns.Select(c => new JustColumn(c.CodeName, c.Name, c.ColumnIndex));
+            var columns = wb.Columns.Select(c => new JustColumn(c.CodeName, c.Name, c.ColumnIndex)).ToList();
             return columns.ToDictionary(j => j, j2 => new List<string>());
         }
     }

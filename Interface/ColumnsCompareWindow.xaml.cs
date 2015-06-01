@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Converter.Models;
@@ -16,11 +17,13 @@ namespace UI
         private readonly CompareViewModel viewModel;
         private readonly ICollection<WorksheetInfo> wsInfos; 
 
-        public ColumnsCompareWindow(Dictionary<JustColumn, List<string>> rulesDictionary, ICollection<WorksheetInfo> wsInfos)
+        //Bug шапка коммерции в латинице
+
+        public ColumnsCompareWindow(Dictionary<JustColumn, List<string>> rulesDictionary, ICollection<WorksheetInfo> wsInfos, XlTemplateWorkbookType wbType)
         {
             InitializeComponent();
             this.wsInfos = wsInfos;
-            viewModel = new CompareViewModel(CompareViewModel.DitctToObservDict(rulesDictionary), wsInfos, XlTemplateWorkbookType.LandProperty);
+            viewModel = new CompareViewModel(CompareViewModel.DitctToObservDict(rulesDictionary), wsInfos, wbType);
             DataContext = viewModel;
         }
 
@@ -30,9 +33,11 @@ namespace UI
             viewModel.UpdateValuesExamples();
         }
 
-        private void StartButton_OnClick(object sender, RoutedEventArgs e)
+        private async void StartButton_OnClick(object sender, RoutedEventArgs e)
         {
-            viewModel.CombineWorkbooks();
+            viewModel.WorkInProgress = true;
+            await Task.Run(() => viewModel.CombineWorkbooks());
+            viewModel.WorkInProgress = false;
             Close();
         }
 

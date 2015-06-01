@@ -126,9 +126,10 @@ namespace Converter
 
             foreach (var column in columns)
             {
-                var columnCode = column.CodeName;
-                var maskList = new List<string> {columnCode};
-                GetColumnNumberByColumnName(columnCode, maskList);
+//                var columnCode = column.CodeName;
+//                var maskList = new List<string> {columnCode};
+                if (!GetColumnNumberByColumnName(column.CodeName, new List<string> { column.CodeName }))
+                    GetColumnNumberByColumnName(column.CodeName, new List<string> { column.Name });
             }
         }
 
@@ -184,7 +185,6 @@ namespace Converter
 
             if (cl == null) return false;
 
-            //bug если колонка была уже найдена через базу данных, то в этот месте будет вылетать ошибка Dict.Already Contains Key
             checkedColumnsList.Add(cl.Index);
             columnsDictionary.Add(cl.Index, columnCode);
             return true;

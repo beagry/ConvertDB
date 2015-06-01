@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using Converter;
 using Converter.Template_workbooks;
@@ -22,6 +23,8 @@ namespace UI
         public ConverterWindow()
         {
             InitializeComponent();
+            foreach (XlTemplateWorkbookType e in Enum.GetValues(typeof(XlTemplateWorkbookType)))
+                WorkbookTypesComboBox.Items.Add(new EnumView<XlTemplateWorkbookType>(e));
             ResetWindow();
         }
 
@@ -53,19 +56,29 @@ namespace UI
             var wbAnalyzier = new WorkbooksAnalyzier(viewModel.WorkbooksType);
 
             viewModel.StartWork();
-            await Task.Run(() =>
+
+            try
             {
-                var paths = viewModel.Workbooks.Select(wb => wb.Path);
-                wbAnalyzier.CheckWorkbooks(paths);
-            });
-            
+                await Task.Run(() =>
+                {
+                    var paths = viewModel.Workbooks.Select(wb => wb.Path);
+                    wbAnalyzier.CheckWorkbooks(paths);
+                });
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+                viewModel.EndWork("Ошибка чтения. Убедитесь, что книги закрыты.");
+
+                return;
+            }
             
             var worksheets = wbAnalyzier.WorksheetsInfos;
             var dict = wbAnalyzier.ComparedColumns;
 
             viewModel.EndWork();
 
-            var w = new ColumnsCompareWindow(dict, worksheets);
+            var w = new ColumnsCompareWindow(dict, worksheets,viewModel.WorkbooksType);
             w.Closed += (o, args) => 
             {
                 ResetWindow();
@@ -96,9 +109,6 @@ namespace UI
             viewModel = new BooksToConvertViewModel();
 
             DataContext = viewModel;
-
-            foreach (Enum e in Enum.GetValues(typeof(XlTemplateWorkbookType)))
-                WorkbookTypesComboBox.Items.Add(e.GetDescription());
         }
     }
 }

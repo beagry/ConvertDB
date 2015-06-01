@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Converter.Models;
+using Converter.Template_workbooks;
 using Converter.Template_workbooks.EFModels;
 using ExcelRLibrary.TemplateWorkbooks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -33,7 +34,7 @@ namespace UnitTestProject1
                 new WorksheetInfo("WS4",new List<ColumnInfo>(){new ColumnInfo(1,"MY_BLA_BLA_BLA"),new ColumnInfo(2,"TELL_SOME_PURE"),new ColumnInfo(3,"AND_MORE_ONE_COLUMN")}),
             };
 
-            var w = new ColumnsCompareWindow(binded,allColumns);
+            var w = new ColumnsCompareWindow(binded,allColumns,XlTemplateWorkbookType.CommerceProperty);
             w.ShowDialog();
         }
 

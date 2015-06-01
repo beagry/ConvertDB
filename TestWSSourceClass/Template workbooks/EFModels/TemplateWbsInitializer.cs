@@ -11,10 +11,197 @@ namespace Converter.Template_workbooks.EFModels
             base.Seed(context);
 
             InitializeLandWorkbook(context);
+            InitializeComerceWorkbook(context);
+        }
+
+        private void InitializeComerceWorkbook(TemplateWbsContext context)
+        {
+            var columns = new[]
+            {
+                new TemplateColumn {CodeName = "ID", Name = "ÏÎĞßÄÊÎÂÛÉ_ÍÎÌÅĞ", ColumnIndex = 1},
+                new TemplateColumn
+                {
+                    CodeName = "SUBJECT",
+                    Name = "ÑÓÁÚÅÊÒ_ĞÎÑÑÈÉÑÊÎÉ_ÔÅÄÅĞÀÖÈÈ",
+                    ColumnIndex = 2,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "ÑÓÁÚÅÊÒ_ĞÎÑÑÈÉÑÊÎÉ_ÔÅÄÅĞÀÖÈÈ", "ñóáúåêò", "ğåïóáëèêà", "îáëàñòü", "êğàé"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())
+                },
+                new TemplateColumn {CodeName = "REGION", Name = "ÌÓÍÈÖÈÏÀËÜÍÎÅ_ÎÁĞÀÇÎÂÀÍÈÅ_(ĞÀÉÎÍ)", ColumnIndex = 3,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "ÌÅÑÒÎÏÎËÎÆÅÍÈÅ", "ğàéîí", "ãîğîä", "ìåñòîï"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())},
+                new TemplateColumn {CodeName = "SETTLEMENT", Name = "ÏÎÑÅËÅÍÈÅ", ColumnIndex = 4,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "íàñåëåíí", "íàñåë"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())},
+                new TemplateColumn {CodeName = "CITY", Name = "ÍÀÑÅËÅÍÍÛÉ_ÏÓÍÊÒ", ColumnIndex = 5},
+                new TemplateColumn {CodeName = "CITY_TYPE", Name = "ÒÈÏ_ÍÀÑÅËÅÍÍÎÃÎ_ÏÓÍÊÒÀ", ColumnIndex = 6},
+                new TemplateColumn {CodeName = "VGT", Name = "ÂÍÓÒĞÈÃÎĞÎÄÑÊÀß_ÒÅĞĞÈÒÎĞÈß", ColumnIndex = 7},
+                new TemplateColumn {CodeName = "STREET", Name = "ÓËÈÖÀ", ColumnIndex = 8},
+                new TemplateColumn {CodeName = "STREET_TYPE", Name = "ÒÈÏ_ÓËÈÖÛ", ColumnIndex = 9},
+                new TemplateColumn {CodeName = "HOUSE_NUM", Name = "ÄÎÌ", ColumnIndex = 10},
+                new TemplateColumn {CodeName = "LETTER", Name = "ËÈÒÅĞÀ", ColumnIndex = 11},
+                new TemplateColumn {CodeName = "BUILDING", Name = "ÊÎĞÏÓÑ", ColumnIndex = 12},
+                new TemplateColumn {CodeName = "STRUCTURE", Name = "ÑÒĞÎÅÍÈÅ", ColumnIndex = 13},
+                new TemplateColumn {CodeName = "ESTATE", Name = "ÂËÀÄÅÍÈÅ", ColumnIndex = 14},
+                new TemplateColumn {CodeName = "LONGITUDE", Name = "ÄÎËÃÎÒÀ", ColumnIndex = 15},
+                new TemplateColumn {CodeName = "LATITUDE", Name = "ØÈĞÎÒÀ", ColumnIndex = 16},
+                new TemplateColumn
+                {
+                    CodeName = "DIST_REG_CENTER",
+                    Name = "ÓÄÀËÅÍÍÎÑÒÜ_ÎÒ_ĞÅÃÈÎÍÀËÜÍÎÃÎ_ÖÅÍÒĞÀ",
+                    ColumnIndex = 17,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "ÓÄÀËÅÍÍÎÑÒÜ", "öåíòğ"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())
+                },
+                new TemplateColumn
+                {
+                    CodeName = "CADASTRE_NUM",
+                    Name = "ÊÀÄÀÑÒĞÎÂÛÉ_ÍÎÌÅĞ_ÇÅÌÅËÜÍÎÃÎ_Ó×ÀÑÒÊÀ",
+                    ColumnIndex = 18
+                },
+                new TemplateColumn {CodeName = "METRO", Name = "ÑÒÀÍÖÈß_ÌÅÒĞÎ", ColumnIndex = 19},
+                new TemplateColumn {CodeName = "METRO_DISTMIN", Name = "ÄÎ_ÌÅÒĞÎ_ÌÈÍÓÒ", ColumnIndex = 20},
+                new TemplateColumn {CodeName = "TRANSPORT", Name = "ÏÅØÊÎÌ_ÒĞÀÍÑÏÎĞÒÎÌ", ColumnIndex = 21},
+                new TemplateColumn {CodeName = "SEGMENT", Name = "ÑÅÃÌÅÍÒ", ColumnIndex = 22},
+                new TemplateColumn {CodeName = "BUILDING_TYPE", Name = "ÒÈÏ_ÏÎÑÒĞÎÉÊÈ", ColumnIndex = 23},
+                new TemplateColumn {CodeName = "CENTER_CodeName", Name = "ÍÀÈÌÅÍÎÂÀÍÈÅ_ÖÅÍÒĞÀ", ColumnIndex = 24},
+                new TemplateColumn {CodeName = "OBJECT_TYPE", Name = "ÒÈÏ_ÎÁÚÅÊÒÀ", ColumnIndex = 25},
+                new TemplateColumn {CodeName = "OBJECT_PURPOSE", Name = "ÍÀÇÍÀ×ÅÍÈÅ_ÎÁÚÅÊÒÀ", ColumnIndex = 26},
+                new TemplateColumn {CodeName = "CLASS_TYPE", Name = "ÏÎÒĞÅÁÈÒÅËÜÑÊÈÉ_ÊËÀÑÑ", ColumnIndex = 27},
+                new TemplateColumn {CodeName = "OPERATION", Name = "ÎÏÅĞÀÖÈß", ColumnIndex = 28},
+                new TemplateColumn {CodeName = "SALE_PRICE", Name = "ÖÅÍÀ _ÏĞÎÄÀÆÈ", ColumnIndex = 29,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "ÑÒÎÈÌÎÑÒÜ", "ñòîèì", "öåíà", "ïğîäàæ"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())},
+                new TemplateColumn {CodeName = "RENT_RATE", Name = "ÀĞÅÍÄÍÀß_ÏËÀÒÀ", ColumnIndex = 30},
+                new TemplateColumn {CodeName = "AREA", Name = "ÏËÎÙÀÄÜ", ColumnIndex = 31,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "ÏËÎÙÀÄÜ", "ïëîùàä", "ïëîù"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())},
+                new TemplateColumn {CodeName = "PRICE_FOR_UNIT", Name = "ÖÅÍÀ_ÇÀ_Ì2", ColumnIndex = 32},
+                new TemplateColumn {CodeName = "OPERATING_COSTS", Name = "İÊÑÏËÓÀÒÀÖÈÎÍÍÛÅ_ĞÀÑÕÎÄÛ", ColumnIndex = 33},
+                new TemplateColumn {CodeName = "FLOOR", Name = "İÒÀÆ", ColumnIndex = 34},
+                new TemplateColumn {CodeName = "FLOOR_QNT_MIN", Name = "İÒÀÆÍÎÑÒÜ_ÌÈÍÈÌÀËÜÍÀß", ColumnIndex = 35},
+                new TemplateColumn {CodeName = "FLOOR_QNT_MAX", Name = "İÒÀÆÍÎÑÒÜ_ÌÀÊÑÈÌÀËÜÍÀß", ColumnIndex = 36},
+                new TemplateColumn {CodeName = "YEAR_BUILD", Name = "ÃÎÄ_ÏÎÑÒĞÎÉÊÈ", ColumnIndex = 37},
+                new TemplateColumn {CodeName = "MATERIAL_WALL", Name = "ÌÀÒÅĞÈÀË_ÑÒÅÍ", ColumnIndex = 38},
+                new TemplateColumn {CodeName = "HEIGHT_FLOOR", Name = "ÂÛÑÎÒÀ_ÏÎÒÎËÊÀ", ColumnIndex = 39},
+                new TemplateColumn {CodeName = "COLUMN_DIST", Name = "ØÀÃ_ÊÎËÎÍÍ", ColumnIndex = 40},
+                new TemplateColumn {CodeName = "LAYOUT", Name = "ÏËÀÍÈĞÎÂÊÀ", ColumnIndex = 41},
+                new TemplateColumn {CodeName = "ROOM_QNT", Name = "ÊÎËÈ×ÅÑÒÂÎ_ÊÎÌÍÀÒ", ColumnIndex = 42},
+                new TemplateColumn {CodeName = "AREA_TOTAL", Name = "ÏËÎÙÀÄÜ_ÎÁÙÀß", ColumnIndex = 43},
+                new TemplateColumn
+                {
+                    CodeName = "AREA_LOT",
+                    Name = "ÏËÎÙÀÄÜ_ÇÅÌÅËÜÍÎÃÎ_Ó×ÀÑÒÊÀ_ÎÁÚÅÊÒÀ",
+                    ColumnIndex = 44
+                },
+                new TemplateColumn {CodeName = "CONDITION", Name = "ÑÎÑÒÎßÍÈÅ", ColumnIndex = 45},
+                new TemplateColumn {CodeName = "SECURITY", Name = "ÁÅÇÎÏÀÑÍÎÑÒÜ", ColumnIndex = 46},
+                new TemplateColumn {CodeName = "FLOOR_LOAD", Name = "ÄÎÏÓÑÒÈÌÀß ÍÀÃĞÓÇÊÀ ÍÀ ÏÎË", ColumnIndex = 47},
+                new TemplateColumn {CodeName = "CONDITIONING", Name = "ÊÎÍÄÈÖÈÎÍÈĞÎÂÀÍÈÅ", ColumnIndex = 48},
+                new TemplateColumn {CodeName = "VENT", Name = "ÂÅÍÒÈËßÖÈß", ColumnIndex = 49},
+                new TemplateColumn
+                {
+                    Name = "Ãàçîñíàáæåíèå",
+                    CodeName = "SYSTEM_GAS",
+                    ColumnIndex = 50,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "ÃÀÇÎÑÍÀÁÆÅÍÈÅ", "ãàçîîñíàá", "ãàç"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())
+                },
+                new TemplateColumn
+                {
+                    Name = "Âîäîñíàáæåíèå",
+                    CodeName = "SYSTEM_WATER",
+                    ColumnIndex = 51,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "ÂÎÄÎÑÍÀÁÆÅÍÈÅ", "âîäîñíàá", "âîäîñ", "âîä"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())
+                },
+                new TemplateColumn
+                {
+                    Name = "Êàíàëèçàöèÿ",
+                    CodeName = "SYSTEM_SEWERAGE",
+                    ColumnIndex = 52,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "ÊÀÍÀËÈÇÀÖÈß", "êàíàëèçàö", "êàíàëèç", "êàíàë"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())
+                },
+                new TemplateColumn
+                {
+                    Name = "İëåêòğîñíàáæåíèå",
+                    CodeName = "SYSTEM_ELECTRICITY",
+                    ColumnIndex = 53,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "İËÅÊÒĞÎÑÍÀÁÆÅÍÈÅ", "ıëåêòğîñíàá", "ıëåêòğîñ", "ıëåêòğî", "ıëå"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())
+                },
+                new TemplateColumn
+                {
+                    Name = "Òåïëîñíàáæåíèå",
+                    CodeName = "HEAT_SUPPLY",
+                    ColumnIndex = 54,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "ÒÅÏËÎÑÍÀÁÆÅÍÈÅ", "òåïëîñíàá", "òåïë", "îáîãğ", "îòîïë"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())
+                },
+                new TemplateColumn {CodeName = "TRAIN", Name = "Æ/Ä_ÂÅÒÊÀ", ColumnIndex = 55},
+                new TemplateColumn {CodeName = "ROAD", Name = "ÄÎĞÎÃÀ", ColumnIndex = 56},
+                new TemplateColumn {CodeName = "DESCRIPTION", Name = "ÎÏÈÑÀÍÈÅ", ColumnIndex = 57,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "ÎÏÈÑÀÍÈÅ"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())},
+                new TemplateColumn {CodeName = "SOURCE_DESC", Name = "ÈÑÒÎ×ÍÈÊ_ÈÍÔÎĞÌÀÖÈÈ",
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "ÈÑÒÎ×ÍÈÊ_ÈÍÔÎĞÌÀÖÈÈ", "ÈÑÒÎ×ÍÈÊ","èíôîğì"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList()), ColumnIndex = 58},
+                new TemplateColumn {CodeName = "SOURCE_LINK", Name = "ÑÑÛËÊÀ_ÍÀ_ÈÑÒÎ×ÍÈÊ_ÈÍÔÎĞÌÀÖÈÈ", ColumnIndex = 59,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "ÑÑÛËÊÀ_ÍÀ_ÈÑÒÎ×ÍÈÊ_ÈÍÔÎĞÌÀÖÈÈ", "ÑÑÛËÊÀ"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())},
+                new TemplateColumn {CodeName = "CONTACTS", Name = "ÊÎÍÒÀÊÒÛ", ColumnIndex = 60,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "ÒÅËÅÔÎÍ_ÏĞÎÄÀÂÖÀ", "ÊÎÍÒÀÊÒÛ", "ÒÅËÅÔÎÍ", "Êîìïàíèÿ"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())},
+                new TemplateColumn {CodeName = "DATE_RESEARCH", Name = "ÄÀÒÀ_ÑÁÎĞÀ_ÈÍÔÎĞÌÀÖÈÈ", ColumnIndex = 61,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "ÄÀÒÀ_ĞÀÇÌÅÙÅÍÈß_ÈÍÔÎĞÌÀÖÈÈ", "ÄÀÒÀ_ĞÀÇÌÅÙÅÍÈß", "äàòà"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())},
+
+            };
+
+            var commerceWb = new TemplateWorkbook { WorkbookType = XlTemplateWorkbookType.CommerceProperty };
+            commerceWb.Columns.AddRange(columns);
+
+            context.TemplateWorkbooks.Add(commerceWb);
+
+            context.SaveChanges();
         }
 
         private void InitializeLandWorkbook(TemplateWbsContext context)
         {
+            #region Columns
             var columns = new[]
             {
                 new TemplateColumn
@@ -259,7 +446,7 @@ namespace Converter.Template_workbooks.EFModels
                     ColumnIndex = 44,
                     SearchCritetias = new List<SearchCritetia>(new[]
                     {
-                        "ÈÑÒÎ×ÍÈÊ_ÈÍÔÎĞÌÀÖÈÈ", "ÈÑÒÎ×ÍÈÊ"
+                        "ÈÑÒÎ×ÍÈÊ_ÈÍÔÎĞÌÀÖÈÈ", "ÈÑÒÎ×ÍÈÊ","èíôîğì"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())
                 },
                 new TemplateColumn
@@ -272,7 +459,11 @@ namespace Converter.Template_workbooks.EFModels
                         "ÑÑÛËÊÀ_ÍÀ_ÈÑÒÎ×ÍÈÊ_ÈÍÔÎĞÌÀÖÈÈ", "ÑÑÛËÊÀ"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())
                 },
-                new TemplateColumn {Name = "Íàèìåíîâàíèå ïğîäàâöà", CodeName = "SELLER", ColumnIndex = 46},
+                new TemplateColumn {Name = "Íàèìåíîâàíèå ïğîäàâöà", CodeName = "SELLER", ColumnIndex = 46,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "ÒÅËÅÔÎÍ_ÏĞÎÄÀÂÖÀ", "ÊÎÍÒÀÊÒÛ", "ÒÅËÅÔÎÍ", "Êîìïàíèÿ", "êîíòàêòû"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())},
                 new TemplateColumn {Name = "Îğãàíèçàöèîííî-ïğàâîâàÿ ôîğìà", CodeName = "OKOPF", ColumnIndex = 47},
                 new TemplateColumn {Name = "Àäğåñ ñàéòà â ñåòè èíòåğíåò", CodeName = "URL_INFO", ColumnIndex = 48},
                 new TemplateColumn
@@ -329,6 +520,7 @@ namespace Converter.Template_workbooks.EFModels
                 new TemplateColumn {Name = "Îğèåíòèğû", CodeName = "LAND_MARK", ColumnIndex = 59},
                 new TemplateColumn {Name = "Òîâàğèùåñòâà", CodeName = "SNT", ColumnIndex = 60}
             };
+#endregion
 
             var landWb = new TemplateWorkbook {WorkbookType = XlTemplateWorkbookType.LandProperty};
             landWb.Columns.AddRange(columns);

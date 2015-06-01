@@ -18,7 +18,7 @@ namespace UI
         public BooksToConvertViewModel()
         {
             EditMode = true;
-            workbooksType = XlTemplateWorkbookType.LandProperty;
+            WorkbooksType = XlTemplateWorkbookType.LandProperty;
             Workbooks = new ObservableCollection<SelectedWorkbook>();
             Status = "Готово к работе";
         }
@@ -86,7 +86,7 @@ namespace UI
         public void EndWork(string message)
         {
             EditMode = true;
-            WorkInProgress = true;
+            WorkInProgress = false;
             Status = message;
         }
 
