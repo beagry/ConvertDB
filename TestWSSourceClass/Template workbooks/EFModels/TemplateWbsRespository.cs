@@ -182,7 +182,10 @@ namespace Converter.Template_workbooks.EFModels
         public void AddColumnColumnPair(string templateColumName, string bindingColumnName)
         {
             //add new reference
-            var newOnwerColumn = Context.TemplateColumns.First(c => c.CodeName.Equals(templateColumName));
+            var newOnwerColumn = Context.TemplateColumns.FirstOrDefault(c => c.CodeName.Equals(templateColumName));
+            
+            //NULL when column was handle created
+            if (newOnwerColumn == null) return;
             newOnwerColumn.BindedColumns.Add(new BindedColumn {Name = bindingColumnName});
             Context.Entry(newOnwerColumn).State = EntityState.Modified;
         }
@@ -191,7 +194,8 @@ namespace Converter.Template_workbooks.EFModels
         {
             //Remove old bindingColumn reference
 
-            var col = Context.TemplateColumns.First(c => c.CodeName.Equals(templateColumName));
+            var col = Context.TemplateColumns.FirstOrDefault(c => c.CodeName.Equals(templateColumName));
+            if (col == null) return;
             var bindedColumn = col.BindedColumns.FirstOrDefault(b => b.Name.Equals(bindingColumnName));
             if (bindedColumn == null) return;
 

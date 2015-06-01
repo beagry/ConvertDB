@@ -24,7 +24,10 @@
             <DockPanel Margin="15,0,0,0">
                 <StackPanel DockPanel.Dock="Top">
                 <Label Content="Тип" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="16" />
-                    <ComboBox SelectedItem="{Binding WorkbooksType}" VerticalAlignment="Top"
+                    <ComboBox
+                            DisplayMemberPath="Description"
+                            SelectedValuePath="Value"    
+                            SelectedValue="{Binding WorkbooksType}" VerticalAlignment="Top"
                               x:Name="WorkbookTypesComboBox" Width="170" Height="25"
                               FontSize="16" />
                 </StackPanel>

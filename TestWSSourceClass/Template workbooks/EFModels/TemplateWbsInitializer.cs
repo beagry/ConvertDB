@@ -113,7 +113,7 @@ namespace Converter.Template_workbooks.EFModels
                 new TemplateColumn {CodeName = "VENT", Name = "ВЕНТИЛЯЦИЯ", ColumnIndex = 49},
                 new TemplateColumn
                 {
-                    Name = "Газоснабжение",
+                    Name = "ГАЗОСНАБЖЕНИЕ",
                     CodeName = "SYSTEM_GAS",
                     ColumnIndex = 50,
                     SearchCritetias = new List<SearchCritetia>(new[]
@@ -123,7 +123,7 @@ namespace Converter.Template_workbooks.EFModels
                 },
                 new TemplateColumn
                 {
-                    Name = "Водоснабжение",
+                    Name = "ВОДОСНАБЖЕНИЕ",
                     CodeName = "SYSTEM_WATER",
                     ColumnIndex = 51,
                     SearchCritetias = new List<SearchCritetia>(new[]
@@ -133,7 +133,7 @@ namespace Converter.Template_workbooks.EFModels
                 },
                 new TemplateColumn
                 {
-                    Name = "Канализация",
+                    Name = "КАНАЛИЗАЦИЯ",
                     CodeName = "SYSTEM_SEWERAGE",
                     ColumnIndex = 52,
                     SearchCritetias = new List<SearchCritetia>(new[]
@@ -143,7 +143,7 @@ namespace Converter.Template_workbooks.EFModels
                 },
                 new TemplateColumn
                 {
-                    Name = "Электроснабжение",
+                    Name = "ЭЛЕКТРОСНАБЖЕНИЕ",
                     CodeName = "SYSTEM_ELECTRICITY",
                     ColumnIndex = 53,
                     SearchCritetias = new List<SearchCritetia>(new[]
@@ -153,7 +153,7 @@ namespace Converter.Template_workbooks.EFModels
                 },
                 new TemplateColumn
                 {
-                    Name = "Теплоснабжение",
+                    Name = "ТЕПЛОСНАБЖЕНИЕ",
                     CodeName = "HEAT_SUPPLY",
                     ColumnIndex = 54,
                     SearchCritetias = new List<SearchCritetia>(new[]
@@ -188,6 +188,16 @@ namespace Converter.Template_workbooks.EFModels
                     {
                         "ДАТА_РАЗМЕЩЕНИЯ_ИНФОРМАЦИИ", "ДАТА_РАЗМЕЩЕНИЯ", "дата"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())},
+                new TemplateColumn
+                {
+                    Name = "ДАТА ПАРСИНГА",
+                    CodeName = "DATE_PARSING",
+                    ColumnIndex = 62,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "парсинг"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())
+                },
 
             };
 

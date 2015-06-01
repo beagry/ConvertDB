@@ -17,8 +17,6 @@ namespace UI
         private readonly CompareViewModel viewModel;
         private readonly ICollection<WorksheetInfo> wsInfos; 
 
-        //Bug шапка коммерции в латинице
-
         public ColumnsCompareWindow(Dictionary<JustColumn, List<string>> rulesDictionary, ICollection<WorksheetInfo> wsInfos, XlTemplateWorkbookType wbType)
         {
             InitializeComponent();
@@ -36,8 +34,10 @@ namespace UI
         private async void StartButton_OnClick(object sender, RoutedEventArgs e)
         {
             viewModel.WorkInProgress = true;
+            viewModel.EditMode = false;
             await Task.Run(() => viewModel.CombineWorkbooks());
             viewModel.WorkInProgress = false;
+            viewModel.EditMode = true;
             Close();
         }
 
