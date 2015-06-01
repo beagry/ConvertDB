@@ -92,17 +92,9 @@ namespace Converter
                 if (indexToPaste == 0)
                 {
                     indexToPaste = ++lastUsedColumn;
-
-                    if (!headsDictionary.ContainsValue(pasteColumnName))
-                    {
-                        headsDictionary.Add(indexToPaste, pasteColumnName);
-                        Worksheet.Cells[1, indexToPaste].Value = pasteColumnName;
-                    }
-                    else
-                    {
-                        Worksheet.Cells[1, indexToPaste].Value = colName + colNum++;
-                        headsDictionary.Add(indexToPaste, indexNamePair.Value);
-                    }
+                    headsDictionary.Add(indexToPaste, pasteColumnName);
+                    Worksheet.Cells[1, indexToPaste].Value = pasteColumnName;
+                    RulesDictionary.Add(pasteColumnName, new List<string> {pasteColumnName});
                 }
 
                 var copyColumn = dt.Columns[indexNamePair.Key - 1];
@@ -157,6 +149,7 @@ namespace Converter
                 {
                     indexToPaste = lastUsedColumn++;
                     headsDictionary.Add(indexToPaste, indexNamePair.Value);
+//                    RulesDictionary.Add(indexNamePair.Value, new List<string>{indexNamePair.Value});
                 }
 
                 var cellToPaste = fillingWorksheet.Cells[lastUsedRow + 1, indexToPaste] as Range;

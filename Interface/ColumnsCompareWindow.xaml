@@ -5,7 +5,7 @@
     x:Class="UI.ColumnsCompareWindow"
     SizeToContent="WidthAndHeight"
     Title="Compare Columns">
-    <StackPanel>
+    <StackPanel IsEnabled="{Binding EditMode}">
         <StackPanel Orientation="Horizontal">
             <StackPanel.Resources>
                 <Style x:Key="DraggableListBoxItem" TargetType="telerik:RadListBoxItem">

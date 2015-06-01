@@ -16,6 +16,7 @@ namespace Converter.Template_workbooks.EFModels
 
         private void InitializeComerceWorkbook(TemplateWbsContext context)
         {
+            #region columns
             var columns = new[]
             {
                 new TemplateColumn {CodeName = "ID", Name = "ПОРЯДКОВЫЙ_НОМЕР", ColumnIndex = 1},
@@ -26,7 +27,7 @@ namespace Converter.Template_workbooks.EFModels
                     ColumnIndex = 2,
                     SearchCritetias = new List<SearchCritetia>(new[]
                     {
-                        "СУБЪЕКТ_РОССИЙСКОЙ_ФЕДЕРАЦИИ", "субъект", "република", "область", "край"
+                        "СУБЪЕКТ_РОССИЙСКОЙ_ФЕДЕРАЦИИ", "субъект", "република", "область", "край","регион"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())
                 },
                 new TemplateColumn {CodeName = "REGION", Name = "МУНИЦИПАЛЬНОЕ_ОБРАЗОВАНИЕ_(РАЙОН)", ColumnIndex = 3,
@@ -37,12 +38,20 @@ namespace Converter.Template_workbooks.EFModels
                 new TemplateColumn {CodeName = "SETTLEMENT", Name = "ПОСЕЛЕНИЕ", ColumnIndex = 4,
                     SearchCritetias = new List<SearchCritetia>(new[]
                     {
-                        "населенн", "насел"
+                        "населенн", "насел","город"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())},
                 new TemplateColumn {CodeName = "CITY", Name = "НАСЕЛЕННЫЙ_ПУНКТ", ColumnIndex = 5},
                 new TemplateColumn {CodeName = "CITY_TYPE", Name = "ТИП_НАСЕЛЕННОГО_ПУНКТА", ColumnIndex = 6},
-                new TemplateColumn {CodeName = "VGT", Name = "ВНУТРИГОРОДСКАЯ_ТЕРРИТОРИЯ", ColumnIndex = 7},
-                new TemplateColumn {CodeName = "STREET", Name = "УЛИЦА", ColumnIndex = 8},
+                new TemplateColumn {CodeName = "VGT", Name = "ВНУТРИГОРОДСКАЯ_ТЕРРИТОРИЯ", ColumnIndex = 7,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "внутригор","территор"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())},
+                new TemplateColumn {CodeName = "STREET", Name = "УЛИЦА", ColumnIndex = 8,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "улиц"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())},
                 new TemplateColumn {CodeName = "STREET_TYPE", Name = "ТИП_УЛИЦЫ", ColumnIndex = 9},
                 new TemplateColumn {CodeName = "HOUSE_NUM", Name = "ДОМ", ColumnIndex = 10},
                 new TemplateColumn {CodeName = "LETTER", Name = "ЛИТЕРА", ColumnIndex = 11},
@@ -76,7 +85,11 @@ namespace Converter.Template_workbooks.EFModels
                 new TemplateColumn {CodeName = "OBJECT_TYPE", Name = "ТИП_ОБЪЕКТА", ColumnIndex = 25},
                 new TemplateColumn {CodeName = "OBJECT_PURPOSE", Name = "НАЗНАЧЕНИЕ_ОБЪЕКТА", ColumnIndex = 26},
                 new TemplateColumn {CodeName = "CLASS_TYPE", Name = "ПОТРЕБИТЕЛЬСКИЙ_КЛАСС", ColumnIndex = 27},
-                new TemplateColumn {CodeName = "OPERATION", Name = "ОПЕРАЦИЯ", ColumnIndex = 28},
+                new TemplateColumn {CodeName = "OPERATION", Name = "ОПЕРАЦИЯ", ColumnIndex = 28,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "вид_сделки","вид сделки","сделк"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())},
                 new TemplateColumn {CodeName = "SALE_PRICE", Name = "ЦЕНА _ПРОДАЖИ", ColumnIndex = 29,
                     SearchCritetias = new List<SearchCritetia>(new[]
                     {
@@ -118,7 +131,7 @@ namespace Converter.Template_workbooks.EFModels
                     ColumnIndex = 50,
                     SearchCritetias = new List<SearchCritetia>(new[]
                     {
-                        "ГАЗОСНАБЖЕНИЕ", "газооснаб", "газ"
+                        "ГАЗОСНАБЖЕНИЕ", "газооснаб", "газ","коммуникац"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())
                 },
                 new TemplateColumn
@@ -148,7 +161,7 @@ namespace Converter.Template_workbooks.EFModels
                     ColumnIndex = 53,
                     SearchCritetias = new List<SearchCritetia>(new[]
                     {
-                        "ЭЛЕКТРОСНАБЖЕНИЕ", "электроснаб", "электрос", "электро", "эле"
+                        "ЭЛЕКТРОСНАБЖЕНИЕ", "электроснаб","элекроснаб", "электрос", "электро", "эле"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())
                 },
                 new TemplateColumn
@@ -176,7 +189,7 @@ namespace Converter.Template_workbooks.EFModels
                 new TemplateColumn {CodeName = "SOURCE_LINK", Name = "ССЫЛКА_НА_ИСТОЧНИК_ИНФОРМАЦИИ", ColumnIndex = 59,
                     SearchCritetias = new List<SearchCritetia>(new[]
                     {
-                        "ССЫЛКА_НА_ИСТОЧНИК_ИНФОРМАЦИИ", "ССЫЛКА"
+                        "ССЫЛКА_НА_ИСТОЧНИК_ИНФОРМАЦИИ", "ССЫЛКА","URL"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())},
                 new TemplateColumn {CodeName = "CONTACTS", Name = "КОНТАКТЫ", ColumnIndex = 60,
                     SearchCritetias = new List<SearchCritetia>(new[]
@@ -200,6 +213,8 @@ namespace Converter.Template_workbooks.EFModels
                 },
 
             };
+
+#endregion
 
             var commerceWb = new TemplateWorkbook { WorkbookType = XlTemplateWorkbookType.CommerceProperty };
             commerceWb.Columns.AddRange(columns);
@@ -227,7 +242,7 @@ namespace Converter.Template_workbooks.EFModels
                     ColumnIndex = 2,
                     SearchCritetias = new List<SearchCritetia>(new[]
                     {
-                        "СУБЪЕКТ_РОССИЙСКОЙ_ФЕДЕРАЦИИ", "субъект", "република", "область", "край"
+                        "СУБЪЕКТ_РОССИЙСКОЙ_ФЕДЕРАЦИИ", "субъект", "република", "область", "край","регион"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())
                 },
                 new TemplateColumn
@@ -248,7 +263,7 @@ namespace Converter.Template_workbooks.EFModels
                     ColumnIndex = 5,
                     SearchCritetias = new List<SearchCritetia>(new[]
                     {
-                        "населенн", "насел"
+                        "населенн", "насел","город"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())
                 },
                 new TemplateColumn
@@ -263,8 +278,16 @@ namespace Converter.Template_workbooks.EFModels
                     CodeName = "IN_CITY",
                     ColumnIndex = 7
                 },
-                new TemplateColumn {Name = "Городской район", CodeName = "VGT", ColumnIndex = 8},
-                new TemplateColumn {Name = "Наименование адресного объекта", CodeName = "STREET", ColumnIndex = 9},
+                new TemplateColumn {Name = "Городской район", CodeName = "VGT", ColumnIndex = 8,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "внутригор","территор"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())},
+                new TemplateColumn {Name = "Наименование адресного объекта", CodeName = "STREET", ColumnIndex = 9,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "улиц"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())},
                 new TemplateColumn {Name = "Тип адресного объекта", CodeName = "STREET_TYPE", ColumnIndex = 10},
                 new TemplateColumn {Name = "Дом", CodeName = "HOUSE_NUM", ColumnIndex = 11},
                 new TemplateColumn {Name = "Литера", CodeName = "LETTER", ColumnIndex = 12},
@@ -306,7 +329,11 @@ namespace Converter.Template_workbooks.EFModels
                         "ВИД_СДЕЛКИ", "ВИД СДЕЛКИ", "продажа", "аренда"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())
                 },
-                new TemplateColumn {Name = "Операция", CodeName = "OPERATION", ColumnIndex = 23},
+                new TemplateColumn {Name = "Операция", CodeName = "OPERATION", ColumnIndex = 23,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "тип объявл"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())},
                 new TemplateColumn
                 {
                     Name = "Права на участок",
@@ -314,7 +341,7 @@ namespace Converter.Template_workbooks.EFModels
                     ColumnIndex = 24,
                     SearchCritetias = new List<SearchCritetia>(new[]
                     {
-                        "ВИД_ПРАВА", "ВИД ПРАВА", "права", "прав"
+                        "ВИД_ПРАВА", "ВИД ПРАВА", "права", "прав","вид собствен"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())
                 },
                 new TemplateColumn {Name = "Способ реализации", CodeName = "SALE_TYPE", ColumnIndex = 25},
@@ -326,7 +353,7 @@ namespace Converter.Template_workbooks.EFModels
                     ColumnIndex = 27,
                     SearchCritetias = new List<SearchCritetia>(new[]
                     {
-                        "СТОИМОСТЬ", "стоим", "цена", "продаж"
+                        "СТОИМОСТЬ", "стоим", "цена", "продаж","стоим","общая стоим"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())
                 },
                 new TemplateColumn {Name = "Арендная плата", CodeName = "RENT_RATE", ColumnIndex = 28},
@@ -373,7 +400,7 @@ namespace Converter.Template_workbooks.EFModels
                     ColumnIndex = 33,
                     SearchCritetias = new List<SearchCritetia>(new[]
                     {
-                        "ГАЗОСНАБЖЕНИЕ", "газооснаб", "газ"
+                        "ГАЗОСНАБЖЕНИЕ", "газооснаб", "газ","коммуникац"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())
                 },
                 new TemplateColumn
@@ -403,7 +430,7 @@ namespace Converter.Template_workbooks.EFModels
                     ColumnIndex = 36,
                     SearchCritetias = new List<SearchCritetia>(new[]
                     {
-                        "ЭЛЕКТРОСНАБЖЕНИЕ", "электроснаб", "электрос", "электро", "эле"
+                        "ЭЛЕКТРОСНАБЖЕНИЕ", "электроснаб","элекроснаб" ,"электрос", "электро", "элек"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())
                 },
                 new TemplateColumn
@@ -416,7 +443,11 @@ namespace Converter.Template_workbooks.EFModels
                         "ТЕПЛОСНАБЖЕНИЕ", "теплоснаб", "тепл", "обогр", "отопл"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())
                 },
-                new TemplateColumn {Name = "Наличие объектов на участке", CodeName = "OBJECT", ColumnIndex = 38},
+                new TemplateColumn {Name = "Наличие объектов на участке", CodeName = "OBJECT", ColumnIndex = 38,
+                    SearchCritetias = new List<SearchCritetia>(new[]
+                    {
+                        "строения","постройки"
+                    }.Select(s => new SearchCritetia {Text = s}).ToList())},
                 new TemplateColumn {Name = "Покрытие площадки", CodeName = "SURFACE", ColumnIndex = 39},
                 new TemplateColumn {Name = "Дорога", CodeName = "ROAD", ColumnIndex = 40},
                 new TemplateColumn
@@ -466,24 +497,24 @@ namespace Converter.Template_workbooks.EFModels
                     ColumnIndex = 45,
                     SearchCritetias = new List<SearchCritetia>(new[]
                     {
-                        "ССЫЛКА_НА_ИСТОЧНИК_ИНФОРМАЦИИ", "ССЫЛКА"
+                        "ССЫЛКА_НА_ИСТОЧНИК_ИНФОРМАЦИИ", "ССЫЛКА","URL"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())
                 },
                 new TemplateColumn {Name = "Наименование продавца", CodeName = "SELLER", ColumnIndex = 46,
                     SearchCritetias = new List<SearchCritetia>(new[]
                     {
-                        "ТЕЛЕФОН_ПРОДАВЦА", "КОНТАКТЫ", "ТЕЛЕФОН", "Компания", "контакты"
+                        "ТЕЛЕФОН_ПРОДАВЦА", "КОНТАКТЫ", "Компания","продавец"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())},
                 new TemplateColumn {Name = "Организационно-правовая форма", CodeName = "OKOPF", ColumnIndex = 47},
                 new TemplateColumn {Name = "Адрес сайта в сети интернет", CodeName = "URL_INFO", ColumnIndex = 48},
                 new TemplateColumn
                 {
-                    Name = "Телефон продавца",
+                    Name = "Контакты",
                     CodeName = "CONTACTS",
                     ColumnIndex = 49,
                     SearchCritetias = new List<SearchCritetia>(new[]
                     {
-                        "ТЕЛЕФОН_ПРОДАВЦА", "КОНТАКТЫ", "ТЕЛЕФОН", "Компания"
+                        "ТЕЛЕФОН_ПРОДАВЦА", "КОНТАКТЫ", "ТЕЛ","почт"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())
                 },
                 new TemplateColumn

@@ -66,11 +66,6 @@ namespace Converter
             FindOneToOneColumn();
             GetBindedColumnsFromDb();
             TryToFindTemplateColumnsFromDbData();
-            return;
-
-            GetDESCRIPTION();
-            GetSUBJECT();
-
         }
 
         private void GetBindedColumnsFromDb()
@@ -102,10 +97,8 @@ namespace Converter
 
             foreach (var column in columns)
             {
-//                var columnCode = column.CodeName;
-//                var maskList = new List<string> {columnCode};
-                if (!GetColumnNumberByColumnName(column.CodeName, new List<string> { column.CodeName }))
-                    GetColumnNumberByColumnName(column.CodeName, new List<string> { column.Name });
+                if (!GetColumnNumberByColumnName(column.CodeName, new List<string> { column.CodeName },true))
+                    GetColumnNumberByColumnName(column.CodeName, new List<string> { column.Name },true);
             }
         }
 
@@ -166,114 +159,6 @@ namespace Converter
             return true;
         }
 
-        #region GetColumnMethods
-
-        private void GetSUBJECT()
-        {
-            var columnMatchDictionary = new Dictionary<int, decimal>();
-            int result;
-            const decimal percentIsOk = (decimal) 0.4;
-            var maskList =
-                new List<string>(new[] {"СУБЪЕКТ_РОССИЙСКОЙ_ФЕДЕРАЦИИ", "субъект", "република", "область", "край"});
-            if (GetColumnNumberByColumnName("SUBJECT", maskList)) return;
-            //В каждой колонке поочередно
-            for (var i = 0; i < wsTable.Columns.Count; i++)
-            {
-                if (checkedColumnsList.Contains(i + 1)) continue;
-                if (wsTable.Columns[i].DataType != Type.GetType("System.String")) continue;
-
-                //Берём все уникальные объекты
-                var uniqSubjsOfsourceWS = (from x in wsTable.AsEnumerable()
-                    where !string.IsNullOrEmpty(x.Field<string>(i))
-                    select x.Field<string>(i)).Distinct().ToList();
-
-                var cup = (int) (percentIsOk*uniqSubjsOfsourceWS.Count());
-                if (uniqSubjsOfsourceWS.Any(s => s.Contains("http") || s.Length > 100)) continue;
-                var fitCellsQuantity =
-                    uniqSubjsOfsourceWS.Count(
-                        x => x.Contains(maskList[2]) || x.Contains(maskList[3]) || x.Contains(maskList[4]));
-
-                if (fitCellsQuantity == 0) continue;
-                //1.0 = 100% значений столбца
-                var resultDecimal = decimal.Round((decimal) fitCellsQuantity/uniqSubjsOfsourceWS.Count(), 2);
-                //Пишем результать совпадений в колонке
-                columnMatchDictionary.Add(i, resultDecimal);
-                if (resultDecimal >= percentIsOk) break;
-            }
-            if (columnMatchDictionary.Count == 0) return;
-            result = columnMatchDictionary.Aggregate((l, r) => l.Value > r.Value ? l : r).Key + 1;
-
-            columnsDictionary.Add(result, "SUBJECT");
-            checkedColumnsList.Add(result);
-        }
-
-
-        private void GetDESCRIPTION()
-        {
-            var maskList = new List<string> {"ОПИСАНИЕ"};
-            const string columnCode = "DESCRIPTION";
-            if (GetColumnNumberByColumnName(columnCode, maskList)) return;
-
-            if (columnsDictionary.ContainsValue(columnCode)) return;
-
-            int[] cups = {300, 150, 100};
-            foreach (var cup in cups)
-            {
-                for (var i = 0; i < wsTable.Columns.Count; i++)
-                {
-                    if (checkedColumnsList.Contains(i + 1)) continue;
-                    if (wsTable.Columns[i].DataType != Type.GetType("System.String")) continue;
-                    //Просто находим столец, в котором очень много букв
-                    var c = (wsTable.AsEnumerable().Where(x => !string.IsNullOrEmpty(x.Field<string>(i)))).Count(
-                        x => x.Field<string>(i).Length > cup);
-                    if (c == 0) continue;
-
-                    //Нашли
-                    columnsDictionary.Add(i + 1, columnCode);
-                    checkedColumnsList.Add(i + 1);
-                    return;
-                }
-            }
-        }
-
-        private void GetSOURCE_LINK()
-        {
-            var maskList = new List<string>(new[] {"ССЫЛКА_НА_ИСТОЧНИК_ИНФОРМАЦИИ", "ССЫЛКА"});
-
-            const string columnCode = "SOURCE_LINK";
-
-            if (columnCode == string.Empty) return;
-
-            if (columnsDictionary.ContainsValue(columnCode)) return;
-
-            if (GetColumnNumberByColumnName(columnCode, maskList)) return;
-
-
-            for (var i = 0; i < wsTable.Columns.Count; i++)
-            {
-                if (checkedColumnsList.Contains(i + 1)) continue;
-                if (wsTable.Columns[i].DataType != Type.GetType("System.String")) continue;
-                if (
-                    !wsTable.AsEnumerable()
-                        .Where(x => !string.IsNullOrEmpty(x.Field<string>(i)))
-                        .Any(x => x.Field<string>(i).Contains("http"))) continue;
-                var percentSimilarity =
-                    wsTable.AsEnumerable()
-                        .Where(x2 => x2.Field<string>(i) != null)
-                        .Count(x1 => x1.Field<string>(i).Contains("http"))/
-                    (decimal) (wsTable.AsEnumerable().Where
-                        (x2 => !string.IsNullOrEmpty(x2.Field<string>(i)))
-                        )
-                        .Count();
-                if (percentSimilarity < 0.5M) continue;
-                var result = i + 1;
-
-                columnsDictionary.Add(result, columnCode);
-                checkedColumnsList.Add(i + 1);
-                return;
-            }
-        }
-        #endregion
     }
 }
 

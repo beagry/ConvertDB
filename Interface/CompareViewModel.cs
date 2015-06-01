@@ -22,14 +22,37 @@ namespace UI
         private string lastSelectedItem;
         private readonly TemplateWbsRespository repository;
         private XlTemplateWorkbookType wbType;
+        private bool editMode;
+        private bool workInProgress;
 
         public ObservableCollection<JustColumnViewModel> BindedColumns { get; set; }
 
         public ObservableCollection<string> UnbindedColumns { get; set; }
 
 
-        public bool EditMode { get; set; }
-        public bool WorkInProgress { get; set; }
+        public bool EditMode
+        {
+            get { return editMode; }
+
+            set
+            {
+                if (editMode == value) return;
+                editMode = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool WorkInProgress
+        {
+            get { return workInProgress; }
+            set
+            {
+                if (workInProgress == value) return;
+                workInProgress = value;
+                OnPropertyChanged();
+            }
+        }
+
         public string Status { get; set; }
 
         public string LastSelectedItem
