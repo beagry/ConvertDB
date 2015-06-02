@@ -68,7 +68,8 @@ namespace UI
             catch (Exception exception)
             {
                 Console.WriteLine(exception);
-                viewModel.EndWork("Ошибка чтения. Убедитесь, что книги закрыты.");
+//                viewModel.EndWork("Ошибка чтения. Убедитесь, что книги закрыты.");
+                viewModel.EndWork(exception.Message);
 
                 return;
             }

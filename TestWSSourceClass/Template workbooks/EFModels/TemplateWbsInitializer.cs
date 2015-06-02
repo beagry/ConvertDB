@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Converter.Template_workbooks.EFModels
 {
-    internal class TemplateWbsInitializer : DropCreateDatabaseAlways<TemplateWbsContext>
+    internal class TemplateWbsInitializer : DropCreateDatabaseIfModelChanges<TemplateWbsContext>
     {
         protected override void Seed(TemplateWbsContext context)
         {
@@ -558,7 +558,7 @@ namespace Converter.Template_workbooks.EFModels
                         "парсинг"
                     }.Select(s => new SearchCritetia {Text = s}).ToList())
                 },
-                new TemplateColumn {Name = "Ориентиры", CodeName = "LAND_MARK", ColumnIndex = 59},
+                new TemplateColumn {Name = "Ориентир", CodeName = "LAND_MARK", ColumnIndex = 59},
                 new TemplateColumn {Name = "Товарищества", CodeName = "SNT", ColumnIndex = 60}
             };
 #endregion

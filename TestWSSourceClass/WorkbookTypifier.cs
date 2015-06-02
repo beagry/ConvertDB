@@ -39,6 +39,7 @@ namespace Converter
         {
             var result = new ExcelPackage();
             var resultWS = result.Workbook.Worksheets.Add("Combined");
+//            result.SaveWithDialog();
 
             //подготовить конечный лист
             var wbRepo = new TemplateWbsRespository();
@@ -58,6 +59,9 @@ namespace Converter
                         .Select(ds => ds.Tables.Cast<DataTable>().First()))
             {
                 wsWriter.AppendDataTable(dt);
+                //бug ошибка при сохранении
+                //Можно откатить на Ctrl + Z
+//                result.Save();
             }
 
             return result;

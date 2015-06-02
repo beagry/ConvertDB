@@ -66,7 +66,7 @@ namespace Converter
             var fi = new FileInfo(path);
             var reader = new ExcelReader();
             DataSet ds = reader.ReadExcelFile(fi.FullName);
-            if (ds == null) throw new IOException("Не удалось прочитать файл.");
+//            if (ds == null) throw new IOException("Не удалось прочитать файл.");
 
             var dt = ds.Tables.Cast<DataTable>().First();
             if (dt == null) return;
