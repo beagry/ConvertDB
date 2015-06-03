@@ -1,0 +1,30 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="FormatDB.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="OKTMOWorkbookPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">D:\ОКТМО-2014_final_my.xlsx</Value>
+    </Setting>
+    <Setting Name="CatalogWorkbookPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">D:\Справочники-2014_new.xlsx</Value>
+    </Setting>
+    <Setting Name="SourceListBySubjectWorkbookPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">D:\Справочники-2014_new.xlsx</Value>
+    </Setting>
+    <Setting Name="VGTWorkbookPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">D:\VGT.xlsx</Value>
+    </Setting>
+    <Setting Name="OKTMOWorksheetName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">нас.пункты РФ</Value>
+    </Setting>
+    <Setting Name="CatalogWorksheetName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">analytics</Value>
+    </Setting>
+    <Setting Name="SubjectSourceWorksheetName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Список источников по регионам</Value>
+    </Setting>
+    <Setting Name="VGTWorksheetName" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+  </Settings>
+</SettingsFile>
