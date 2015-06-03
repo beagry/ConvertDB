@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Data;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -11,9 +12,9 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Converter;
 using ExcelRLibrary;
-using Microsoft.Office.Interop.Excel;
+using OfficeOpenXml;
 using Telerik.Windows.Controls;
-using Application = Microsoft.Office.Interop.Excel.Application;
+using Action = System.Action;
 using ListBox = System.Windows.Controls.ListBox;
 using TextBox = System.Windows.Controls.TextBox;
 using Window = System.Windows.Window;
@@ -27,48 +28,34 @@ namespace UnionWorkbooks
     {
         private ViewModel viewModel;
 
-        public Application ExcelApp { get { return ExcelHelper.App; } }
-
         public MainWindow()
         {
             InitializeComponent();
 
             ResetParams();
             DataContext = viewModel;
-
-            ExcelHelper.App = ExcelHelper.GetApplication();
-        }
-
-        void WorksheetsToCopy_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            var coll = sender as ObservableCollection<string>;
-            if (coll == null) return;
-
-            foreach (var workbook in viewModel.Workbooks)
-                workbook.WorksheetsForCountMaxRows = new List<string>(coll);
         }
 
         private void ListBox_Drop(object sender, DragEventArgs e)
         {
-            var waitWindow = new PleaseWaitWindow(){Owner = this};
-            waitWindow.Show();
-
             var files = (string[])e.Data.GetData(DataFormats.FileDrop);
 
             if (files == null) return;
 
+            viewModel.StartWork();
+
             files.ToList().ForEach(s =>
             {
-                if (viewModel.Workbooks.All(w => w.Path != s && FileTypeChecker.IsFileExtelType(s)))
+                if (!viewModel.Workbooks.All(w => w.Path != s && FileTypeChecker.IsFileExtelType(s))) return;
+
+                var newWB = new WorkbookWithItemsQnt(s)
                 {
-                    var newWB = new WorkbookWithItemsQnt(s);
-                    newWB.WorksheetsForCountMaxRows = new List<string>(viewModel.WorksheetsToCopy);
-                    viewModel.Workbooks.Add(newWB);
-                }
+                    WorksheetsForCountMaxRows = new List<string>(viewModel.WorksheetsToCopy)
+                };
+                viewModel.Workbooks.Add(newWB);
             });
 
-//            UpdateTotalItems();
-            waitWindow.Close();
+            viewModel.EndWork();
         }
 
         private void ConverterWindow_OnKeyDown(object sender, KeyEventArgs e)
@@ -110,157 +97,37 @@ namespace UnionWorkbooks
             
         }
 
-        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        private async void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
             if (viewModel.Workbooks.Count == 0) return;
-            if (viewModel.WorksheetsToCopy.Count == 0 && !viewModel.AllSheetsInOne) return;
+            if (viewModel.WorksheetsToCopy.Count == 0) return;
 
-            ExcelHelper.App.DisplayAlerts = false;
+            viewModel.StartWork();
 
-//            await CombineAsync();
-            var waitWindow = new PleaseWaitWindow() { Owner = this };
-            waitWindow.Show();
-            waitWindow.Show();
-            BlockUi();
-
-            StartCombine();
-
-            UnblockUi();
+            await CombineAsync();
             ResetParams();
-            waitWindow.Close();
 
-            ExcelHelper.App.DisplayAlerts = true;
+            viewModel.EndWork();
+
         }
 
         private async Task CombineAsync()
         {
-            await Task.Factory.StartNew(() =>
-            {
-                BlockUi();
-                StartCombine();
-                UnblockUi();
-            });
+            await Task.Run((Action) StartCombine);
 
         }
 
-        private void StartCombine()
+        private async void StartCombine()
         {
-            ExcelApp.Visible = false;
-            ExcelApp.EnableEvents = false;
-
-            List<string> selectedWorksheets = null;
-
-            if (viewModel.AllSheetsInOne)
-                selectedWorksheets = viewModel.AllWorksheetsCollection.Distinct().ToList();
-            else
-                selectedWorksheets = viewModel.WorksheetsToCopy.Distinct().ToList();
-
-            if (!selectedWorksheets.Any()) return;
-
-
-            
-            Workbook sampleWb = ExcelHelper.GetWorkbook(ExcelApp, viewModel.Workbooks.First().Path);
-            Workbook resultWb;
-
-            if (viewModel.AllSheetsInOne)
+            var combiner = new WorkbookCombiner()
             {
-                resultWb = ExcelHelper.CreateNewWorkbook(ExcelHelper.App);
-
-                var resultWs = (Worksheet)resultWb.Worksheets[1];
-                resultWs.Name = selectedWorksheets.First();
-
-                var sourceWs =
-                    sampleWb.Worksheets.Cast<Worksheet>().First();
-
-                WriteWideHead(resultWs, sourceWs, viewModel.HeadSize);
-            }
-            else
-            {
-                resultWb = ExcelHelper.CreateNewWorkbook(ExcelHelper.App, (byte)selectedWorksheets.Count());
-                //Create result worksheets
-                for (int i = 1; i <= selectedWorksheets.Count(); i++)
-                {
-                    var resultWs = (Worksheet)resultWb.Worksheets[i];
-                    resultWs.Name = selectedWorksheets[i - 1];
-
-                    var sourceWs =
-                        sampleWb.Worksheets.Cast<Worksheet>()
-                            .FirstOrDefault(w => string.Equals(resultWs.Name, w.Name, StringComparison.OrdinalIgnoreCase));
-
-                    WriteWideHead(resultWs, sourceWs, viewModel.HeadSize);
-                }
-
-            }
-            
-            var fillers =
-                resultWb.Worksheets.Cast<Worksheet>().Select(w => new WorksheetFiller(w)).ToList();
-
-            
-
-            foreach (var workbookInfo in viewModel.Workbooks)
-            {
-                var wb = ExcelHelper.GetWorkbook(ExcelApp,workbookInfo.Path);
-
-                foreach (var targetWs in selectedWorksheets)
-                {
-                    var sourceWs =
-                        wb.Worksheets.Cast<Worksheet>()
-                            .FirstOrDefault(
-                                w => String.Equals(w.Name, targetWs, StringComparison.OrdinalIgnoreCase));
-
-                    if (sourceWs == null) continue;
-
-                    try
-                    {
-                        sourceWs.ShowAllData();
-                    }
-                    catch (Exception)
-                    {
-                        //ignored
-                    }
-
-                    WorksheetFiller filler;
-                    if (viewModel.AllSheetsInOne)
-                    {
-                        filler = fillers.First();
-                    }
-                    else
-                        filler = fillers.First(
-                            f => string.Equals(f.WorksheetName, targetWs, StringComparison.OrdinalIgnoreCase));
-
-                    filler.InsertOneToOneWorksheet(sourceWs, viewModel.HeadSize + 1);
-                }
-                wb.Close();
-            }
-
-            try
-            {
-                ExcelApp.EnableEvents = false;
-                ExcelApp.Visible = true;
-                resultWb.Activate();
-                ((Worksheet)resultWb.Worksheets[1]).Activate();
-            }
-            catch (COMException)
-            {
-                
-                return;
-            }
-            
+                WorksheetsToCombine = viewModel.WorksheetsToCopy.Distinct().ToList(),
+                WorkbooksPaths = viewModel.Workbooks.Select(w => w.Path).ToList()
+            };
+            var pkcg = combiner.Combine();
+            pkcg.SaveWithDialog();
         }
 
-        private void BlockUi()
-        {
-            WorkbooksListBox.IsEnabled = false;
-            SelectedWorksheetsListBox.IsEnabled = false;
-            AllWorksheetsListBox.IsEnabled = false;
-        }
-
-        private void UnblockUi()
-        {
-            WorkbooksListBox.IsEnabled = true;
-            SelectedWorksheetsListBox.IsEnabled = true;
-            AllWorksheetsListBox.IsEnabled = true;
-        }
 
         private void ResetParams()
         {
@@ -269,31 +136,68 @@ namespace UnionWorkbooks
             DataContext = viewModel;
             WorkbooksListBox.ItemsSource = viewModel.Workbooks;
             SelectedWorksheetsListBox.ItemsSource = viewModel.WorksheetsToCopy;
-            MyProgressBar.Value = 0;
+        }
+    }
+
+    class WorkbookCombiner
+    {
+        public List<string> WorksheetsToCombine { get; set; }
+        public List<string> WorkbooksPaths { get; set; }
+
+        public int HeadSize { get; set; }
+
+        public WorkbookCombiner()
+        {
+            WorksheetsToCombine = new List<string>();
+            WorkbooksPaths = new List<string>();
+            HeadSize = 1;
         }
 
-        private void ManualUpdateWindow()
+        public ExcelPackage Combine()
         {
-            UpdateTotalItems();
-            AllWorksheetsListBox.ItemsSource = viewModel.AllWorksheetsCollection;
-        }
+            if (!WorksheetsToCombine.Any()) return null;
+            if (!WorkbooksPaths.Any()) return null;
 
-        private void UpdateTotalItems()
-        {
-            Binding binding = new Binding();
-            binding.ElementName = "TotalItemsQntTextBox";
-            binding.Path = new PropertyPath("TotalItemsQuantity");
-            TotalItemsQntTextBox.SetBinding(TextBox.TextProperty, binding);
+            var pckg = new ExcelPackage();
 
-//            TotalItemsQntTextBox.Text = viewModel.Workbooks.Sum(w => w.MaxRowsInWorkbook).ToString();
-        }
+            var reader = new ExcelReader();
+            var sampleWb = reader.ReadExcelFile(WorkbooksPaths.First());
 
-        private void WriteWideHead(Worksheet targetWs, Worksheet soureWs, byte headSize)
-        {
-            for (int i = 1; i <= headSize; i++)
+            List<ExcelWorksheet> worksheets = new List<ExcelWorksheet>();
+
+            //Create Result WB
+            foreach (
+                var sourceTable in
+                    WorksheetsToCombine.Select(s => sampleWb.Tables.Cast<DataTable>().First(t => t.TableName.Equals(s))))
             {
-                ((Range)targetWs.Rows[i]).EntireRow.Value2 = ((Range)soureWs.Rows[i]).EntireRow.Value2;
+                var ws = pckg.Workbook.Worksheets.Add(sourceTable.TableName);
+
+                var head = sourceTable.ReadHead();
+                ws.WriteHead(head);
+                worksheets.Add(ws);
             }
+
+            var fillers = worksheets.Select(w => new WorksheetFiller(w)).ToList();
+
+            foreach (var wbDataSet in WorkbooksPaths.Select(s => reader.ReadExcelFile(s)))
+            {
+                foreach (var wsName in WorksheetsToCombine)
+                {
+                    var sourceTable =
+                        wbDataSet.Tables.Cast<DataTable>()
+                            .FirstOrDefault(t => t.TableName.Equals(wsName, StringComparison.OrdinalIgnoreCase));
+
+                    if (sourceTable == null) continue;
+
+
+                    var filler = fillers.First(
+                        f => string.Equals(f.WorksheetName, wsName, StringComparison.OrdinalIgnoreCase));
+
+                    filler.InsertOneToOneWorksheet(sourceTable);
+                }
+            }
+            return pckg;
         }
+
     }
 }

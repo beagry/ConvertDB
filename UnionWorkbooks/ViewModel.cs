@@ -8,32 +8,69 @@ using Converter.Properties;
 
 namespace UnionWorkbooks
 {
-    sealed class ViewModel:INotifyPropertyChanged
+    internal sealed class ViewModel : INotifyPropertyChanged
     {
         private bool allSheetsInOne;
+        private bool editMode;
+        private bool workInProgress;
+
+        public ViewModel()
+        {
+            EditMode = true;
+            MaxRequiredItems = 500000;
+            Workbooks = new ObservableCollection<WorkbookWithItemsQnt>();
+            WorksheetsToCopy = new ObservableCollection<string>();
+            HeadSize = 8;
+
+            UpdaWorkbooksDepends();
+
+            Workbooks.CollectionChanged += (sender, args) => { UpdaWorkbooksDepends(); };
+
+            WorksheetsToCopy.CollectionChanged += WorksheetsToCopy_CollectionChanged;
+        }
+
         public int MaxRequiredItems { get; set; }
 
         public long TotalItemsQuantity
         {
-            get
+            get { return Workbooks.Sum(w => w.MaxRowsInWorkbook); }
+        }
+
+        public bool EditMode
+        {
+            get { return editMode; }
+            set
             {
-                return Workbooks.Sum(w => w.MaxRowsInWorkbook);
+                if (editMode == value) return;
+                editMode = value;
+                OnPropertyChanged();
             }
         }
 
-        public bool AllSheetsInOne
+        public bool WorkInProgress
         {
-            get { return allSheetsInOne; }
+            get { return workInProgress; }
             set
             {
-                if (AllSheetsInOne == value) return;
-                allSheetsInOne = value;
-                OnPropertyChanged("AllSheetsInOne");
+                if (workInProgress == value) return;
+                workInProgress = value;
+                OnPropertyChanged();
             }
+        }
+
+        public void StartWork()
+        {
+            EditMode = false;
+            WorkInProgress = true;
+        }
+
+        public void EndWork()
+        {
+            EditMode = true;
+            WorkInProgress = false;
         }
 
         public ObservableCollection<WorkbookWithItemsQnt> Workbooks { get; set; }
-
         public ObservableCollection<string> WorksheetsToCopy { get; set; }
 
         public bool WorksheetsToCopyAreEmpty
@@ -43,10 +80,7 @@ namespace UnionWorkbooks
 
         public bool TotalObjectsQntTooHigh
         {
-            get
-            {
-                return TotalItemsQuantity > 50000;
-            }
+            get { return TotalItemsQuantity > 50000; }
         }
 
         public List<string> AllWorksheetsCollection
@@ -55,22 +89,9 @@ namespace UnionWorkbooks
         }
 
         public byte HeadSize { get; set; }
+        public event PropertyChangedEventHandler PropertyChanged;
 
-        public ViewModel()
-        {
-            MaxRequiredItems = 500000;
-            Workbooks = new ObservableCollection<WorkbookWithItemsQnt>();
-            WorksheetsToCopy = new ObservableCollection<string>();
-            HeadSize = 8;
-
-            UpdaWorkbooksDepends();
-
-            Workbooks.CollectionChanged += (sender, args) => {UpdaWorkbooksDepends();};
-
-            WorksheetsToCopy.CollectionChanged += WorksheetsToCopy_CollectionChanged;
-        }
-
-        void UpdaWorkbooksDepends()
+        private void UpdaWorkbooksDepends()
         {
             OnPropertyChanged("AllWorksheetsCollection");
 
@@ -93,10 +114,6 @@ namespace UnionWorkbooks
             OnPropertyChanged("TotalItemsQuantity");
             OnPropertyChanged("TotalObjectsQntTooHigh");
         }
-
-
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)

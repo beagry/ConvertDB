@@ -12,7 +12,7 @@ namespace UnionWorkbooks
 {
     sealed class WorkbookWithItemsQnt:SelectedWorkbook, INotifyPropertyChanged
     {
-        private Dictionary<string, long> worksheetsRowsQntDictionary;
+        private Dictionary<string, int> worksheetsRowsQntDictionary;
         private List<string> worksheetsForCountMaxRows;
 
 
@@ -43,47 +43,22 @@ namespace UnionWorkbooks
 
         public WorkbookWithItemsQnt(string path):base(path)
         {
-            worksheetsRowsQntDictionary = new Dictionary<string, long>();
+            worksheetsRowsQntDictionary = new Dictionary<string, int>();
             WorksheetsForCountMaxRows = new List<string>();
             Init();
         }
 
         private void Init()
         {
-//            Workbook wb = null;
-            var wb = ExcelHelper.GetWorkbook(ExcelHelper.App, Path);
-            if (wb == null)
-            {
-                var newApp = ExcelHelper.GetApplication();
-                wb = newApp.Workbooks[System.IO.Path.GetFileName(Path)];
-                ExcelHelper.App = newApp;
-            }
+            var reader = new ExcelReader();
+            var wbDataSet = reader.ReadExcelFile(Path);
 
-            Debug.Assert(wb != null);
 
-            List<Worksheet> wsList = null;
-            if (System.IO.Path.GetExtension(Path) == ".csv")
-                wsList = new List<Worksheet>(){wb.Worksheets[1]};
-            else
-                wsList = wb.Worksheets.Cast<Worksheet>().ToList();
+            worksheetsRowsQntDictionary =
+                wbDataSet.Tables.Cast<System.Data.DataTable>().ToDictionary(toKey => toKey.TableName, w =>
+                    w.Rows.Count);
 
-            worksheetsRowsQntDictionary =  wsList.ToDictionary(toKey => toKey.Name,w =>
-            {
-                Console.WriteLine(w.UsedRange.Rows.Count);
-                try
-                {
-                    return (long) w.Cells.SpecialCells(XlCellType.xlCellTypeLastCell).Row - 1;
-                }
-                catch (Exception)
-                {
-
-                    return 0;
-                }
-
-            });
-
-            WorksheetsNamesList = wb.Worksheets.Cast<Worksheet>().Select(w => w.Name).ToList();
-            wb.Close();
+            WorksheetsNamesList = wbDataSet.Tables.Cast<System.Data.DataTable>().Select(dt => dt.TableName).ToList(); 
         }
 
 
