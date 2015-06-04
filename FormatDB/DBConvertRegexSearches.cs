@@ -321,7 +321,7 @@ namespace Formater
                                 regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
                                 regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
                             }
-                            else if (nearCityCell.Value != null)
+                            else if (nearCityCell.Value != null) //bug ячейка ещё не проверена
                             {
                                 nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
                                 nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
@@ -361,14 +361,14 @@ namespace Formater
                     if (matches.Count > 0)
                     {
                         //Приоритет у любого негорода
+                        //если таковой есть
                         if (matches.Count > 1)
                         {
                             match =
                                 matches.Cast<Match>()
                                     .FirstOrDefault(
                                         m => !Regex.IsMatch(m.Groups["type"].Value, "\bг", RegexOptions.IgnoreCase)) ??
-                                //Приорите у любого негорода
-                                matches[0]; //Конечно если он есть, если его нет, берём первое совпадение
+                                matches[0];
                         }
                         else
                             match = matches[0];
@@ -401,6 +401,7 @@ namespace Formater
                             //Поиск только по субъекту, если в более частной выборке совпадений по населенному пункту не нашлось
                             if (oktmo.StringMatchInColumn(subjectTable, name, OKTMOColumns.NearCity))
                             {
+                                //BUG поселение уже может быть окрашено в красный
                                 var newTable = oktmo.GetCustomDataTable(subjectTable,
                                     new SearchParams(name, OKTMOColumns.NearCity));
                                 //Обновляем тип по найденному нас пункту если возможно
@@ -424,7 +425,7 @@ namespace Formater
                                     {
                                         type = newType;
                                     }
-
+                                    //bug если в таблице 1 запись, может уже записать всё?
                                 }
                             }
                             else
@@ -2025,7 +2026,9 @@ namespace Formater
                     {
                         if (regionCell.Value != null)
                             AppendToLandMarkCell(regionCell.Value.ToString(), row);
+
                         regionCell.Value = fullName;
+
                         regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
                         regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                         subjCell.Style.Fill.PatternType = ExcelFillStyle.Solid;

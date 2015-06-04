@@ -133,7 +133,7 @@ namespace Formater
         {
             var i = 1;
             var columns = db.TemplateWorkbooks.First(w => w.WorkbookType == wbType).Columns.ToList();
-#if !DEBUG
+#if DEBUG
             foreach (var templateCode in columns.Select(c => c.CodeName))
             {
                 if (worksheet.Cells[1, i].Value.ToString() != templateCode)
@@ -319,7 +319,6 @@ namespace Formater
                 var cell = worksheet.Cells[i, columnIndex];
                 if (string.IsNullOrEmpty(cell.Value as string))
                 {
-                    cell.Value = noInfoString;
                     continue;
                 }
 
@@ -344,7 +343,6 @@ namespace Formater
                 var cell = worksheet.Cells[i, columnIndex];
                 if (string.IsNullOrEmpty(cell.Value as string))
                 {
-                    cell.Value = noInfoString;
                     continue;
                 }
                 cell.Value = worksheet.Cells[cell.Start.Row, lawNowColumnIndex].Value.ToString() == "аренда"
@@ -362,6 +360,8 @@ namespace Formater
             for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
+                if (cell.Value == null) continue;
+                if (v.Contains(cell.Value.ToString())) continue;
                 cell.Value = "продажа";
             }
         }
@@ -375,6 +375,9 @@ namespace Formater
             for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
+                if (cell.Value == null) continue;
+                if (v.Contains(cell.Value.ToString())) continue;
+
                 cell.Value = "предложение";
             }
         }
@@ -383,13 +386,11 @@ namespace Formater
         {
             const string parsingDateColumnName = "дата парсинга";
             const string parsingDateColumnName2 = "дата_парсинга";
+
             const string columnCode = "DATE_IN_BASE";
 
 
-            var parsingColumn =
-                worksheet.ReadHead()
-                    .First(p => p.Value.Equals(parsingDateColumnName) || p.Value.Equals(parsingDateColumnName2))
-                    .Key;
+            var parsingColumn = GetColumnIndex("DATE_PARSING");
 
             var columnIndex = GetColumnIndex(columnCode);
             var dateRegex = new Regex("(сегодн|(поза)?вчер)");
@@ -400,7 +401,6 @@ namespace Formater
                 if (string.IsNullOrEmpty(cell.Value as string))
                 {
                     cell.Value = noInfoString;
-                    continue;
                 }
 
                 //Если есть дата
@@ -474,7 +474,6 @@ namespace Formater
                 var cell = worksheet.Cells[i, columnIndex];
                 if (string.IsNullOrEmpty(cell.Value as string))
                 {
-                    cell.Value = noInfoString;
                     continue;
                 }
 
@@ -711,12 +710,13 @@ namespace Formater
             //Варианты :Есть, Нет, Пусто
 
             //По всем столбцам
-            for (var n = usingRange.Start.Column; n <= usingRange.End.Column; n++)
+            for (var n = 2; n <= columnsCodeList.Count; n++)
             {
+                var columnName = columnsCodeList[n - 1];
                 //Значения по справочнику
-                v = catalogWorksheet.GetContentByCode(columnsCodeList[n - 1]);
+                v = catalogWorksheet.GetContentByCode(columnName);
 
-                columnIndex = n;
+                columnIndex = GetColumnIndex(columnName);
                 //Далее по всем ячейкам в столбце
                 for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
                 {
@@ -845,7 +845,6 @@ namespace Formater
                     }
                 }
 
-                match = null;
                 //Проверка на 85.000
                 var val = Regex.IsMatch(cell.Value.ToString(), @"\d+\.\d{3,}")
                     ? cell.Value.ToString().Replace(".", String.Empty)
@@ -935,6 +934,8 @@ namespace Formater
             return col.Key;
         }
 
+
+        /// Метод бэкапит данные, подвергшиеся замещению
 //        private void ReserveColumns()
 //        {
 //            string wsName = "Reserve";
