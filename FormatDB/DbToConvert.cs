@@ -217,7 +217,7 @@ namespace Formater
             for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
-                if (string.IsNullOrEmpty(cell.Value as string))
+                if (cell.Value == null || cell.Value.ToString() == string.Empty)
                 {
                     cell.Value = noInfoString;
                     continue;
@@ -252,7 +252,7 @@ namespace Formater
             for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
-                if (string.IsNullOrEmpty(cell.Value as string))
+                if (cell.Value == null || cell.Value.ToString() == string.Empty)
                 {
                     cell.Value = noInfoString;
                     continue;
@@ -287,7 +287,7 @@ namespace Formater
             for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
-                if (string.IsNullOrEmpty(cell.Value as string))
+                if (cell.Value == null || cell.Value.ToString() == string.Empty)
                 {
                     cell.Value = noInfoString;
                     continue;
@@ -317,7 +317,7 @@ namespace Formater
             for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
-                if (string.IsNullOrEmpty(cell.Value as string))
+                if (cell.Value == null || cell.Value.ToString() == string.Empty)
                 {
                     continue;
                 }
@@ -341,10 +341,10 @@ namespace Formater
             for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
-                if (string.IsNullOrEmpty(cell.Value as string))
-                {
-                    continue;
-                }
+//                if (cell.Value == null || cell.Value.ToString() == string.Empty)
+//                {
+//                    continue;
+//                }
                 cell.Value = worksheet.Cells[cell.Start.Row, lawNowColumnIndex].Value.ToString() == "аренда"
                     ? "переуступка прав аренды"
                     : "продажа";
@@ -398,7 +398,8 @@ namespace Formater
             for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
-                if (string.IsNullOrEmpty(cell.Value as string))
+                if (cell.Value == null || cell.Value.ToString() == string.Empty)
+                if (cell.Value == null || cell.Value.ToString() == string.Empty)
                 {
                     cell.Value = noInfoString;
                 }
@@ -472,7 +473,7 @@ namespace Formater
             for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
-                if (string.IsNullOrEmpty(cell.Value as string))
+                if (cell.Value == null || cell.Value.ToString() == string.Empty)
                 {
                     continue;
                 }
@@ -480,26 +481,38 @@ namespace Formater
 
                 if (cell.Style.Numberformat.Format == "dd.mm.yyyy") continue;
 
-                if (cell.Value is DateTime)
+                var value = cell.Value.ToString();
+
+                var pattern = @"\d{1,2}\.\d{2}\.\d{4}";
+                var reg = new Regex(pattern);
+                var m = reg.Match(value);
+                if (m.Success)
                 {
+                    value = m.Value;
+                }
+
+                DateTime dt;
+                if (DateTime.TryParse(value,out dt))
+                {
+                    cell.Value = dt;
                     cell.Style.Numberformat.Format = "dd.mm.yyyy";
                     continue;
                 }
-                object value = cell.Value;
-                DateTime dt;
-                if (value == null) continue;
-                if (value is double)
+
+                
+                double b;
+                if (double.TryParse(value,out b))
                 {
-                    dt = DateTime.FromOADate((double) value);
+                    dt = DateTime.FromOADate(b);
                 }
                 else
                 {
-                    DateTime.TryParse((string) value, out dt);
+                    DateTime.TryParse(value, out dt);
                 }
-                if (dt < new DateTime(2000, 01, 01))
+                if (dt <=  new DateTime(2000, 01, 01))
                 {
-                    Regex regex = new Regex(@"\d\d\.\d\d\.\d{2,4}");
-                    Match match = regex.Match(cell.Value.ToString());
+                    var regex = new Regex(@"\d\d\.\d\d\.\d{2,4}");
+                    var match = regex.Match(cell.Value.ToString());
                     value = match.Value;
                     DateTime.TryParse((string) value, out dt);
                     if (dt < new DateTime(2000, 01, 01))
@@ -558,7 +571,7 @@ namespace Formater
             for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
-                if (string.IsNullOrEmpty(cell.Value as string))
+                if (cell.Value == null || cell.Value.ToString() == string.Empty)
                 {
                     cell.Value = noInfoString;
                     continue;
@@ -603,7 +616,7 @@ namespace Formater
             {
                 var cell = worksheet.Cells[i, columnIndex];
 
-                if (string.IsNullOrEmpty(cell.Value as string))
+                if (cell.Value == null || cell.Value.ToString() == string.Empty)
                 {
                     cell.Value = "собственность";
                     continue;
@@ -654,7 +667,7 @@ namespace Formater
             for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
-                if (string.IsNullOrEmpty(cell.Value as string))
+                if (cell.Value == null || cell.Value.ToString() == string.Empty)
                 {
                     cell.Value = noInfoString;
                     continue;
@@ -721,7 +734,7 @@ namespace Formater
                 for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
                 {
                     var cell = worksheet.Cells[i, columnIndex];
-                    if (string.IsNullOrEmpty(cell.Value as string))
+                    if (cell.Value == null || cell.Value.ToString() == string.Empty)
                     {
                         cell.Value = noInfoString;
                         continue;

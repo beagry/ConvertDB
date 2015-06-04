@@ -131,11 +131,11 @@ namespace Formater.SupportWorksheetsClasses
             if (table == null)
                 table = this.table;
 
-            var res = 
+            var res =
                 table.Rows.Cast<DataRow>()
                     .Any(
-                        row =>
-                            string.Equals(DbToConvert.ReplaceYO((string) row[GetExcelColumn(column) - 1]), s,
+                        row => row[GetExcelColumn(column) - 1] is string &&
+                            string.Equals(DbToConvert.ReplaceYO(row[GetExcelColumn(column) - 1].ToString()), s,
                                 StringComparison.OrdinalIgnoreCase));
             return res;
         }

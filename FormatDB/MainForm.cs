@@ -22,7 +22,7 @@ namespace Formater
         private Color badColor = Color.Crimson;
         private Color goodColor = Color.Aquamarine;
         private const string ExcelFilter = @"Excel Files|*.xls;*.xlsx;*.xlsm;*.xlsb";
-        private Thread thred;
+        private Task task;
         public string WorkbookPath{get { return workbookPathTextBox.Text; }}
         public string OKTMOPath {get { return OKTMOPathTextBox.Text; }}
         public string OKTMOWsName {get { return OKTMOWorksheetCBox.Text; }}
@@ -188,7 +188,7 @@ namespace Formater
         //
         //Buttons Clicks
         //
-        private void StartButton_Click(object sender, EventArgs e)
+        private async void StartButton_Click(object sender, EventArgs e)
         {
             convert = new DbToConvert(this, XlTemplateWorkbookType.LandProperty) { ColumnsToReserve = new List<string> { "SUBJECT", "REGION", "NEAR_CITY", "SYSTEM_GAS", "SYSTEM_WATER", "SYSTEM_SEWERAGE", "SYSTEM_ELECTRICITY" } };
             var button = sender as Button;
@@ -211,23 +211,13 @@ namespace Formater
             if (!convert.ColumnHeadIsOk()) return;
 
             //Запусть обработки в новом потоке
-            thred = new Thread(async () =>
-            {
-            var work =  convert.FormatWorksheet();
-            if (work)
-                {
-                    //Обращение к основному потоку, в котором висит форма с нужной кнопкой
-                    button.Invoke(new VoidDelegate(() =>
-                    {
-                        WarningLabel.Visible = false;
-                        tabPage1.Enabled = true;
-                        tabPage1.Enabled = true;
-                        convert.ExcelPackage.SaveWithDialog();
-                    }));
+            await Task.Run(() => convert.FormatWorksheet());
 
-                }
-            });
-            thred.Start();
+            convert.ExcelPackage.SaveWithDialog();
+            WarningLabel.Visible = false;
+            tabPage1.Enabled = true;
+            tabPage1.Enabled = true;
+
         }
 
         private void OpenButton_Click(object sender, EventArgs e)

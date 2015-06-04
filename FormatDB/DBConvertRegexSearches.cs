@@ -1393,6 +1393,10 @@ namespace Formater
         private void TryFindProperName(int row, ref string value, ref DataTable customTable, DataTable subjectTable,
             ref bool cellsFilled, string regCenter, string regName)
         {
+            if (customTable == null) return;
+            if (subjectTable == null) return;
+
+
             var regionCell = worksheet.Cells[row, regionColumn];
             var nearCityCell = worksheet.Cells[row, nearCityColumn];
             var streetCell = worksheet.Cells[row, streetColumn];
