@@ -9,7 +9,10 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
+using ExcelRLibrary.TemplateWorkbooks;
 using Formater.SupportWorksheetsClasses;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using Action = System.Action;
 using DataTable = System.Data.DataTable;
 using Excel = Microsoft.Office.Interop.Excel;
@@ -108,8 +111,6 @@ namespace Formater
                 @"(?n)((?<pre>(?i)(по|в|за))\s)?(?<type>(?i)респ(\.|ублик(а|е|и)))(?(?<=\.)\s?|\s+)(?<name>\b[А-Яа-я\-]+\b)");
 
         private dynamic distValue;
-        private Color badColor = Color.Crimson;
-        private const byte badColorIndex = 3;
 
         #endregion
 
@@ -120,14 +121,10 @@ namespace Formater
             Dictionary<string, string> checkedValues = new Dictionary<string, string>();
 
             Regex tmpRegex;
-            xlApplication.DisplayAlerts = false;
             //Replaces
-            worksheet.Range[worksheet.Cells[2, nearCityColumn], worksheet.Cells[lastUsedRow, nearCityColumn]].Replace(
-                "\"\"", "");
-#if !DEBUG
-            ReserveColumns();
-#endif
-            xlApplication.DisplayAlerts = true;
+            var cellr = worksheet.Cells[2, nearCityColumn, lastUsedRow, nearCityColumn];
+            cellr.Value = cellr.Value.ToString().Replace("\"\"", "");
+//            ReserveColumns();
 
             const int percentForThisMethod = 70;
             var everyEachStep = lastUsedRow/percentForThisMethod;
@@ -170,45 +167,45 @@ namespace Formater
                 #region Инициализация строки
 
                 //ВВести принцип, перед работой с ячейкой мы её очищаем
-                Excel.Range subjCell = worksheet.Cells[row, subjColumn];
-                Excel.Range regionCell = worksheet.Cells[row, regionColumn];
-                Excel.Range settlementCell = worksheet.Cells[row, settlementColumn];
-                Excel.Range nearCityCell = worksheet.Cells[row, nearCityColumn];
-                Excel.Range vgtCell = worksheet.Cells[row, vgtColumn];
-                Excel.Range streetCell = worksheet.Cells[row, streetColumn];
-                Excel.Range typeOfNearCity = worksheet.Cells[row, typeOfNearCityColumn];
-                Excel.Range landmarkCell = worksheet.Cells[row, additionalInfoColumn];
-                Excel.Range typeOfStreetCell = worksheet.Cells[row, typeOfStreetColumn];
-                Excel.Range distToRegCenterCell = worksheet.Cells[row, distToRegCenterColumn];
-                Excel.Range distToNearCityCell = worksheet.Cells[row, distToNearCityColumn];
-                Excel.Range sntKpDnpCell = worksheet.Cells[row, sntKpDnpColumn];
-                Excel.Range inCityCell = worksheet.Cells[row, inCityColumn];
-                Excel.Range houseNumCell = worksheet.Cells[row, houseNumColumn];
-                Excel.Range letterCell = worksheet.Cells[row, letterColumn];
+                var subjCell = worksheet.Cells[row, subjColumn];
+                var regionCell = worksheet.Cells[row, regionColumn];
+                var settlementCell = worksheet.Cells[row, settlementColumn];
+                var nearCityCell = worksheet.Cells[row, nearCityColumn];
+                var vgtCell = worksheet.Cells[row, vgtColumn];
+                var streetCell = worksheet.Cells[row, streetColumn];
+                var typeOfNearCity = worksheet.Cells[row, typeOfNearCityColumn];
+                var landmarkCell = worksheet.Cells[row, additionalInfoColumn];
+                var typeOfStreetCell = worksheet.Cells[row, typeOfStreetColumn];
+                var distToRegCenterCell = worksheet.Cells[row, distToRegCenterColumn];
+                var distToNearCityCell = worksheet.Cells[row, distToNearCityColumn];
+                var sntKpDnpCell = worksheet.Cells[row, sntKpDnpColumn];
+                var inCityCell = worksheet.Cells[row, inCityColumn];
+                var houseNumCell = worksheet.Cells[row, houseNumColumn];
+                var letterCell = worksheet.Cells[row, letterColumn];
 
                 var cellsFilled = false;
 
                 //Выносим значения в память
                 //и затираем ячейки
-                string subjValue = subjCell.Value2 is string ? ReplaceYO(subjCell.Value2.ToString()) : String.Empty;
-                subjCell.Value2 = String.Empty;
-                string regionValue = regionCell.Value2 is string
-                    ? ReplaceYO(regionCell.Value2.ToString())
+                string subjValue = subjCell.Value is string ? ReplaceYO(subjCell.Value.ToString()) : String.Empty;
+                subjCell.Value = String.Empty;
+                string regionValue = regionCell.Value is string
+                    ? ReplaceYO(regionCell.Value.ToString())
                     : String.Empty;
-                regionCell.Value2 = String.Empty;
-                string nearCityValue = nearCityCell.Value2 is string
-                    ? ReplaceYO(nearCityCell.Value2.ToString())
+                regionCell.Value = String.Empty;
+                string nearCityValue = nearCityCell.Value is string
+                    ? ReplaceYO(nearCityCell.Value.ToString())
                     : String.Empty;
-                nearCityCell.Value2 = String.Empty;
-                string vgtValue = vgtCell.Value2 is string ? ReplaceYO(vgtCell.Value2.ToString()) : String.Empty;
-                vgtCell.Value2 = String.Empty;
-                string sourceLinkValue = ((Excel.Range) worksheet.Cells[row, sourceLinkColumn]).Value2 is string
-                    ? ReplaceYO(((Excel.Range) worksheet.Cells[row, sourceLinkColumn]).Value2.ToString())
+                nearCityCell.Value = String.Empty;
+                string vgtValue = vgtCell.Value is string ? ReplaceYO(vgtCell.Value.ToString()) : String.Empty;
+                vgtCell.Value = String.Empty;
+                string sourceLinkValue =  worksheet.Cells[row, sourceLinkColumn].Value is string
+                    ? ReplaceYO( worksheet.Cells[row, sourceLinkColumn].Value.ToString())
                     : String.Empty;
-                string landmarkValue = landmarkCell.Value2 is string
-                    ? ReplaceYO(landmarkCell.Value2.ToString())
+                string landmarkValue = landmarkCell.Value is string
+                    ? ReplaceYO(landmarkCell.Value.ToString())
                     : String.Empty;
-                landmarkCell.Value2 = String.Empty;
+                landmarkCell.Value = String.Empty;
 
                 Match match;
                 DataTable subjectTable = null;
@@ -230,7 +227,7 @@ namespace Formater
 
                 if (!String.IsNullOrEmpty(subjcetName))
                 {
-                    subjCell.Value2 = subjcetName;
+                    subjCell.Value = subjcetName;
 
                     //Выборка
                     if (oktmo.StringMatchInColumn(customTable, subjcetName,
@@ -244,16 +241,13 @@ namespace Formater
                         regCenter = oktmo.GetDefaultRegCenterFullName(subjcetName, ref regName);
                         if (string.IsNullOrEmpty(regCenter))
                             Console.WriteLine(@"Не найден региональный центр по субъекту {0}", subjcetName);
-//                        regName = subjectTable.Rows.Cast<DataRow>().First(r => String.Equals(r[OKTMOWorksheet.Columns.]))
-//                            regCenter.Replace("город","");
-//                                regName = regName.Trim();
-
                     }
                 }
                 else
                 {
-                    subjCell.Value2 = subjValue;
-                    subjCell.ColorCell(ExcelExtensions.CellColors.BadColor);
+                    subjCell.Value = subjValue;
+                    subjCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    subjCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
                 }
 
 
@@ -285,12 +279,12 @@ namespace Formater
                         regionValue = tmpRegex.Replace(regionValue, ", ");
                         var fullName = oktmo.GetFullName(TryChangeSubjectEndness(match.Groups["name"].Value), OKTMOColumns.Subject);
                         if (!String.IsNullOrEmpty(fullName) &&
-                            subjCell.Value2 != null &&
-                            subjCell.Value2.ToString()
+                            subjCell.Value != null &&
+                            subjCell.Value.ToString()
                                 .IndexOf(match.Groups["name"].Value, StringComparison.OrdinalIgnoreCase) == -1)
                         {
                             rowsToDelete.Add(row);
-                            subjCell.Value2 = fullName;
+                            subjCell.Value = fullName;
                             subjectTable = oktmo.GetCustomDataTable(new SearchParams(fullName, OKTMOColumns.Subject));
                             customTable = subjectTable.Copy();
                             continue;
@@ -312,7 +306,7 @@ namespace Formater
                             : "сельсовет";
 
                         var fullName = name + " " + type;
-                        settlementCell.Value2 = fullName;
+                        settlementCell.Value = fullName;
 
                         //В выборке уже имеется субъект и возможно Регион(или ВГТ)
                         if (oktmo.StringMatchInColumn(customTable, fullName, OKTMOColumns.Settlement))
@@ -320,11 +314,18 @@ namespace Formater
                                 new SearchParams(fullName, OKTMOColumns.Settlement));
                         else
                         {
-                            settlementCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-                            if (regionCell.Value2 != null)
-                                regionCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-                            else if (nearCityCell.Value2 != null)
-                                nearCityCell.ColorCell(ExcelExtensions.CellColors.BadColor);
+                            settlementCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            settlementCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                            if (regionCell.Value != null)
+                            {
+                                regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                            }
+                            else if (nearCityCell.Value != null)
+                            {
+                                nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                            }
                         }
 
 
@@ -342,7 +343,7 @@ namespace Formater
                     if (match.Success)
                     {
                         var newName = TryTemplateName(match.Groups["name"].Value);
-                        sntKpDnpCell.Value2 = sntKpDnpCell.Value2 == null ? newName : ", " + newName;
+                        sntKpDnpCell.Value = sntKpDnpCell.Value == null ? newName : ", " + newName;
                         regionValue = tmpRegex.Replace(regionValue, ", ");
                     }
 
@@ -410,7 +411,8 @@ namespace Formater
                                     {
                                         newType =
                                             newTable.Rows.Cast<DataRow>().First()[typeOfNearCityColumn - 1].ToString();
-                                        regionCell.Interior.ColorIndex = 0;
+                                        regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                        regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                                     }
                                     catch (InvalidOperationException e)
                                     {
@@ -418,7 +420,7 @@ namespace Formater
                                         throw e;
                                     }
 
-                                    if (typeOfNearCity.Value2 == null || typeOfNearCity.Value2.ToString() != newType)
+                                    if (typeOfNearCity.Value == null || typeOfNearCity.Value.ToString() != newType)
                                     {
                                         type = newType;
                                     }
@@ -427,18 +429,17 @@ namespace Formater
                             }
                             else
                             {
-                                nearCityCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-                                subjCell.ColorCell(ExcelExtensions.CellColors.BadColor);
+                                nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                                subjCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                subjCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
                             }
                         }
 
-                        nearCityCell.Value2 = name; //Пишем найденное наименование в нужную ячейку
-                        typeOfNearCity.Value2 = type;
+                        nearCityCell.Value = name; //Пишем найденное наименование в нужную ячейку
+                        typeOfNearCity.Value = type;
 
                         regionValue = tmpRegex.Replace(regionValue, ", ");
-
-                        //Now In perfect Situation
-//                        TryFillClassificator(row, customTable, ref cellsFilled);
                     }
 
                     //Для улиц
@@ -451,7 +452,7 @@ namespace Formater
 
                     //Ту информацию, что мы не смогли разобрать вписываем в отдельную ячейку
                     if (regionValue.Length > 2)
-                        landmarkCell.Value2 += regionValue + ", ";
+                        landmarkCell.Value += regionValue + ", ";
                 }
 #endif
 #endregion
@@ -484,12 +485,12 @@ namespace Formater
                         regionValue = tmpRegex.Replace(regionValue, ", ");
                         var fullName = oktmo.GetFullName(TryChangeSubjectEndness(match.Groups["name"].Value), OKTMOColumns.Subject);
                         if (!String.IsNullOrEmpty(fullName) &&
-                            subjCell.Value2 != null &&
-                            subjCell.Value2.ToString()
+                            subjCell.Value != null &&
+                            subjCell.Value.ToString()
                                 .IndexOf(match.Groups["name"].Value, StringComparison.OrdinalIgnoreCase) == -1)
                         {
                             rowsToDelete.Add(row);
-                            subjCell.Value2 = fullName;
+                            subjCell.Value = fullName;
                             subjectTable = oktmo.GetCustomDataTable(new SearchParams(fullName, OKTMOColumns.Subject));
                             customTable = subjectTable != null ? subjectTable.Copy() : oktmo.Table.Copy();
                             continue;
@@ -527,8 +528,10 @@ namespace Formater
                             {
 //                                if (!string.Equals(fullName, regCenter, StringComparison.OrdinalIgnoreCase))
 //                                {
-                                regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                                subjCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                                regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                                subjCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                subjCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
 
                                 //Выборка
                                 customTable = oktmo.GetCustomDataTable(customTable,
@@ -538,19 +541,21 @@ namespace Formater
                             }
                             else
                             {
-                                regionCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-                                nearCityCell.ColorCell(ExcelExtensions.CellColors.BadColor);
+                                regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                                nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
                             }
 
                             //В зависимости заполнен ли уже Регион, пишем извлеченное значение в ячейку Региона или ДопИнформации
-                            if (regionCell.Value2 == null)
-                                regionCell.Value2 = fullName;
+                            if (regionCell.Value == null)
+                                regionCell.Value = fullName;
                             else if (
-                                !string.Equals(fullName, regionCell.Value2.ToString(),
+                                !string.Equals(fullName, regionCell.Value.ToString(),
                                     StringComparison.OrdinalIgnoreCase))
                                 //Ситуция когда при обработке столбца "Регион" мы уже нашли более менее подходящее к субъекту мун.образование
                                 //И при обработке населн пункта (данный процесс) мы тоже нашли подходящее к субъекту мун.образование
-                                landmarkCell.Value2 = fullName + landmarkCell.Value2 + ", ";
+                                landmarkCell.Value = fullName + landmarkCell.Value + ", ";
 
                         }
                             //------------Try Apeend to VGT-----------
@@ -559,15 +564,11 @@ namespace Formater
                             fullName = name + " " + type;
 
                             //В зависимости заполнен ли уже Регион, пишем извлеченное значение в ячейку Региона или ДопИнформации
-                            if (regionCell.Value2 == null)
-                                regionCell.Value2 = fullName;
-                            else if (fullName != regionCell.Value2.ToString())
-                                landmarkCell.Value2 = fullName + landmarkCell.Value2 + ", ";
+                            if (regionCell.Value == null)
+                                regionCell.Value = fullName;
+                            else if (fullName != regionCell.Value.ToString())
+                                landmarkCell.Value = fullName + landmarkCell.Value + ", ";
                         }
-
-                        //Try fill
-//                        TryFillClassificator(row, customTable, ref cellsFilled);
-
                         value = tmpRegex.Replace(value, ", ");
                     }
 
@@ -578,7 +579,7 @@ namespace Formater
 
                         //Спихиваем всё в столбец "Расстояние до рег центра"
                         //Разбирать будем в конце
-                        distToRegCenterCell.Value2 += ", " + match.Value;
+                        distToRegCenterCell.Value += ", " + match.Value;
                         value = distToRegCenteRegex.Replace(value, ", ");
                     }
 
@@ -598,10 +599,10 @@ namespace Formater
                             type = "сельсовет";
 
                         var fullName = name + " " + type;
-                        if (settlementCell.Value2 == null)
-                            settlementCell.Value2 = fullName;
+                        if (settlementCell.Value == null)
+                            settlementCell.Value = fullName;
                         else
-                            landmarkCell.Value2 += fullName + ", ";
+                            landmarkCell.Value += fullName + ", ";
 
                         if (oktmo.StringMatchInColumn(customTable, fullName, OKTMOColumns.Settlement))
                         {
@@ -611,11 +612,18 @@ namespace Formater
                         }
                         else
                         {
-                            settlementCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-                            if (regionCell.Value2 != null)
-                                regionCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-                            else if (nearCityCell.Value2 != null)
-                                nearCityCell.ColorCell(ExcelExtensions.CellColors.BadColor);
+                            settlementCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            settlementCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                            if (regionCell.Value != null)
+                            {
+                                regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                            }
+                            else if (nearCityCell.Value != null)
+                            {
+                                nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                            }
                         }
                         value = settlementRegex.Replace(value, ",");
                     }
@@ -636,7 +644,7 @@ namespace Formater
                             string name = TryTemplateName(match.Groups["name"].Value);
                             string type = match.Groups["type"].Value;
 
-                            sntKpDnpCell.Value2 = sntKpDnpCell.Value2 == null ? name : ", " + name;
+                            sntKpDnpCell.Value = sntKpDnpCell.Value == null ? name : ", " + name;
 
                             match = match.NextMatch();
                         }
@@ -675,19 +683,21 @@ namespace Formater
 
                             tryAgainNCInNC:
                             //Если мы впервые нашлим населенный пункт
-                            if (nearCityCell.Value2 == null || nearCityCell.Value2.ToString() == String.Empty)
+                            if (nearCityCell.Value == null || nearCityCell.Value.ToString() == String.Empty)
                             {
 
-                                nearCityCell.Value2 = name;
-                                typeOfNearCity.Value2 = type;
+                                nearCityCell.Value = name;
+                                typeOfNearCity.Value = type;
 
                                 if (oktmo.StringMatchInColumn(customTable, name, OKTMOColumns.NearCity))
                                 {
                                     customTable = oktmo.GetCustomDataTable(customTable,
                                         new SearchParams(name, OKTMOColumns.NearCity));
 
-                                    nearCityCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                                    regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                                    nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                    nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                                    regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                    regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                                     
                                 }
                                 else
@@ -706,11 +716,13 @@ namespace Formater
                                             goto tryAgainNCInNC;
                                         }
                                     }
-                                    nearCityCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-                                    regionCell.ColorCell(ExcelExtensions.CellColors.BadColor);
+                                    nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                    nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                                    regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                    regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
                                 }
                             }
-                            else if (nearCityCell.Value2.ToString() != name) //нашли ли мы новую информацию
+                            else if (nearCityCell.Value.ToString() != name) //нашли ли мы новую информацию
                             {
                                 if (oktmo.StringMatchInColumn(customTable, name, OKTMOColumns.NearCity))
                                     //и подходит ли она к нам
@@ -718,13 +730,15 @@ namespace Formater
                                     customTable = oktmo.GetCustomDataTable(customTable,
                                         new SearchParams(name, OKTMOColumns.NearCity));
 
-                                    landmarkCell.Value2 += nearCityCell.Value2 + ", ";
+                                    landmarkCell.Value += nearCityCell.Value + ", ";
 
-                                    nearCityCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                                    regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                                    nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                    nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                                    regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                    regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                                     
-                                    nearCityCell.Value2 = name;
-                                    typeOfNearCity.Value2 = type;
+                                    nearCityCell.Value = name;
+                                    typeOfNearCity.Value = type;
                                 }
                                 else
                                 {
@@ -743,12 +757,9 @@ namespace Formater
                                             goto tryAgainNCInNC;
                                         }
                                     }
-                                    landmarkCell.Value2 += name + " " + type + ", ";
+                                    landmarkCell.Value += name + " " + type + ", ";
                                 }
                             }
-                            //Try to fill
-//                            TryFillClassificator(row, customTable, ref cellsFilled);
-
                         }
                         value = tmpRegex.Replace(value, ", ");
                     }
@@ -757,11 +768,7 @@ namespace Formater
                     {
                         TryFindProperName(row, ref value, ref customTable, subjectTable, ref cellsFilled, regCenter,
                             regName);
-//                       
                     }
-
-                    //Now In perfect Situation
-//                    TryFillClassificator(row, customTable, ref cellsFilled);
 
                     nearCityValue = value;
                     //Если у нас что-то не разобрано, мы его пихаем в доп инфо или ту же ячейек
@@ -769,7 +776,7 @@ namespace Formater
                     {
                         //Как бы зачем оставлять "3б" в населенном пункте
                         //В зависимости от была ли внесена полезная инфомация в ячеку "населенный пункт"
-                        landmarkCell.Value2 += nearCityValue + ", ";
+                        landmarkCell.Value += nearCityValue + ", ";
                     }
                     //Если у нас разобрано всё, а в ячейку населенного пункта ничего записано не было
                     //Мы очищаем ячейку
@@ -793,15 +800,15 @@ namespace Formater
                 if (!String.IsNullOrEmpty(landmarkValue))
                 {
                     //Поиск мун образвания
-                    if (regionCell.Value2 == null)
+                    if (regionCell.Value == null)
                         TryFillRegion(row, ref landmarkValue, ref customTable, subjectTable,
                             ref cellsFilled);
                     //поиск улицы
-                    if (streetCell.Value2 == null)
+                    if (streetCell.Value == null)
                         TryFillStreet(row, ref landmarkValue);
                     //Поиск внутрегородской территории
                     //Bug а не происходит ли такая же процедура в методе поиска мунОбразования (см 6 строк выше)
-                    if (vgtCell.Value2 == null)
+                    if (vgtCell.Value == null)
                     {
                         var tmpMatch = regionRegex.Match(landmarkValue);
                         if (tmpMatch.Success)
@@ -813,7 +820,7 @@ namespace Formater
 
                     }
 
-                    if (nearCityCell.Value2 == null)
+                    if (nearCityCell.Value == null)
                     {
                         //TODO недоделано
                     }
@@ -823,7 +830,7 @@ namespace Formater
                     TryFindProperName(row, ref value, ref customTable, subjectTable, ref cellsFilled, regCenter, regName);
 
                     if (landmarkValue.Length > 2)
-                        landmarkCell.Value2 += landmarkValue + ", ";
+                        landmarkCell.Value += landmarkValue + ", ";
                 }
 #endregion
 #endif
@@ -832,14 +839,14 @@ namespace Formater
 
 #if doDescriptionPlace
 
-                var descriptionColumn = LandPropertyTemplateWorkbook.GetColumnByCode("DESCRIPTION");
+                var descriptionColumn = GetColumnIndex("DESCRIPTION");
 
                 //Вначале мы ищем наименования по типу
                 //После мы пытаемся отнести найдненные в описании Именования без типов
-                Excel.Range cell = worksheet.Cells[row, descriptionColumn];
-                if (cell.Value2 != null)
+                var cell = worksheet.Cells[row, descriptionColumn];
+                if (cell.Value != null)
                 {
-                    String descrtContent = ReplaceYO(cell.Value2.ToString());
+                    String descrtContent = ReplaceYO(cell.Value.ToString());
 
                     //
                     //----Товарищества
@@ -853,8 +860,8 @@ namespace Formater
                             //Берём только первое совпадение!
                             var name = TryTemplateName(match.Groups["name"].Value);
 
-                            sntKpDnpCell.Value2 = sntKpDnpCell.Value2 == null ||
-                                                  sntKpDnpCell.Value2.ToString().Length < 3
+                            sntKpDnpCell.Value = sntKpDnpCell.Value == null ||
+                                                  sntKpDnpCell.Value.ToString().Length < 3
                                 ? name
                                 : ", " + name;
                             descrtContent = sntToLeftRegex.Replace(descrtContent, ", ");
@@ -880,13 +887,13 @@ namespace Formater
                         regionValue = tmpRegex.Replace(regionValue, ", ");
                         var fullName = oktmo.GetFullName(TryChangeSubjectEndness(match.Groups["name"].Value), OKTMOColumns.Subject);
                         if (!String.IsNullOrEmpty(fullName) &&
-                            subjCell.Value2 != null &&
-                            !string.Equals(subjCell.Value2.ToString().Trim(),fullName.Trim(),StringComparison.OrdinalIgnoreCase))
-                            //subjCell.Value2.ToString()
+                            subjCell.Value != null &&
+                            !string.Equals(subjCell.Value.ToString().Trim(),fullName.Trim(),StringComparison.OrdinalIgnoreCase))
+                            //subjCell.Value.ToString()
                             //    .IndexOf(match.Groups["name"].Value, StringComparison.OrdinalIgnoreCase) == -1)
                         {
                             rowsToDelete.Add(row);
-                            subjCell.Value2 = fullName;
+                            subjCell.Value = fullName;
                             subjectTable = oktmo.GetCustomDataTable(new SearchParams(fullName, OKTMOColumns.Subject));
                             customTable = subjectTable != null ? subjectTable.Copy() : oktmo.Table.Copy();
                             continue;
@@ -903,7 +910,7 @@ namespace Formater
                     foreach (Regex regi in regs)
                     {
                         reg = regi;
-//                                reg = nearCityToLeftRegex;
+
                         var matches = reg.Matches(descrtContent);
 
                         if (matches.Count > 0)
@@ -967,21 +974,21 @@ namespace Formater
 
                             if (!string.IsNullOrEmpty(match.Groups["out"].Value))
                             {
-                                inCityCell.Value2 = "нет";
+                                inCityCell.Value = "нет";
                                 if (!string.IsNullOrEmpty(match.Groups["dist"].Value))
                                 {
                                     var dist = TryDescriptDistance(match.Groups["dist"].Value);
                                     if (string.Equals(name, regName, StringComparison.OrdinalIgnoreCase))
                                     {
                                         //Backup current value
-                                        if (distToNearCityCell.Value2 != null)
-                                            landmarkCell.Value2 +=
+                                        if (distToNearCityCell.Value != null)
+                                            landmarkCell.Value +=
                                                 String.Format("Расстояние до регионального центра \"{0}\"",
-                                                    distToRegCenterCell.Value2.ToString());
-                                        distToRegCenterCell.Value2 = dist;
+                                                    distToRegCenterCell.Value);
+                                        distToRegCenterCell.Value = dist;
                                     }
                                     else
-                                        distToNearCityCell.Value2 = dist;
+                                        distToNearCityCell.Value = dist;
                                 }
                             }
 
@@ -991,137 +998,136 @@ namespace Formater
                             tryGetNearCityAgain:
 
                             //Опеределяем нужно ли обрабатывать найденную информацию
-                            if ((!String.Equals(name, regName, StringComparison.OrdinalIgnoreCase) ||
-                                 regionCell.Interior.ColorIndex == badColorIndex &&
-                                 String.Equals(name, regName, StringComparison.OrdinalIgnoreCase)) &&
-                                (nearCityCell.Value2 == null ||
-                                 (!String.Equals(nearCityCell.Value2.ToString(), name,
-                                     StringComparison.OrdinalIgnoreCase))))
-                            {
+                            if ((string.Equals(name, regName, StringComparison.OrdinalIgnoreCase) &&
+                                 (regionCell.Style.Fill.BackgroundColor.Rgb !=
+                                  ExcelExtensions.BadColor.ToArgb().ToString() ||
+                                  !string.Equals(name, regName, StringComparison.OrdinalIgnoreCase))) ||
+                                (nearCityCell.Value != null && (string.Equals(nearCityCell.Value.ToString(), name,
+                                    StringComparison.OrdinalIgnoreCase)))) continue;
 
-                                if (type == "город" && typeOfNearCity.Value2 != null &&
-                                    typeOfNearCity.Value2.ToString() != "город")
+                            if (type == "город" && typeOfNearCity.Value != null &&
+                                typeOfNearCity.Value.ToString() != "город")
+                            {
+                                landmarkCell.Value += name + " " + type + ", ";
+                            }
+                            else
+                            {
+                                //BackUp current value
+                                if (nearCityCell.Value != null)
+                                    landmarkCell.Value += typeOfNearCity.Value + " " +
+                                                          nearCityCell.Value.ToString();
+
+                                //Обнуляем МунОбразование
+                                //сейчас стоит региональный центр или просто город
+                                //а найденный насел пункт подходит к другому мун образованию
+                                var itIsCity = (regionCell.Value != null &&
+                                                String.Equals(regionCell.Value.ToString(), regCenter,
+                                                    StringComparison.OrdinalIgnoreCase) ||
+                                                (regionCell.Value != null &&
+                                                 regionCell.Value.ToString()
+                                                     .IndexOf("город", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                                                 type != "город") ||
+                                                (nearCityCell.Value != null && typeOfNearCity.Value == null));
+
+                                var valueNeedsResetRegion =
+                                    !oktmo.StringMatchInColumn(customTable, name, OKTMOColumns.NearCity) &&
+                                    oktmo.StringMatchInColumn(subjectTable, name, OKTMOColumns.NearCity);
+
+                                if (itIsCity && valueNeedsResetRegion)
                                 {
-                                    landmarkCell.Value2 += name + " " + type + ", ";
+                                    customTable = subjectTable != null ? subjectTable.Copy() : oktmo.Table.Copy();
+                                    regionCell.Value = string.Empty;
+                                    regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                    regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                                    subjCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                    subjCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                                    settlementCell.Value = string.Empty;
+                                    settlementCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                    settlementCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                                 }
+
+                                const string dashPattern = @"\s*\-\s*";
+                                const string spacePattern = @"\s+";
+                                const string cityEnd = @"(е|а)\b";
+                                //найденный насел пункт подхоидт к нашей выборке (по субъетк и возможно по мунобразованию если оно есть)
+                                if (oktmo.StringMatchInColumn(customTable, name, OKTMOColumns.NearCity))
+                                    customTable = oktmo.GetCustomDataTable(customTable,
+                                        new SearchParams(name, OKTMOColumns.NearCity));
                                 else
                                 {
-                                    //BackUp current value
-                                    if (nearCityCell.Value2 != null)
-                                        landmarkCell.Value2 += typeOfNearCity.Value2 + " " +
-                                                               nearCityCell.Value2.ToString();
-
-                                    //Обнуляем МунОбразование
-                                    //сейчас стоит региональный центр или просто город
-                                    //а найденный насел пункт подходит к другому мун образованию
-                                    var itIsCity = (regionCell.Value2 != null &&
-                                                    String.Equals(regionCell.Value2.ToString(), regCenter,
-                                                        StringComparison.OrdinalIgnoreCase) ||
-                                                    (regionCell.Value2 != null &&
-                                                     regionCell.Value2.ToString()
-                                                         .IndexOf("город", StringComparison.OrdinalIgnoreCase) >= 0 &&
-                                                     type != "город") ||
-                                                    (nearCityCell.Value2 != null && typeOfNearCity.Value2 == null));
-
-                                    var valueNeedsResetRegion =
-                                        !oktmo.StringMatchInColumn(customTable, name, OKTMOColumns.NearCity) &&
-                                        oktmo.StringMatchInColumn(subjectTable, name, OKTMOColumns.NearCity);
-
-                                    if (itIsCity && valueNeedsResetRegion)
+                                    if (!switched)
                                     {
-                                        customTable = subjectTable != null ? subjectTable.Copy() : oktmo.Table.Copy();
-                                        regionCell.Value2 = string.Empty;
-                                        regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                                        subjCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                                        settlementCell.Value2 = string.Empty;
-                                        settlementCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                                    }
-
-                                    const string dashPattern = @"\s*\-\s*";
-                                    const string spacePattern = @"\s+";
-                                    const string cityEnd = @"(е|а)\b";
-                                    //найденный насел пункт подхоидт к нашей выборке (по субъетк и возможно по мунобразованию если оно есть)
-                                    if (oktmo.StringMatchInColumn(customTable, name, OKTMOColumns.NearCity))
-                                        customTable = oktmo.GetCustomDataTable(customTable,
-                                            new SearchParams(name, OKTMOColumns.NearCity));
-                                    else
-                                    {
-                                        if (!switched)
+                                        switched = true;
+                                        if (Regex.IsMatch(name, dashPattern))
                                         {
-                                            switched = true;
-                                            if (Regex.IsMatch(name, dashPattern))
-                                            {
-                                                name = Regex.Replace(name, dashPattern, " ");
-                                                goto tryGetNearCityAgain;
-                                            }
-
-                                            if (Regex.IsMatch(name, spacePattern))
-                                            {
-                                                name = Regex.Replace(name, spacePattern, "-");
-                                                goto tryGetNearCityAgain;
-                                            }
+                                            name = Regex.Replace(name, dashPattern, " ");
+                                            goto tryGetNearCityAgain;
                                         }
 
-                                        if (!endChanged)
+                                        if (Regex.IsMatch(name, spacePattern))
                                         {
-                                            if (type == "город" && Regex.IsMatch(name, cityEnd, RegexOptions.IgnoreCase))
+                                            name = Regex.Replace(name, spacePattern, "-");
+                                            goto tryGetNearCityAgain;
+                                        }
+                                    }
+
+                                    if (!endChanged)
+                                    {
+                                        if (type == "город" && Regex.IsMatch(name, cityEnd, RegexOptions.IgnoreCase))
+                                        {
+                                            name = Regex.Replace(name, cityEnd, "");
+                                            goto tryGetNearCityAgain;
+                                        }
+
+                                        endChanged = true;
+                                        name = startName;
+                                    }
+                                    //Дробим имя собственное если возможно для поиска по каждому имени отдельни
+                                    if (!splitted)
+                                    {
+                                        //Step one: we split it
+                                        if (words == null)
+                                        {
+                                            var patterns = new List<string> {dashPattern, spacePattern};
+
+                                            foreach (string pattern in patterns)
                                             {
-                                                name = Regex.Replace(name, cityEnd, "");
+                                                if (Regex.IsMatch(startName, pattern))
+                                                {
+                                                    words = Regex.Split(startName, pattern).ToList();
+                                                    name = words.Last();
+                                                    words[words.Count - 1] = null;
+                                                    goto tryGetNearCityAgain; //just break
+                                                }
+                                            }
+                                        }
+                                        //Step two: we use it untill end
+                                        else
+                                        {
+                                            for (int i = words.Count - 1; i >= 0; i--)
+                                            {
+                                                if (words[i] == null) continue;
+                                                name = words[i];
+                                                words[i] = null;
                                                 goto tryGetNearCityAgain;
                                             }
-
-                                            endChanged = true;
+                                            splitted = true;
                                             name = startName;
                                         }
-                                        //Дробим имя собственное если возможно для поиска по каждому имени отдельни
-                                        if (!splitted)
-                                        {
-                                            //Step one: we split it
-                                            if (words == null)
-                                            {
-                                                var patterns = new List<string> {dashPattern, spacePattern};
 
-                                                foreach (string pattern in patterns)
-                                                {
-                                                    if (Regex.IsMatch(startName, pattern))
-                                                    {
-                                                        words = Regex.Split(startName, pattern).ToList();
-                                                        name = words.Last();
-                                                        words[words.Count - 1] = null;
-                                                        goto tryGetNearCityAgain; //just break
-                                                    }
-                                                }
-                                            }
-                                                //Step two: we use it untill end
-                                            else
-                                            {
-                                                for (int i = words.Count - 1; i >= 0; i--)
-                                                {
-                                                    if (words[i] == null) continue;
-                                                    name = words[i];
-                                                    words[i] = null;
-                                                    goto tryGetNearCityAgain;
-                                                }
-                                                splitted = true;
-                                                name = startName;
-                                            }
-
-                                        }
                                     }
-
-                                    //записываем в любом случае
-                                    nearCityCell.Value2 = name;
-                                    typeOfNearCity.Value2 = type;
-
-                                    cellsFilled = false;
-//                                    TryFillClassificator(row, customTable, ref cellsFilled);
                                 }
 
-                                descrtContent = reg.Replace(descrtContent, ", ");
+                                //записываем в любом случае
+                                nearCityCell.Value = name;
+                                typeOfNearCity.Value = type;
+
+                                cellsFilled = false;
                             }
+
+                            descrtContent = reg.Replace(descrtContent, ", ");
                         }
                     }
-//                    TryFillClassificator(row, ref customTable, ref cellsFilled, regCenter, regName);
                     //
                     //----Муниципальное образование
                     //
@@ -1150,14 +1156,14 @@ namespace Formater
                 //
                 const string del = @"(\,\s+)";
                 var r = new Regex(del + @"{2,}", RegexOptions.IgnorePatternWhitespace);
-                if (landmarkCell.Value2 != null)
+                if (landmarkCell.Value != null)
                 {
-                    landmarkCell.Value2 = r.Replace(landmarkCell.Value2.ToString(), ", ");
+                    landmarkCell.Value = r.Replace(landmarkCell.Value.ToString(), ", ");
                 }
 #if fillDefault
 
                 //Вписываем дефолтные значения Если населенный пункт так и не заполнен
-                if (nearCityCell.Value2 == null)
+                if (nearCityCell.Value == null)
                 {
                     //Находим дефолтный населенный пункт по ссылке на объявление
                     var newCity = subjectSourceWorksheet.GetDefaultNearCityByLink(sourceLinkValue);
@@ -1168,8 +1174,8 @@ namespace Formater
                         //Т.е. подходит и к субъекту и к муниципальному образованию, есть таковой есть
                         if (oktmo.StringMatchInColumn(customTable, newCity, OKTMOColumns.NearCity))
                         {
-                            nearCityCell.Value2 = newCity;
-                            typeOfNearCity.Value2 = "город";
+                            nearCityCell.Value = newCity;
+                            typeOfNearCity.Value = "город";
 
                             customTable = oktmo.GetCustomDataTable(customTable,
                                 new SearchParams(newCity, OKTMOColumns.NearCity));
@@ -1178,17 +1184,17 @@ namespace Formater
                     }
                         //или ставим муниципальное образование как город
                         //При условии что это не региональный центр
-                    else if (regionCell.Value2 != null && regionCell.Interior.ColorIndex != badColorIndex
-                             && regionCell.Value2.ToString().IndexOf("город") >= 0)
+                    else if (regionCell.Value != null && regionCell.Style.Fill.BackgroundColor.Rgb != ExcelExtensions.BadColor.ToArgb().ToString()
+                             && regionCell.Value.ToString().IndexOf("город") >= 0)
                     {
-                        string name = regionCell.Value2.ToString().Replace("город", "");
+                        string name = regionCell.Value.ToString().Replace("город", "");
                         name = name.Replace("(ЗАТО)", "");
                         name = name.Trim();
                         if (oktmo.StringMatchInColumn(customTable, name, OKTMOColumns.NearCity))
                         {
                             cellsFilled = false;
-                            nearCityCell.Value2 = name;
-                            typeOfNearCity.Value2 = "город";
+                            nearCityCell.Value = name;
+                            typeOfNearCity.Value = "город";
 
                             customTable = oktmo.GetCustomDataTable(customTable,
                                 new SearchParams(name, OKTMOColumns.NearCity));
@@ -1197,36 +1203,36 @@ namespace Formater
                     }
                 }
                 //Ставим дефолтное значение для муниципального образования, если оно пустое, а текущий насленный пункт у нас является региональным центро
-                else if (regionCell.Value2 == null &&
-                         string.Equals(nearCityCell.Value2.ToString(), regName, StringComparison.OrdinalIgnoreCase))
+                else if (regionCell.Value == null &&
+                         string.Equals(nearCityCell.Value.ToString(), regName, StringComparison.OrdinalIgnoreCase))
                 {
                     customTable = oktmo.GetCustomDataTable(customTable,
                         new SearchParams(regName, OKTMOColumns.NearCity));
                     TryFillClassificator(row, ref customTable, ref cellsFilled, regCenter, regName);
                 }
                 //Дефолное значение для типа населенного пункта, если найденный насел пункт совпадает по названию с региональным центром
-                else if (typeOfNearCity.Value2 == null && 
-                         string.Equals(nearCityCell.Value2.ToString(), regName, StringComparison.OrdinalIgnoreCase))
+                else if (typeOfNearCity.Value == null && 
+                         string.Equals(nearCityCell.Value.ToString(), regName, StringComparison.OrdinalIgnoreCase))
                 {
-                    typeOfNearCity.Value2 = "город";
+                    typeOfNearCity.Value = "город";
                 }
 #endif
 #if checkVGT
                 //Проверяем текущий ВГТ
                 //Дописываем по возможности населенный пункт, опираясь на Муниципальное образование (если оно таки есть)
                 //Так же удаляем если в справочнике ВГТ нет комбинации НаселПункт+ВГТ
-                if (vgtCell.Value2 != null)
+                if (vgtCell.Value != null)
                 {
                     //т.к у нас есть инфомрация о ВГТ, мы можем записать Регион(город) вручную или наоборот, записать насел пункт по региону
                     //но нам не надо будет этого делать, если насел пункт валиден относительно ВГТ, т.к. Регион проставится сам по населенному пункту
-                    if (nearCityCell.Value2 == null ||
-                        !vgtWorksheet.CombinationExists(nearCityCell.Value2.ToString(), vgtCell.Value2.ToString()))
+                    if (nearCityCell.Value == null ||
+                        !vgtWorksheet.CombinationExists(nearCityCell.Value.ToString(), vgtCell.Value.ToString()))
                     {
                         //Список городов в которых присутствует район, с таким же наименованием
-                        List<string> cities = vgtWorksheet.GetCitiesListByTerritory(vgtCell.Value2.ToString());
+                        List<string> cities = vgtWorksheet.GetCitiesListByTerritory(vgtCell.Value.ToString());
 
                         //Когда населенный пункт пустой, а муниципальное образовать есть
-                        if (subjectTable != null && regionCell.Value2 != null && nearCityCell.Value2 == null)
+                        if (subjectTable != null && regionCell.Value != null && nearCityCell.Value == null)
                         {
                             //Среди всех городов, в которых есть текущий ВГТ
                             //Находим те, которые подходят к нашей текущей выборке
@@ -1239,8 +1245,8 @@ namespace Formater
                             if (validCities.Count == 1)
                             {
                                 var newCity = validCities.First();
-                                nearCityCell.Value2 = newCity;
-                                typeOfNearCity.Value2 = "город";
+                                nearCityCell.Value = newCity;
+                                typeOfNearCity.Value = "город";
                                 //и дописываем выборку
                                 customTable = oktmo.GetCustomDataTable(customTable,
                                     new SearchParams(newCity, OKTMOColumns.NearCity));
@@ -1248,22 +1254,22 @@ namespace Formater
                             }
                         }
                         //Обрабатываем населенный пункы = не города
-                        if (typeOfNearCity.Value2 == null ||
-                            !string.Equals(typeOfNearCity.Value2.ToString(), "город", StringComparison.OrdinalIgnoreCase))
+                        if (typeOfNearCity.Value == null ||
+                            !string.Equals(typeOfNearCity.Value.ToString(), "город", StringComparison.OrdinalIgnoreCase))
                         {
                             //При пустом Регионе смело пишем ВГТ, т.к. проставленный насел пункт может находиться в районе города, и не быть в ВГТ и ОКТМО справочниках
-                            if (regionCell.Value2 == null)
+                            if (regionCell.Value == null)
                             {
                                 //Если текущий ВГТ находится и в региональном центре, то смело пишем региональный центр как МунОбр
                                 if (!string.IsNullOrEmpty(regCenter) && cities.Contains(regName))
                                 {
-                                    regionCell.Value2 = regCenter;
+                                    regionCell.Value = regCenter;
                                     customTable = oktmo.GetCustomDataTable(customTable,
                                             new SearchParams(regCenter, OKTMOColumns.NearCity));
-                                    if (nearCityCell.Value2 == null)
+                                    if (nearCityCell.Value == null)
                                     {
-                                        nearCityCell.Value2 = regName;
-                                        typeOfNearCity.Value2 = "город";
+                                        nearCityCell.Value = regName;
+                                        typeOfNearCity.Value = "город";
                                         customTable = oktmo.GetCustomDataTable(customTable,
                                             new SearchParams(regName, OKTMOColumns.NearCity));
                                     }
@@ -1292,14 +1298,14 @@ namespace Formater
                                         //Bug или лучше найти МунОбр через населенный пункт?
                                         var newReg = same[0][OKTMOWorksheet.Columns.Region - 1].ToString();
 
-                                        regionCell.Value2 = newReg;
+                                        regionCell.Value = newReg;
                                     }
                                 }
                             }
                             else
                             {
-                                AppendToLandMarkCell(vgtCell.Value2.ToString() + " район", row);
-                                vgtCell.Value2 = string.Empty;
+                                AppendToLandMarkCell(vgtCell.Value.ToString() + " район", row);
+                                vgtCell.Value = string.Empty;
 
                             }
                         }
@@ -1307,8 +1313,8 @@ namespace Formater
                             //Bug может ли такое быть, и правильно ли так делать?
                         else
                         {
-                            AppendToLandMarkCell(vgtCell.Value2.ToString() + " район", row);
-                            vgtCell.Value2 = string.Empty;
+                            AppendToLandMarkCell(vgtCell.Value.ToString() + " район", row);
+                            vgtCell.Value = string.Empty;
                         }
                     }
                 }
@@ -1334,22 +1340,22 @@ namespace Formater
         /// </summary>
         /// <param name="value">Текст для вставки</param>
         /// <param name="row">Строка для поиска</param>
-        private void AppendToLandMarkCell(string value, long row)
+        private void AppendToLandMarkCell(string value, int row)
         {
-            Excel.Range landmarkCell = worksheet.Cells[row, additionalInfoColumn];
+            var landmarkCell = worksheet.Cells[row, additionalInfoColumn];
 
-            if (landmarkCell.Value2 != null &&
-                landmarkCell.Value2.ToString().IndexOf(value, System.StringComparison.Ordinal) >= 0)
+            if (landmarkCell.Value != null &&
+                landmarkCell.Value.ToString().IndexOf(value, System.StringComparison.Ordinal) >= 0)
                 return;
 
 
             if (value.IndexOf("район", System.StringComparison.Ordinal) >= 0)
-                if (landmarkCell.Value2 == null)
-                    landmarkCell.Value2 = value + ", ";
+                if (landmarkCell.Value == null)
+                    landmarkCell.Value = value + ", ";
                 else
-                    landmarkCell.Value2 = value + ", " + landmarkCell.Value2.ToString();
+                    landmarkCell.Value = value + ", " + landmarkCell.Value.ToString();
             else
-                landmarkCell.Value2 += value + ", ";
+                landmarkCell.Value += value + ", ";
 
         }
 
@@ -1383,24 +1389,24 @@ namespace Formater
         /// <param name="cellsFilled"></param>
         /// <param name="regCenter"></param>
         /// <param name="regName"></param>
-        private void TryFindProperName(long row, ref string value, ref DataTable customTable, DataTable subjectTable,
+        private void TryFindProperName(int row, ref string value, ref DataTable customTable, DataTable subjectTable,
             ref bool cellsFilled, string regCenter, string regName)
         {
-            Excel.Range regionCell = worksheet.Cells[row, regionColumn];
-            Excel.Range nearCityCell = worksheet.Cells[row, nearCityColumn];
-            Excel.Range streetCell = worksheet.Cells[row, streetColumn];
-            Excel.Range typeOfStreetCell = worksheet.Cells[row, typeOfStreetColumn];
-            Excel.Range sntKpDnpCell = worksheet.Cells[row, sntKpDnpColumn];
-            Excel.Range subjCell = worksheet.Cells[row, subjColumn];
+            var regionCell = worksheet.Cells[row, regionColumn];
+            var nearCityCell = worksheet.Cells[row, nearCityColumn];
+            var streetCell = worksheet.Cells[row, streetColumn];
+            var typeOfStreetCell = worksheet.Cells[row, typeOfStreetColumn];
+            var sntKpDnpCell = worksheet.Cells[row, sntKpDnpColumn];
+            var subjCell = worksheet.Cells[row, subjColumn];
 
             var match = wordWithHeadLetteRegex.Match(value);
             while (match.Success)
             {
                 //does not match region and near city
                 //and does not match SNT (or it`s just empty)
-                if (match.Value != regionCell.Value2 && match.Value != nearCityCell.Value2 &&
-                    (sntKpDnpCell.Value2 == null ||
-                     (((string) sntKpDnpCell.Value2.ToString()).IndexOf(match.Value,
+                if (match.Value != (string) regionCell.Value && match.Value != (string) nearCityCell.Value &&
+                    (sntKpDnpCell.Value == null ||
+                     (((string) sntKpDnpCell.Value.ToString()).IndexOf(match.Value,
                          StringComparison.OrdinalIgnoreCase) == -1)))
                 {
                     //Пробуем подогнать к каждой ячейке
@@ -1416,20 +1422,16 @@ namespace Formater
                             //Найденный регион пишем только если он подходит к выборке
                             if (oktmo.StringMatchInColumn(customTable, fullName, OKTMOColumns.Region))
                             {
-                                regionCell.Value2 = fullName;
-                                regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                                subjCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                                regionCell.Value = fullName;
+                                regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                                subjCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                subjCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
 
                                 //Делаем выборку только если найденный регион не является региональным центром
-//                                if (!string.Equals(fullName, regCenter, StringComparison.OrdinalIgnoreCase))
-//                                {
                                 if (!string.Equals(fullName, regCenter, StringComparison.OrdinalIgnoreCase))
                                     customTable = oktmo.GetCustomDataTable(customTable,
                                         new SearchParams(fullName, OKTMOColumns.Region));
-
-//                                    TryFillClassificator(row, customTable, ref cellsFilled);
-
-//                                }
                             }
                         }
                     }
@@ -1440,16 +1442,16 @@ namespace Formater
                         if (!cellsFilled)
                         {
                             var newName = TryTemplateName(match.Value);
-                            nearCityCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                            regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                            nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                            regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                             
-                            nearCityCell.Value2 = newName;
+                            nearCityCell.Value = newName;
 
                             if (!string.Equals(newName, regName, StringComparison.OrdinalIgnoreCase))
                                 customTable = oktmo.GetCustomDataTable(customTable,
                                     new SearchParams(newName, OKTMOColumns.NearCity));
-
-//                            TryFillClassificator(row, customTable, ref cellsFilled);
                         }
                     }
                         //Try Append To VGT
@@ -1461,20 +1463,27 @@ namespace Formater
                         //Just Wtire to first epmty cell
                     else
                     {
-                        if (streetCell.Value2 == null &&
+                        if (streetCell.Value == null &&
                             Regex.IsMatch(match.Value, @"ая\b", RegexOptions.IgnoreCase))
                         {
-                            streetCell.Value2 = TryTemplateName(match.Value);
-                            typeOfStreetCell.Value2 = "улица";
+                            streetCell.Value = TryTemplateName(match.Value);
+                            typeOfStreetCell.Value = "улица";
                         }
-                        else if (nearCityCell.Value2 == null)
+                        else if (nearCityCell.Value == null)
                         {
-                            nearCityCell.Value2 = TryTemplateName(match.Value);
-                            nearCityCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-                            if (regionCell.Value2 != null)
-                                regionCell.ColorCell(ExcelExtensions.CellColors.BadColor);
+                            nearCityCell.Value = TryTemplateName(match.Value);
+                            nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                            if (regionCell.Value != null)
+                            {
+                                regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                            }
                             else
-                                subjCell.ColorCell(ExcelExtensions.CellColors.BadColor);
+                            {
+                                subjCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                subjCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                            }
                         }
                         else
                             goto skipWordReplace;
@@ -1487,14 +1496,14 @@ namespace Formater
             }
         }
 
-        private bool TryFillVGT(long row, ref string value, ref DataTable customTable, ref bool cellsFilled)
+        private bool TryFillVGT(int row, ref string value, ref DataTable customTable, ref bool cellsFilled)
         {
 
-            Excel.Range nearCityCell = worksheet.Cells[row, nearCityColumn];
-            Excel.Range vgtCell = worksheet.Cells[row, vgtColumn];
-            Excel.Range landmarkCell = worksheet.Cells[row, additionalInfoColumn];
-            Excel.Range regionCell = worksheet.Cells[row, regionColumn];
-            Excel.Range typeOfNearCity = worksheet.Cells[row, typeOfNearCityColumn];
+            var nearCityCell = worksheet.Cells[row, nearCityColumn];
+            var vgtCell = worksheet.Cells[row, vgtColumn];
+            var landmarkCell = worksheet.Cells[row, additionalInfoColumn];
+            var regionCell = worksheet.Cells[row, regionColumn];
+            var typeOfNearCity = worksheet.Cells[row, typeOfNearCityColumn];
             var res = false;
             //----Обрабатываем ВГТ-----
             if (!String.IsNullOrEmpty(value))
@@ -1503,11 +1512,11 @@ namespace Formater
                 if (vgtWorksheet.TerritotyExists(value))
                 {
                     var vgt = value;
-                    vgtCell.Value2 = vgt;
+                    vgtCell.Value = vgt;
                     res = true;
 
-                    if (nearCityCell.Value2 != null &&
-                        vgtWorksheet.CombinationExists(nearCityCell.Value2.ToString(), vgt))
+                    if (nearCityCell.Value != null &&
+                        vgtWorksheet.CombinationExists(nearCityCell.Value.ToString(), vgt))
                         return true;
 
                     //Далее идут ситации если текущий насел пункт пустой, или не подходит к найденному ВГТ
@@ -1516,22 +1525,24 @@ namespace Formater
                     String city = string.Empty;
                     //Пробуем извлечь текущий насел пункт из мунОбр
                     //И тем самым подтвердить мунОбр и проставить населПункт
-                    if (regionCell.Value2 != null &&
-                        regionCell.Value2.ToString().IndexOf("город", StringComparison.OrdinalIgnoreCase) >= 0)
+                    if (regionCell.Value != null &&
+                        regionCell.Value.ToString().IndexOf("город", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
-                        city = TryTemplateName(regionCell.Value2.ToString().Replace("город", ""));
+                        city = TryTemplateName(regionCell.Value.ToString().Replace("город", ""));
                         city = city.Trim();
                     }
                     if (!String.IsNullOrEmpty(city) && vgtWorksheet.CombinationExists(city, vgt))
                     {
-                        nearCityCell.Value2 = city;
-                        typeOfNearCity.Value2 = "город";
+                        nearCityCell.Value = city;
+                        typeOfNearCity.Value = "город";
 
                         //Проверяем найденный насел пункт
                         if (oktmo.StringMatchInColumn(customTable, city, OKTMOColumns.NearCity))
                         {
-                            nearCityCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                            regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                            nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                            regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                             
 
                             customTable = oktmo.GetCustomDataTable(customTable,
@@ -1540,8 +1551,10 @@ namespace Formater
                         }
                         else
                         {
-                            nearCityCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-                            regionCell.ColorCell(ExcelExtensions.CellColors.BadColor);
+                            nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                            regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
                         }
                     }
                         //В ином случае пробуем записать насел пункт через ВГТ
@@ -1554,44 +1567,47 @@ namespace Formater
                             //Строка будет  заполнена, если существует всего один насел пункт с таким районом
                         {
                             //нужно ли нам вообще проверять найденный
-                            if (nearCityCell.Value2 == null ||
-                                nearCityCell.Value2.ToString().ToLower() != newCity.ToLower())
-                            {
-                                //Если текущий населенный пункт верный (он не пуст и не окрашен как неверный)
-                                //мы его оставляем на месте, а найденный пишем в ориентир
-                                if (nearCityCell.Value2 != null &&
-                                    nearCityCell.Interior.ColorIndex != badColorIndex)
-                                    //Пишем найденный насел пункт в ориентир
-                                    landmarkCell.Value2 += "город " + vgt + ", ";
+                            if (nearCityCell.Value != null &&
+                                string.Equals(nearCityCell.Value.ToString(), newCity,
+                                    StringComparison.CurrentCultureIgnoreCase)) return res;
 
-                                    //В остальных случаях найденный насел пункт попадёт в ячейку населенногоп пункта
-                                else
+                            //Если текущий населенный пункт верный (он не пуст и не окрашен как неверный)
+                            //мы его оставляем на месте, а найденный пишем в ориентир
+                            if (nearCityCell.Value != null &&
+                                nearCityCell.Style.Fill.BackgroundColor.Rgb != ExcelExtensions.BadColor.ToArgb().ToString())
+                                //Пишем найденный насел пункт в ориентир
+                                landmarkCell.Value += "город " + vgt + ", ";
+
+                            //В остальных случаях найденный насел пункт попадёт в ячейку населенногоп пункта
+                            else
+                            {
+                                //Определяем, относится ли насел пункт к выборке
+                                if (oktmo.StringMatchInColumn(customTable, newCity,
+                                    OKTMOColumns.TypeOfNearCity))
                                 {
-                                    //Определяем, относится ли насел пункт к выборке
-                                    if (oktmo.StringMatchInColumn(customTable, newCity,
-                                        OKTMOColumns.TypeOfNearCity))
-                                    {
-                                        nearCityCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                                        regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                                    nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                    nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                                    regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                    regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                                         
 
-                                        //Try to fill
-                                        customTable = oktmo.GetCustomDataTable(customTable,
-                                            new SearchParams(newCity, OKTMOColumns.NearCity));
-//                                        TryFillClassificator(row, customTable, ref cellsFilled);
-                                    }
-                                    else
-                                    {
-                                        nearCityCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-                                        regionCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-                                    }
-
-                                    //Перекидываем текущий насел пункт
-                                    if (nearCityCell.Value2 != null)
-                                        landmarkCell.Value2 += nearCityCell + ", ";
-
-                                    nearCityCell.Value2 = newCity;
+                                    //Try to fill
+                                    customTable = oktmo.GetCustomDataTable(customTable,
+                                        new SearchParams(newCity, OKTMOColumns.NearCity));
                                 }
+                                else
+                                {
+                                    nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                    nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                                    regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                    regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                                }
+
+                                //Перекидываем текущий насел пункт
+                                if (nearCityCell.Value != null)
+                                    landmarkCell.Value += nearCityCell + ", ";
+
+                                nearCityCell.Value = newCity;
                             }
                         }
                     }
@@ -1600,14 +1616,14 @@ namespace Formater
             return res;
         }
 
-        private void TryFillStreet(long row, ref string value)
+        private void TryFillStreet(int row, ref string value)
         {
-            Excel.Range streetCell = worksheet.Cells[row, streetColumn];
-            Excel.Range landmarkCell = worksheet.Cells[row, additionalInfoColumn];
-            Excel.Range typeOfStreetCell = worksheet.Cells[row, typeOfStreetColumn];
-            Excel.Range houseNumCell = worksheet.Cells[row, houseNumColumn];
-            Excel.Range letterCell = worksheet.Cells[row, letterColumn];
-            Excel.Range buildCell = worksheet.Cells[row, buildColumn];
+            var streetCell = worksheet.Cells[row, streetColumn];
+            var landmarkCell = worksheet.Cells[row, additionalInfoColumn];
+            var typeOfStreetCell = worksheet.Cells[row, typeOfStreetColumn];
+            var houseNumCell = worksheet.Cells[row, houseNumColumn];
+            var letterCell = worksheet.Cells[row, letterColumn];
+            var buildCell = worksheet.Cells[row, buildColumn];
 
 
             //Поиск улиц
@@ -1623,29 +1639,29 @@ namespace Formater
                     var name = ReplaceYO(TryTemplateName(match.Groups["name"].Value));
                     var type = ReplaceYO(TryDescriptTypeOfStreet(match.Groups["type"].Value));
 
-                    if (streetCell.Value2 == null || streetCell.Value2.ToString() == String.Empty ||
-                        streetCell.Value2.ToString() != name &&
-                        (typeOfStreetCell.Value2 == null ||
-                         typeOfStreetCell.Value2.ToString().ToLower() == "микрорайон".ToLower()))
+                    if (streetCell.Value == null || streetCell.Value.ToString() == String.Empty ||
+                        streetCell.Value.ToString() != name &&
+                        (typeOfStreetCell.Value == null ||
+                         typeOfStreetCell.Value.ToString().ToLower() == "микрорайон".ToLower()))
                     {
 
                         //Backups current INFO
                         //Когда стоит микрорайон, а найдена улица, приориет у улицы
-                        if (typeOfStreetCell.Value2 == "микрорайон" &&
+                        if ((string) typeOfStreetCell.Value == "микрорайон" &&
                             type != "микрорайон")
-                            landmarkCell.Value2 += streetCell.Value2 + " " + typeOfStreetCell.Value2 + ", ";
+                            landmarkCell.Value += streetCell.Value + " " + typeOfStreetCell.Value + ", ";
                             //Когда стоит Именование, без типа
-                        else if (typeOfStreetCell.Value2 == null && streetCell.Value2 != null)
-                            landmarkCell.Value2 += streetCell.Value2 + ", ";
+                        else if (typeOfStreetCell.Value == null && streetCell.Value != null)
+                            landmarkCell.Value += streetCell.Value + ", ";
 
-                        streetCell.Value2 = name;
-                        typeOfStreetCell.Value2 = type;
+                        streetCell.Value = name;
+                        typeOfStreetCell.Value = type;
                     }
                     //Отдельная логика для информации о доме
                     if (!String.IsNullOrEmpty(match.Groups["house_num"].Value))
                     {
-                        if (buildCell.Value2 == null)
-                            buildCell.Value2 = match.Groups["house_num"].Value;
+                        if (buildCell.Value == null)
+                            buildCell.Value = match.Groups["house_num"].Value;
                     }
 
                     value = reg.Replace(value, ", ");
@@ -1662,15 +1678,15 @@ namespace Formater
         /// <param name="cellsFilled"></param>
         /// <param name="regCenter"></param>
         /// <param name="regName"></param>
-        private void TryFillClassificator(long row, ref DataTable customTable, ref bool cellsFilled, string regCenter,
+        private void TryFillClassificator(int row, ref DataTable customTable, ref bool cellsFilled, string regCenter,
             string regName)
         {
-            Excel.Range regionCell = worksheet.Cells[row, regionColumn];
-            Excel.Range settlementCell = worksheet.Cells[row, settlementColumn];
-            Excel.Range nearCityCell = worksheet.Cells[row, nearCityColumn];
-            Excel.Range typeOfNearCity = worksheet.Cells[row, typeOfNearCityColumn];
-            Excel.Range subjCell = worksheet.Cells[row, subjColumn];
-            Excel.Range landmarkCell = worksheet.Cells[row, additionalInfoColumn];
+            var regionCell = worksheet.Cells[row, regionColumn];
+            var settlementCell = worksheet.Cells[row, settlementColumn];
+            var nearCityCell = worksheet.Cells[row, nearCityColumn];
+            var typeOfNearCity = worksheet.Cells[row, typeOfNearCityColumn];
+            var subjCell = worksheet.Cells[row, subjColumn];
+            var landmarkCell = worksheet.Cells[row, additionalInfoColumn];
 
             if (customTable == null) return;
             if (cellsFilled) return;
@@ -1684,36 +1700,42 @@ namespace Formater
                 .Distinct().ToList();
             if (cities.Count == 1)
             {
-                if (nearCityCell.Value2 == null)
-//                ||!String.Equals(nearCityCell.Value2.ToString(),cities.First(), 
-//                                    StringComparison.OrdinalIgnoreCase))
+                if (nearCityCell.Value == null)
                 {
-                    if (nearCityCell.Value2 != null)
-                        landmarkCell.Value2 += nearCityCell.Value2.ToString() + ", ";
-                    nearCityCell.Value2 = cities.First();
-                    nearCityCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                    regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                    if (nearCityCell.Value != null)
+                        landmarkCell.Value += nearCityCell.Value.ToString() + ", ";
+                    nearCityCell.Value = cities.First();
+                    nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                    regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                 }
-                else if (nearCityCell.Value2 != null &&
-                         string.Equals(nearCityCell.Value2.ToString(), cities.First(), StringComparison.OrdinalIgnoreCase))
+                else if (nearCityCell.Value != null &&
+                         string.Equals(nearCityCell.Value.ToString(), cities.First(), StringComparison.OrdinalIgnoreCase))
                 {
-                    nearCityCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                    regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                    nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                    regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                 }
             }
                 //Проверяем текущее значение на принадлежность к выборке
             else
             {
-                if ((nearCityCell.Value2 != null))
-                    if (cities.All(s => s != nearCityCell.Value2.ToString()))
+                if ((nearCityCell.Value != null))
+                    if (cities.All(s => s != nearCityCell.Value.ToString()))
                     {
-                        regionCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-                        nearCityCell.ColorCell(ExcelExtensions.CellColors.BadColor);
+                        regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                        nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
                     }
                     else
                     {
-                        regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                        nearCityCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                        regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                        nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                     }
             }
 //
@@ -1723,46 +1745,52 @@ namespace Formater
                 .Select(r => r[OKTMOWorksheet.Columns.TypeOfNearCity - 1])
                 .OfType<string>()
                 .Distinct().ToList();
-            if (types.Count == 1 && nearCityCell.Value2 != null)
+            if (types.Count == 1 && nearCityCell.Value != null)
             {
-                if (typeOfNearCity.Value2 == null ||
-                    !String.Equals(typeOfNearCity.Value2.ToString(), types.First(), StringComparison.OrdinalIgnoreCase))
+                if (typeOfNearCity.Value == null ||
+                    !String.Equals(typeOfNearCity.Value.ToString(), types.First(), StringComparison.OrdinalIgnoreCase))
                 {
-                    typeOfNearCity.Value2 = types.First();
-                    typeOfNearCity.ColorCell(ExcelExtensions.CellColors.Clear);
-                    nearCityCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                    typeOfNearCity.Value = types.First();
+                    typeOfNearCity.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    typeOfNearCity.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                    nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
 
                 }
             }
                 //Если в нашей выборке нельсколько типов населенных пунктов
                 //И мы уже имеем какой-то тип
-            else if (typeOfNearCity.Value2 != null)
+            else if (typeOfNearCity.Value != null)
                 //Пробуем использовать тип для уточнения выборки
                 if (
                     types.Any(
-                        s => String.Equals(typeOfNearCity.Value2.ToString(), s, StringComparison.OrdinalIgnoreCase)) &&
+                        s => String.Equals(typeOfNearCity.Value.ToString(), s, StringComparison.OrdinalIgnoreCase)) &&
                     //1. Наш тип находится в пределах выборки
-                    nearCityCell.Value2 != null && //2. у нас есть насел пункт
+                    nearCityCell.Value != null && //2. у нас есть насел пункт
                     customTable.Rows.Cast<DataRow>()
                         .Any( //3. В выборке есть комбинация текущий насел пункт + текущий тип
                             r =>
-                                String.Equals(r[OKTMOWorksheet.Columns.NearCity - 1].ToString(), nearCityCell.Value2,
+                                String.Equals(r[OKTMOWorksheet.Columns.NearCity - 1].ToString(), nearCityCell.Value.ToString(),
                                     StringComparison.OrdinalIgnoreCase) &&
                                 String.Equals(r[OKTMOWorksheet.Columns.TypeOfNearCity - 1].ToString(),
-                                    typeOfNearCity.Value2, StringComparison.OrdinalIgnoreCase)))
+                                    typeOfNearCity.Value.ToString(), StringComparison.OrdinalIgnoreCase)))
                 {
                     //И тогда  мы уточняем выборку по типу населенного пункта
                     customTable = oktmo.GetCustomDataTable(customTable,
-                        new SearchParams(typeOfNearCity.Value2.ToString(), OKTMOColumns.TypeOfNearCity));
+                        new SearchParams(typeOfNearCity.Value.ToString(), OKTMOColumns.TypeOfNearCity));
                     {
-                        typeOfNearCity.ColorCell(ExcelExtensions.CellColors.Clear);
-                        nearCityCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                        typeOfNearCity.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        typeOfNearCity.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                        nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                     }
                 }
                 else
                 {
-                    typeOfNearCity.ColorCell(ExcelExtensions.CellColors.BadColor);
-                    nearCityCell.ColorCell(ExcelExtensions.CellColors.BadColor);
+                    typeOfNearCity.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    typeOfNearCity.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                    nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
                 }
 
 
@@ -1776,44 +1804,43 @@ namespace Formater
                 .Distinct().ToList();
             if (regions.Count == 1)
             {
-                if (regionCell.Value2 == null ||
-                    !String.Equals(regionCell.Value2.ToString(), regions.First(), StringComparison.OrdinalIgnoreCase))
+                if (regionCell.Value == null ||
+                    !String.Equals(regionCell.Value.ToString(), regions.First(), StringComparison.OrdinalIgnoreCase))
                 {
-                    if (regionCell.Value2 != null)
-                        landmarkCell.Value2 += regionCell.Value2.ToString() + ", ";
-                    regionCell.Value2 = regions.First();
-                    regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                    subjCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                    if (regionCell.Value != null)
+                        landmarkCell.Value += regionCell.Value.ToString() + ", ";
+                    regionCell.Value = regions.First();
+                    regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                    subjCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    subjCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                 }
-                else if (regionCell.Value2 != null &&
-                         string.Equals(regionCell.Value2.ToString(), regions.First(), StringComparison.OrdinalIgnoreCase))
+                else if (regionCell.Value != null &&
+                         string.Equals(regionCell.Value.ToString(), regions.First(), StringComparison.OrdinalIgnoreCase))
                 {
-                    regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                    subjCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                    regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;;
+                    regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                    subjCell.Style.Fill.PatternType = ExcelFillStyle.Solid;;
+                    subjCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                 }
             }
                 //Проверяем текущее значение на принадлежность к выборке
             else
             {
-                if (regionCell.Value2 != null)
-                    if (regions.All(s => s != regionCell.Value2.ToString()))
+                if (regionCell.Value != null)
+                    if (regions.All(s => s != regionCell.Value.ToString()))
                     {
-                        //Если в мунОбразовании стоит РегЦентр, мы его просто стираем
-                        //Ситуация когда уже есть какая-никакая выборка по насел пункту
-
-//                        if (string.Equals(regionCell.Value2.ToString(), regCenter, StringComparison.OrdinalIgnoreCase))
-//                        {
-//                            regionCell.Value2 = string.Empty;
-//                            regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
-//                        }
-//                        else
-                        regionCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-                        subjCell.ColorCell(ExcelExtensions.CellColors.BadColor);
+                        regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                        subjCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        subjCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
                     }
                     else
                     {
-                        regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                        subjCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                        regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                        subjCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        subjCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                     }
             }
 
@@ -1825,38 +1852,46 @@ namespace Formater
                 .Distinct().ToList();
             if (settlements.Count == 1)
             {
-                if (settlementCell.Value2 == null ||
-                    !String.Equals(settlementCell.Value2.ToString(), settlements.First(),
+                if (settlementCell.Value == null ||
+                    !String.Equals(settlementCell.Value.ToString(), settlements.First(),
                         StringComparison.OrdinalIgnoreCase))
                 {
-                    if (settlementCell.Value2 != null)
-                        landmarkCell.Value2 += settlementCell.Value2.ToString() + ", ";
-                    settlementCell.Value2 = settlements.First();
-                    settlementCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                    regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                    if (settlementCell.Value != null)
+                        landmarkCell.Value += settlementCell.Value.ToString() + ", ";
+                    settlementCell.Value = settlements.First();
+                    settlementCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    settlementCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                    regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                 }
-                else if (settlementCell.Value2 != null &&
-                         string.Equals(settlementCell.Value2.ToString(), settlements.First(),
+                else if (settlementCell.Value != null &&
+                         string.Equals(settlementCell.Value.ToString(), settlements.First(),
                              StringComparison.OrdinalIgnoreCase))
                 {
-                    settlementCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                    regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                    settlementCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    settlementCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                    regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                 }
 
             }
             else
                 //Проверяем текущее значение на принадлежность к выборке
             {
-                if (settlementCell.Value2 != null)
-                    if (settlements.All(s => s != settlementCell.Value2.ToString()))
+                if (settlementCell.Value != null)
+                    if (settlements.All(s => s != settlementCell.Value.ToString()))
                     {
-                        regionCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-                        settlementCell.ColorCell(ExcelExtensions.CellColors.BadColor);
+                        regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                        settlementCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        settlementCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
                     }
                     else
                     {
-                        regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                        settlementCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                        regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                        settlementCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        settlementCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                     }
             }
 
@@ -1870,28 +1905,29 @@ namespace Formater
         private void FormatDistToRegCenter()
         {
             const string code = "DIST_REG_CENTER";
-            var columnRange = SetColumnRange(code);
-            var distToNearCityColumn = LandPropertyTemplateWorkbook.GetColumnByCode("DIST_NEAR_CITY");
+            var columnIndex = GetColumnIndex(code);
+            var nearCColumnIndex =GetColumnIndex("DIST_NEAR_CITY");
 
             //Для проверки
             var distToDeadCity =
                 new Regex(
                     @"(?<dist>\d(?:\d|\s|\,|\.)+)\s?км\.?\s*(?<incity>\b(?:от|до|за)\b\s(?<cityType>[а-я]+\.?\s?)?(?<cityName>[А-Я]\w+)?)?");
 
-
-            foreach (
-                var cell in
-                    columnRange.Cast<Excel.Range>()
-                        .Where(x => x.Value != null)
-                        .Where(x => x.Value2.ToString() != String.Empty))
+            for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
             {
-                Excel.Range inCityCell = worksheet.Cells[cell.Row, inCityColumn];
-                Excel.Range nearCityCell = worksheet.Cells[cell.Row, nearCityColumn];
+                var cell = worksheet.Cells[i, columnIndex];
+                if (string.IsNullOrEmpty(cell.Value as string))
+                {
+                    continue;
+                }
 
-                distValue = cell.Value2.ToString();
+                var inCityCell = worksheet.Cells[cell.Start.Row, inCityColumn];
+                var nearCityCell = worksheet.Cells[cell.Start.Row, nearCityColumn];
+
+                distValue = cell.Value.ToString();
                 if (distValue == "0")
                 {
-                    inCityCell.Value2 = "да";
+                    inCityCell.Value = "да";
                     continue;
                 }
                 if (Regex.IsMatch(distValue, @"^(\d|\.|,)+$")) continue;
@@ -1900,44 +1936,44 @@ namespace Formater
                 {
                     if (Regex.IsMatch(match.Value, @"\bв\b\s", RegexOptions.IgnoreCase))
                     {
-                        inCityCell.Value2 = "да";
-                        cell.Value2 = string.Empty;
+                        inCityCell.Value = "да";
+                        cell.Value = string.Empty;
                     }
                     else if (Regex.IsMatch(match.Value, @"\bза\b\s", RegexOptions.IgnoreCase))
                     {
-                        inCityCell.Value2 = "нет";
-                        cell.Value2 = string.Empty;
+                        inCityCell.Value = "нет";
+                        cell.Value = string.Empty;
                     }
                     else
                     {
-                        inCityCell.Value2 = "нет";
-                        if (nearCityCell.Value2 != null &&
-                            nearCityCell.Value2.ToString() == match.Groups["Name"].Value)
+                        inCityCell.Value = "нет";
+                        if (nearCityCell.Value != null &&
+                            nearCityCell.Value.ToString() == match.Groups["Name"].Value)
                         {
-                            ((Excel.Range) worksheet.Cells[cell.Row, distToNearCityColumn]).Value2 =
+                            worksheet.Cells[cell.Start.Row, distToNearCityColumn].Value =
                                 match.Groups["num"].Value;
-                            cell.Value2 = string.Empty;
+                            cell.Value = string.Empty;
                         }
                         else
                         {
-                            cell.Value2 = match.Groups["num"].Value;
+                            cell.Value = match.Groups["num"].Value;
                         }
                     }
                 }
                 else
-                    cell.Value2 = string.Empty;
+                    cell.Value = string.Empty;
             }
         }
 
-        private void TryFillRegion(long row, ref string content, ref DataTable customTable, DataTable subjTable,
+        private void TryFillRegion(int row, ref string content, ref DataTable customTable, DataTable subjTable,
             ref bool cellsFilled, Regex reg = null)
         {
-            Excel.Range regionCell = worksheet.Cells[row, regionColumn];
-            Excel.Range nearCityCell = worksheet.Cells[row, nearCityColumn];
-            Excel.Range vgtCell = worksheet.Cells[row, vgtColumn];
-            Excel.Range typeOfNearCity = worksheet.Cells[row, typeOfNearCityColumn];
-            Excel.Range landmarkCell = worksheet.Cells[row, additionalInfoColumn];
-            Excel.Range subjCell = worksheet.Cells[row, subjColumn];
+            var regionCell = worksheet.Cells[row, regionColumn];
+            var nearCityCell = worksheet.Cells[row, nearCityColumn];
+            var vgtCell = worksheet.Cells[row, vgtColumn];
+            var typeOfNearCity = worksheet.Cells[row, typeOfNearCityColumn];
+            var landmarkCell = worksheet.Cells[row, additionalInfoColumn];
+            var subjCell = worksheet.Cells[row, subjColumn];
 
             Regex tmpRegex;
             Match match;
@@ -1983,34 +2019,40 @@ namespace Formater
                 {
                     //Отлично, найденное мунОбр-е относится к текущему субъекту
                     //подтверждаем что нам надо использовать найденный текст
-                    if (regionCell.Value2 == null ||
-                        (!string.Equals(regionCell.Value2.ToString(), fullName, StringComparison.OrdinalIgnoreCase) &&
-                         regionCell.Interior.ColorIndex == badColorIndex))
+                    if (regionCell.Value == null ||
+                        (!string.Equals(regionCell.Value.ToString(), fullName, StringComparison.OrdinalIgnoreCase) &&
+                         regionCell.Style.Fill.BackgroundColor.Rgb == ExcelExtensions.BadColor.ToArgb().ToString()))
                     {
-                        if (regionCell.Value2 != null)
-                            AppendToLandMarkCell(regionCell.Value2.ToString(), row);
-                        regionCell.Value2 = fullName;
-                        regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                        subjCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                        if (regionCell.Value != null)
+                            AppendToLandMarkCell(regionCell.Value.ToString(), row);
+                        regionCell.Value = fullName;
+                        regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                        subjCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        subjCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
 
                         //Выборка
                         if (oktmo.StringMatchInColumn(customTable, fullName, OKTMOColumns.Region))
                         {
                             customTable = oktmo.GetCustomDataTable(customTable,
                                 new SearchParams(fullName, OKTMOColumns.Region));
-                            regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
-                            nearCityCell.ColorCell(ExcelExtensions.CellColors.Clear);
+                            regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
+                            nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.Clear);
                         }
                             //Окрашиваем Регион если он подходит к субъекту но не подходит к выборке
                         else
                         {
-                            regionCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-                            nearCityCell.ColorCell(ExcelExtensions.CellColors.BadColor);
+                            regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                            nearCityCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            nearCityCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
                         }
                     }
                         //Запись в ориентир если текущий рег центр верный. Найденный нам просто не нужен
-                    else if (regionCell.Value2 != null &&
-                             !string.Equals(regionCell.Value2.ToString(), fullName, StringComparison.OrdinalIgnoreCase))
+                    else if (regionCell.Value != null &&
+                             !string.Equals(regionCell.Value.ToString(), fullName, StringComparison.OrdinalIgnoreCase))
                         AppendToLandMarkCell(fullName, row);
 
 //                    content = tmpRegex.Replace(content, ", ");
@@ -2034,18 +2076,20 @@ namespace Formater
                             if (!string.IsNullOrEmpty(fullName))
                             {
                                 //Если стоит верный, найденный кидаем в ориентир
-                                if (regionCell.Value2 != null && regionCell.Interior.ColorIndex != badColorIndex)
+                                if (regionCell.Value != null && regionCell.Style.Fill.BackgroundColor.Rgb == ExcelExtensions.BadColor.ToArgb().ToString())
                                 {
                                     AppendToLandMarkCell(fullName, row);
                                 }
                                     //Тут мы пишем неверный в пустую ячейку, либо заменяем один неверный на другой
                                 else
                                 {
-                                    if (regionCell.Value2 != null)
-                                        AppendToLandMarkCell(regionCell.Value2.ToString(), row);
-                                    regionCell.Value2 = fullName;
-                                    regionCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-                                    subjCell.ColorCell(ExcelExtensions.CellColors.BadColor);
+                                    if (regionCell.Value != null)
+                                        AppendToLandMarkCell(regionCell.Value.ToString(), row);
+                                    regionCell.Value = fullName;
+                                    regionCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                    regionCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                                    subjCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                    subjCell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
                                     
                                 }
                             }
@@ -2053,108 +2097,9 @@ namespace Formater
                             else
                                 AppendToLandMarkCell(name + " " + type, row);
                         }
-//                        else
-//                            content = tmpRegex.Replace(content, ", ");
                     }
                 }
                 content = tmpRegex.Replace(content, ", ");
-
-
-//                //////////--------------old------------
-//                //Подверждаем что это Муниципальное образование
-//                if (!String.IsNullOrEmpty(fullName))
-//                {
-//                    //подтверждаем что нам надо использовать найденный текст
-//                    if (regionCell.Value2 == null ||
-//                        !string.Equals(regionCell.Value2.ToString(), fullName, StringComparison.OrdinalIgnoreCase))
-//                    {
-//                        var writed = false;
-//                        //Если в регионе пусто, или стоит региональный центр
-//                        if (regionCell.Value2 == null)
-////                            || string.Equals(regionCell.Value2.ToString(), regCenter, StringComparison.OrdinalIgnoreCase))
-//                        {
-//                            regionCell.Value2 = fullName;
-//                            writed = true;
-//                            regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
-//                        }
-//
-//                        //Если найденный подходит к выборке
-//                        if (oktmo.StringMatchInColumn(customTable, fullName, OKTMOColumns.Region))
-//                        {
-//                            //Если текущий не подходит, а найденный подходит
-//                            //заменяем
-//                            if (regionCell.Interior.Color == badColorIndex)
-//                            {
-//                                //backup current
-//                                if (regionCell.Value2 != null)
-//                                    landmarkCell.Value2 = fullName + ", " + landmarkCell.Value2.ToString();
-//
-//                                regionCell.Value2 = fullName;
-//                                writed = true;
-//                                regionCell.ColorCell(ExcelExtensions.CellColors.Clear);
-//
-//                                customTable = oktmo.GetCustomDataTable(customTable,
-//                                    new SearchParams(fullName, OKTMOColumns.Region));
-////                                TryFillClassificator(row, customTable, ref cellsFilled);
-//                            }
-//                                //текущий подходит и найденный подходит
-//                                //В ориентир
-//                            else if (!writed)
-//                            {
-//                                landmarkCell.Value2 = fullName + ", " + landmarkCell.Value2.ToString();
-//                            }
-//
-//                        }
-////                            если найденное подходит к субъекту, и не подходит к насел пункту
-//                        else if (oktmo.StringMatchInColumn(subjTable, fullName, OKTMOColumns.Region))
-//                        {
-//                            if (writed)
-//                            {
-//                                regionCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-//                                nearCityCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-//                            }
-//                        }
-//                            //Если найденное из другого суъекта
-//                        else
-//                        {
-//                            if (writed)
-//                            {
-//                                regionCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-////                                subjCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-//                            }
-//                        }
-//
-//                        if (!writed)
-//                            landmarkCell.Value2 = fullName + ", " + landmarkCell.Value2.ToString();
-//                    }
-//                    //удаляем из content найденое значение
-//                    content = tmpRegex.Replace(content, ", ");
-//                }
-//                else
-//                {
-//                    if (type == "город")
-//                    {
-//                        //Записать в насел пункт
-//                    }
-//                    else
-//                    {
-//                        //Пробуем использовать как 
-//                        if (!TryFillVGT(row, ref name, ref customTable, ref cellsFilled))
-//                        {
-//                            //Пишем тип вручную
-//                            fullName = name + " " + type;
-//                            if (regionCell.Value2 == null)
-//                            {
-//                                regionCell.Value2 = fullName; //Вписываем сформированное наименование региона
-//                                regionCell.ColorCell(ExcelExtensions.CellColors.BadColor);
-//                            }
-//                            else
-//                                landmarkCell.Value2 = fullName + ", " + landmarkCell.Value2.ToString();
-//                        }
-//                        //удаляем из content найденое значение
-//                        content = tmpRegex.Replace(content, ", ");
-//                    }
-//                }
             }
         }
 

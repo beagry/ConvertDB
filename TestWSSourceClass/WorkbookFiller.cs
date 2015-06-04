@@ -15,12 +15,6 @@ namespace Converter
         Dictionary<string, List<string>> RulesDictionary { get; set; }
     }
 
-    internal interface IWorksheetFiller : IFiller
-    {
-        void InsertOneToOneWorksheet(Worksheet ws, int firstRowWithData = 1);
-        void InsertWorksheet(Worksheet ws, int firstRowWithData = 1, bool copyFormat = false);
-    }
-
     internal interface IEPPlusWorksheetFiller : IFiller
     {
         ExcelWorksheet Worksheet { get; }
@@ -30,51 +24,44 @@ namespace Converter
     /// <summary>
     ///     Простой помощни для записи информации в книгу.
     /// </summary>
-    public class WorksheetFiller : IWorksheetFiller, IEPPlusWorksheetFiller
+    public class WorksheetFiller : IEPPlusWorksheetFiller
     {
         private const string colName = "AddColumn_";
-        private readonly Worksheet fillingWorksheet;
         private int colNum = 1;
         private Dictionary<int, string> headsDictionary;
         private int lastUsedColumn;
-        private long lastUsedRow;
-        private bool oneToOneMode;
+        private int lastUsedRow;
 
-        public WorksheetFiller(ExcelWorksheet worksheet, Dictionary<string, List<string>> rulesDictionary) : this()
+        
+
+        public WorksheetFiller(ExcelWorksheet worksheet, Dictionary<string, List<string>> rulesDictionary) : this(worksheet)
+        {
+            RulesDictionary = rulesDictionary;
+        }
+
+        public WorksheetFiller(ExcelWorksheet worksheet) : this()
         {
             Worksheet = worksheet;
             headsDictionary = worksheet.ReadHead();
-            RulesDictionary = rulesDictionary;
             lastUsedColumn = Worksheet.Dimension.Columns;
             lastUsedRow = Worksheet.Dimension.Rows;
-        }
-
-        public WorksheetFiller(Worksheet fillingWorksheet, Dictionary<string, List<string>> rulesDictionary)
-            : this(fillingWorksheet)
-        {
-            RulesDictionary = rulesDictionary;
-            headsDictionary = fillingWorksheet.ReadHead();
-        }
-
-        public WorksheetFiller(Worksheet fillingWorksheet) : this()
-        {
-            this.fillingWorksheet = fillingWorksheet;
-            lastUsedRow = fillingWorksheet.GetLastUsedRow();
-            lastUsedColumn = fillingWorksheet.GetLastUsedColumnByRow();
         }
 
         private WorksheetFiller()
         {
             RulesDictionary = new Dictionary<string, List<string>>();
-            headsDictionary = new Dictionary<int, string>();
         }
+
+
+
 
         public string WorksheetName
         {
-            get { return fillingWorksheet.Name; }
+            get { return Worksheet.Name; }
         }
-
         public ExcelWorksheet Worksheet { get; private set; }
+        public Dictionary<string, List<string>> RulesDictionary { get; set; }
+
 
         public void AppendDataTable(DataTable dt)
         {
@@ -118,74 +105,13 @@ namespace Converter
             lastUsedRow += dt.Rows.Count;
         }
 
-        public Dictionary<string, List<string>> RulesDictionary { get; set; }
 
-        public void InsertOneToOneWorksheet(Worksheet ws, int firstRowWithData = 1)
+        public void InsertOneToOneWorksheet(DataTable sourceTable)
         {
-            var copyRange =
-                ws.Range[ws.Cells[firstRowWithData, 1], ws.Cells[ws.GetLastUsedRow(), ws.GetLastUsedColumn()]];
-            var cellTopaste = fillingWorksheet.Cells[lastUsedRow, 1];
-            copyRange.Copy(cellTopaste);
-            lastUsedRow += copyRange.Rows.Count + 1;
+            var cellTopaste = Worksheet.Cells[++lastUsedRow, 1];
+            cellTopaste.LoadFromDataTable(sourceTable, false);
 
-            Marshal.FinalReleaseComObject(copyRange);
-            Marshal.FinalReleaseComObject(cellTopaste);
-        }
-
-        public void InsertWorksheet(Worksheet ws, int firstRowWithData = 1, bool copyFormat = false)
-        {
-            CheckRulesDict();
-
-            var wsWithData = new WorksheetToCopy(ws) {FirstRowWithData = (byte) firstRowWithData};
-
-            //Каждую колонку из копируемого листа
-            foreach (var indexNamePair in wsWithData.HeadsDictionary)
-            {
-                //ищем подготовленную для неё колонку вставки
-                var indexToPaste = oneToOneMode ? indexNamePair.Key : GetColumnIndexToPaste(indexNamePair.Value);
-
-                //если правил нет, колонку вставляем в конец книги
-                if (indexToPaste == 0)
-                {
-                    indexToPaste = lastUsedColumn++;
-                    headsDictionary.Add(indexToPaste, indexNamePair.Value);
-//                    RulesDictionary.Add(indexNamePair.Value, new List<string>{indexNamePair.Value});
-                }
-
-                var cellToPaste = fillingWorksheet.Cells[lastUsedRow + 1, indexToPaste] as Range;
-                var copyColumnIndex = indexNamePair.Key;
-
-                wsWithData.CopyColumn(copyColumnIndex, cellToPaste, copyFormat);
-            }
-
-            lastUsedRow = fillingWorksheet.GetLastUsedRow();
-//            DeleteLastEmptyRows();
-        }
-
-        private void CheckRulesDict()
-        {
-            if (RulesDictionary == null)
-                SetOneToOneRulesDict();
-        }
-
-        private void SetOneToOneRulesDict()
-        {
-            headsDictionary = fillingWorksheet.ReadHead().ToDictionary(k => k.Key, v => v.Key.ToString());
-            RulesDictionary = headsDictionary.ToDictionary(k => k.Key.ToString(),
-                v => new List<string> {v.Key.ToString()});
-        }
-
-        private void DeleteLastEmptyRows()
-        {
-//            while (
-//                fillingWorksheet.Range[
-//                    fillingWorksheet.Cells[lastUsedRow, 1],
-//                    fillingWorksheet.Cells[
-//                        lastUsedRow, fillingWorksheet.Cells.SpecialCells(XlCellType.xlCellTypeLastCell).Column]].Cells
-//                    .Cast<Range>().All(cl => cl.Value2 == null))
-//            {
-//                lastUsedRow --;
-//            }
+            lastUsedRow += sourceTable.Rows.Count -  1;
         }
 
         private int GetColumnIndexToPaste(string columnNameToSearch)

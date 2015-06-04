@@ -6,9 +6,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Converter.Template_workbooks;
+using ExcelRLibrary;
 using Formater.Properties;
 using Microsoft.Office.Interop.Excel;
 using Button = System.Windows.Forms.Button;
+using DataTable = System.Data.DataTable;
 using TextBox = System.Windows.Forms.TextBox;
 
 namespace Formater
@@ -39,31 +42,7 @@ namespace Formater
             
             InitializeComponent();
             tabControl1.TabPages.Remove(tabPage2);
-            convert = new DbToConvert(this) { ColumnsToReserve = new List<string> { "SUBJECT", "REGION", "NEAR_CITY", "SYSTEM_GAS", "SYSTEM_WATER", "SYSTEM_SEWERAGE", "SYSTEM_ELECTRICITY" } };
             InitialFormAsync();
-#if !DEBUG
-            this.Closing += (sender, args) =>
-            {
-                if (thred != null && thred.IsAlive)
-                {
-                    try
-                    {
-                        if (convert.XlApplication == null) return;
-                        if (convert.XlApplication.Workbooks.Count == 0)
-                            convert.XlApplication.Quit();
-                        else
-                        {
-                            convert.XlApplication.Visible = true;
-                            convert.XlApplication.ScreenUpdating = true;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                    }
-                }
-            };
-#endif
         }
         private async void InitialFormAsync()
         {
@@ -182,8 +161,10 @@ namespace Formater
                     cbox.TextChanged += CBoxOnIndexChange;
                 }
             });
+            
             tabControl1.TabPages.Insert(1, tabPage2);
             StartButton.Enabled = true;
+
             //MouseHover
             StartButton.MouseEnter += OnMouseEnter;
             StartButton.MouseLeave += OnMouseLeave;
@@ -196,6 +177,7 @@ namespace Formater
             btn.BackColor = Color.SlateGray;
         }
 
+
         private void OnMouseEnter(object sender, EventArgs e)
         {
             var btn = sender as Button;
@@ -206,8 +188,9 @@ namespace Formater
         //
         //Buttons Clicks
         //
-        private async void StartButton_Click(object sender, EventArgs e)
+        private void StartButton_Click(object sender, EventArgs e)
         {
+            convert = new DbToConvert(this, XlTemplateWorkbookType.LandProperty) { ColumnsToReserve = new List<string> { "SUBJECT", "REGION", "NEAR_CITY", "SYSTEM_GAS", "SYSTEM_WATER", "SYSTEM_SEWERAGE", "SYSTEM_ELECTRICITY" } };
             var button = sender as Button;
             if (button == null) return;
 
@@ -215,7 +198,7 @@ namespace Formater
             if (FormHasInvalidControl())
             {
                 MessageBox.Show(
-                    String.Format(@"Не все поля заполнены"),
+                    @"Не все поля заполнены",
                     @"Операция прервана", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
@@ -223,18 +206,15 @@ namespace Formater
 
             tabPage1.Enabled = false;
             tabPage2.Enabled = false;
-#if !DEBUG
-            convert.XlApplication.Visible = false;
-            convert.XlApplication.ScreenUpdating = false;
-#endif
+
             WarningLabel.Visible = true;
             if (!convert.ColumnHeadIsOk()) return;
 
-            //Запусть обработки в ином потоке
+            //Запусть обработки в новом потоке
             thred = new Thread(async () =>
             {
             var work =  convert.FormatWorksheet();
-            if (await work)
+            if (work)
                 {
                     //Обращение к основному потоку, в котором висит форма с нужной кнопкой
                     button.Invoke(new VoidDelegate(() =>
@@ -242,7 +222,7 @@ namespace Formater
                         WarningLabel.Visible = false;
                         tabPage1.Enabled = true;
                         tabPage1.Enabled = true;
-                        convert.SaveResult();
+                        convert.ExcelPackage.SaveWithDialog();
                     }));
 
                 }
@@ -285,6 +265,8 @@ namespace Formater
         {
             ChangeWorkbookPath(VGTPathTextBox);
         }
+
+
         //
         //Additional Methods
         //
@@ -316,12 +298,11 @@ namespace Formater
         {
             using (var fileDialog = new OpenFileDialog())
             {
-                fileDialog.Filter =ExcelFilter;
+                fileDialog.Filter = ExcelFilter;
                 if (fileDialog.ShowDialog() == DialogResult.OK)
                 {
                     textBox.Text = string.Empty;
                     textBox.Text = fileDialog.FileName;
-
                 }
             }
         }
@@ -339,21 +320,21 @@ namespace Formater
             if (!File.Exists(textBox.Text)) return;
 
             //Открываем книгу
-            Workbook tmpWorkbook =
-                convert.XlApplication.Workbooks.Open(textBox.Text,
-                    false, true);
+            var path = textBox.Text;
+            var reader = new ExcelReader();
+            var wsNames = reader.GetWorksheetsNames(path);
+
             //Выявляем нужный выпадающий список
             var cbox = (ComboBox) tableLayoutPanel1.GetControlFromPosition(3,
                 tableLayoutPanel1.GetPositionFromControl(textBox).Row);
+
             var backUpValue = cbox.Text;
             cbox.Items.Clear(); //Очищаем
             //Заполняем выпадающий список
-            if (tmpWorkbook.Worksheets != null)
-                cbox.Items.AddRange(
-                    tmpWorkbook.Worksheets.Cast<Worksheet>()
-                        .Select(ws => ws.Name)
-                        .ToArray());
-            tmpWorkbook.Close(false);
+            if (wsNames != null)
+            {
+                cbox.Items.AddRange(wsNames.ToArray());
+            }
 
             cbox.Text = backUpValue;
             CheckCbox(cbox); //Проверяем текущее значение выпадающего списка

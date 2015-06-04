@@ -106,7 +106,6 @@
             <StatusBarItem Grid.Column="2" HorizontalContentAlignment="Stretch">
                 <TextBlock Margin="5,0,0,0" TextAlignment="Right" HorizontalAlignment="Stretch" Text="{Binding Status}"></TextBlock>
             </StatusBarItem>
-
         </StatusBar>
     </StackPanel>
 </Window>

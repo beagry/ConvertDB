@@ -4,49 +4,24 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Microsoft.Office.Interop.Excel;
+using Microsoft.Win32;
+using DataRow = System.Data.DataRow;
+using DataTable = System.Data.DataTable;
 
 namespace Formater.SupportWorksheetsClasses
 {
     public class SubjectSourceWorksheet
     {
-        private Worksheet worksheet;
-        private readonly Range nameRange;
-        private Range subjectRange;
-        private readonly Range linkRange;
-        private long lastUsedRow;
+        private readonly DataTable table;
         private const byte SourceNameColumnIndex = 1;
         private const byte LinkColumnIndex = 2;
         private const byte SubjectColumnIndex = 3;
         private const byte DefaultCityColumnIndex = 5;
         
 
-        public SubjectSourceWorksheet(Worksheet worksheet)
+        public SubjectSourceWorksheet(DataTable table)
         {
-
-            this.worksheet = worksheet;// workbook.Worksheets.Cast<Worksheet>().FirstOrDefault(x => x.Name == WorksheetName);
-            if (worksheet == null) return;
-            try
-            {
-                worksheet.ShowAllData();
-            }
-            catch (COMException e)
-            {
-                if (e.HResult != -2146827284) throw;
-            }
-            var t5 = worksheet.UsedRange.Rows.Count;
-            lastUsedRow = worksheet.Cells.SpecialCells(XlCellType.xlCellTypeLastCell).Row;
-
-            nameRange =
-                worksheet.Range[
-                    worksheet.Cells[2, SourceNameColumnIndex], worksheet.Cells[lastUsedRow, SourceNameColumnIndex]];
-            subjectRange =
-                            worksheet.Range[
-                                worksheet.Cells[2, SubjectColumnIndex], worksheet.Cells[lastUsedRow, SubjectColumnIndex]];
-            linkRange =
-                            worksheet.Range[
-                                worksheet.Cells[2, LinkColumnIndex], worksheet.Cells[lastUsedRow, LinkColumnIndex]];
-
-
+            this.table = table;
         }
 
         public string GetDefaultNearCityByLink(string sourceLink)
@@ -61,63 +36,41 @@ namespace Formater.SupportWorksheetsClasses
 
             int digital;
             int.TryParse(match.Groups["num"].Value,out digital);
-            
-            //if (digital == 0) very bad
 
             //Создаём новый паттерн для поиска соответствия в нашей таблице
             pattern = Regex.Replace(pattern, @"\\d\{2\,3\}", digital.ToString(CultureInfo.InvariantCulture), RegexOptions.IgnoreCase);
             pattern = pattern.Replace(@"\\", @"\");
             reg = new Regex(pattern);
 
-//            foreach (Range cell in linkRange.Cells.Cast<Range>())
-//            {
-//                if (cell.Value2 != null && reg.IsMatch())
-//            }
-            Range firstOrDefault = linkRange.Cells.Cast<Range>()
-                .FirstOrDefault(
-                    cell =>
-                        cell.Value2 != null &&
-                        reg.IsMatch(cell.Value2.ToString()));
-                        //sourceLink.IndexOf(cell.Value2.ToString(), StringComparison.OrdinalIgnoreCase) >= 0);
+            var row = table.Rows.Cast<DataRow>().FirstOrDefault(r =>
+            {
+                var val = r[LinkColumnIndex - 1];
+                if (val == null) return false;
+                var m = reg.Match(val.ToString());
+                return m.Success;
+            });
 
-            if (firstOrDefault == null) return String.Empty;
+            if (row == null) return string.Empty;
 
-            var resCell = (Range) worksheet.Cells[firstOrDefault.Row, DefaultCityColumnIndex];
-            var result = resCell.Value2 == null ? String.Empty : resCell.Value2.ToString();
+            var resCell = row[DefaultCityColumnIndex-1];
+            var result = (resCell??"").ToString();
             return result;
-        }
-
-        [Obsolete("Субъект лучше доставать через метод GetSubjectBySourceLink", true)]
-        public string GetSubjectBySourceName(string sourceName)
-        {
-            if (sourceName == null) return String.Empty;
-            var firstOrDefault =
-                nameRange.Cells.Cast<Range>()
-                    .Where(x => x.Value2 != null)
-                    .FirstOrDefault(
-                        x => sourceName.IndexOf(x.Value2.ToString(), StringComparison.OrdinalIgnoreCase) >= 0);
-            if (firstOrDefault == null) return String.Empty;
-
-            var res = ((Range)worksheet.Cells[firstOrDefault.Row, SubjectColumnIndex]).Value2;
-            return res;
         }
 
         public string GetSubjectBySourceLink(string sourceLink)
         {
             if (sourceLink == null) return string.Empty;
-            var firstOrDefault = linkRange.Cells.Cast<Range>().Where(x => x.Value2 != null).FirstOrDefault(x => sourceLink.IndexOf(x.Value2.ToString(), StringComparison.OrdinalIgnoreCase) >= 0);
-            if (firstOrDefault == null) return string.Empty;
+            var row = table.Rows.Cast<DataRow>().FirstOrDefault(r =>
+            {
+                var val = r[LinkColumnIndex - 1];
+                if (val == null) return false;
+                return (sourceLink.IndexOf(val.ToString(), StringComparison.OrdinalIgnoreCase) >= 0);
 
-            var cellRow = firstOrDefault.Row;
+            });
+            if (row == null) return string.Empty;
 
-            var res = ((Range)worksheet.Cells[cellRow, SubjectColumnIndex]).Value2;
+            var res = (row[SubjectColumnIndex-1]??"").ToString();
             return res;
-        }
-
-        public void CloseWorkbook()
-        {
-            Workbook workbook = worksheet.Parent;
-            workbook.Close(false);
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Microsoft.Office.Interop.Excel;
+using OfficeOpenXml;
 using DataTable = System.Data.DataTable;
 
 namespace Formater.SupportWorksheetsClasses
@@ -23,8 +24,9 @@ namespace Formater.SupportWorksheetsClasses
 
     internal class OKTMOWorksheet
     {
-        private readonly Worksheet worksheet;
-        private readonly Worksheet regCentersWorksheet = null;
+//        private readonly Worksheet worksheet;
+//        private readonly Worksheet regCentersWorksheet = null;
+        private DataSet ds;
         private static long lastUsedRow;
         private string subjectName;
 
@@ -40,33 +42,13 @@ namespace Formater.SupportWorksheetsClasses
         const string SPB = "Санкт-Петербург";
         const string spbWsName = "территории СПб";
 
-        enum CityType
-        {
-            Def,
-            BigCity
-        }
-
-        private class ColumnCombination
+        private class ColumnCombination:IEquatable<ColumnCombination>
         {
             public string Subject { get; set; } 
             public string Region { get; set; } 
             public string Settlement { get; set; } 
             public string NearCity { get; set; } 
             public string TypeOfNearCity { get; set; }
-
-            public ColumnCombination(string subject, string region, string settlement, string nearCity, string typeOfNearCity)
-            {
-                Subject = subject;
-                Region = region;
-                Settlement = settlement;
-                NearCity = nearCity;
-                TypeOfNearCity = typeOfNearCity;
-            }
-
-            public ColumnCombination()
-            {
-                
-            }
 
             public bool Equals(ColumnCombination comparer)
             {
@@ -122,56 +104,25 @@ namespace Formater.SupportWorksheetsClasses
             }
         }
 
-        public OKTMOWorksheet(Worksheet worksheet)
+        public OKTMOWorksheet(DataSet ds, string mainWsName)
         {
-            this.worksheet = worksheet;
-            try
-            {
-                worksheet.ShowAllData();
-            }
-            catch (COMException e)
-            {
-                if (e.HResult != -2146827284) throw;
-            }
-            var t3 = worksheet.UsedRange.Rows.Count;
-            lastUsedRow = worksheet.Cells.SpecialCells(XlCellType.xlCellTypeLastCell).Row;
-            table = worksheet.ToDataTable();
+            this.ds = ds;
+            table = ds.Tables.Cast<DataTable>().First(t => t.TableName.Equals(mainWsName));
+            lastUsedRow = table.Rows.Count;
 
             //Региональные центры
-            regCentersWorksheet =
-                ((Workbook)worksheet.Parent).Worksheets.Cast<Worksheet>().FirstOrDefault(ws => ws.Name == regCWsName);
-            if (regCentersWorksheet != null)
-                regCTable = regCentersWorksheet.ToDataTable();
+            regCTable = ds.Tables.Cast<DataTable>().FirstOrDefault(t => t.TableName.Equals(regCWsName));
 
             //Москва
-            var mskWS =
-                ((Workbook) worksheet.Parent).Worksheets.Cast<Worksheet>().FirstOrDefault(ws => ws.Name == mskWsName);
-            if (mskWS != null)
-                mskTable = mskWS.ToDataTable();
+            mskTable = ds.Tables.Cast<DataTable>().FirstOrDefault(t => t.TableName.Equals(mskWsName));
 
             //Санкт-Петербург
-            var spbWs =
-                ((Workbook)worksheet.Parent).Worksheets.Cast<Worksheet>().FirstOrDefault(ws => ws.Name == spbWsName);
-            if (spbWs != null)
-                spbTable = spbWs.ToDataTable();
-
+            spbTable = ds.Tables.Cast<DataTable>().FirstOrDefault(t => t.TableName.Equals(spbWsName));
         }
 
         public DataTable Table
         {
             get { return table; }
-        }
-
-        /// <summary>
-        /// Возвращает True если в колонке есть ячейка с полным совпадением
-        /// </summary>
-        /// <param name="s">Искомая строка</param>
-        /// <param name="column">Колонка поиска</param>
-        /// <returns></returns>
-        [Obsolete("Метод не готов", true)]
-        public bool StringMatchInColumn(string s, OKTMOColumns column)
-        {
-            return table.Rows.Cast<DataRow>().Any(row => (string) row[GetExcelColumn(column) - 1] == s);
         }
 
         public bool StringMatchInColumn(DataTable table, string s, OKTMOColumns column)
@@ -184,7 +135,7 @@ namespace Formater.SupportWorksheetsClasses
                 table.Rows.Cast<DataRow>()
                     .Any(
                         row =>
-                            String.Equals(DbToConvert.ReplaceYO((string) row[GetExcelColumn(column) - 1]), s,
+                            string.Equals(DbToConvert.ReplaceYO((string) row[GetExcelColumn(column) - 1]), s,
                                 StringComparison.OrdinalIgnoreCase));
             return res;
         }
@@ -197,13 +148,10 @@ namespace Formater.SupportWorksheetsClasses
         /// <returns></returns>
         public DataTable GetCustomDataTable(params SearchParams[] searchParams)
         {
-            //var result = new List<string>();
-            var dataTable = table.Copy(); //table = OKTMO table
+            var dataTable = table.Copy(); 
 
 
             //Сортировка для поиска от общего к частному
-            //searchParams = searchParams.OrderBy(x => x.SearchColumn);
-
             foreach (SearchParams @params in searchParams)
             {
                 //Ищем все строки, в которых в ячейках по искомому столбцу строки содержат искомое значение
@@ -214,19 +162,10 @@ namespace Formater.SupportWorksheetsClasses
                         row =>
                             String.Equals(row[searchColumn].ToString(), searchString,
                                 StringComparison.CurrentCultureIgnoreCase)); //Полное совпадение
-//                        row => row[searchColumn].ToString().StartsWith(searchString, true, null));
-                //IndexOf(searchString, StringComparison.CurrentCultureIgnoreCase) == 0);
             }
             Debug.Assert(dataTable.Rows.Count > 0);
             //Из полученной таблицы достаём нужную нам колонку
             return dataTable;
-        }
-
-
-        public void CloseWorkbook()
-        {
-            Workbook workbook = worksheet.Parent;
-            workbook.Close(false);
         }
 
 
@@ -280,7 +219,6 @@ namespace Formater.SupportWorksheetsClasses
 
                 if (dataTable == null)
                 {
-//                    dataTable = currenTable.Copy();
                     dataTable =
                         currenTable.GetCustomDataTable(
                             row =>
@@ -294,14 +232,6 @@ namespace Formater.SupportWorksheetsClasses
             }
 
             return dataTable;
-        }
-
-
-        [Obsolete("Этот метод пока не работает", true)]
-        public DataTable GetContent(OKTMOColumns column, params SearchParams[] searchParamses)
-        {
-            //.Rows.Cast<DataRow>().Select(row => row[classificatorColumnDictionary[contentColumn] - 1].ToString()).Distinct().ToList();
-            return null;
         }
 
         public static byte GetExcelColumn(Enum searchColumn)
@@ -329,7 +259,6 @@ namespace Formater.SupportWorksheetsClasses
                 }
             }
 
-
             return result.Distinct().ToList();
         }
 
@@ -348,13 +277,10 @@ namespace Formater.SupportWorksheetsClasses
             var results = table.Rows.Cast<DataRow>()
                 .Where(row => Regex.IsMatch(DbToConvert.ReplaceYO(row[classificatorColumnDictionary[searchColumn] - 1].ToString()),pattern,RegexOptions.IgnoreCase))
                 .Select(r => r[classificatorColumnDictionary[searchColumn] - 1].ToString()).Distinct().ToList();
-//                .Where(row => DbToConvert.ReplaceYO(row[classificatorColumnDictionary[searchColumn] - 1].ToString())
-//                            .IndexOf(searchString, StringComparison.CurrentCultureIgnoreCase) >= 0)
-//                .Select(r => r[classificatorColumnDictionary[searchColumn] - 1].ToString()).Distinct().ToList();
 
 
             if (results.Count == 0) return string.Empty;
-            string result = "";
+            string result;
 
             if (Equals(searchColumn, OKTMOColumns.Region))
             {
@@ -368,33 +294,10 @@ namespace Formater.SupportWorksheetsClasses
                 }
                 if (string.IsNullOrEmpty(result))
                     result = results.First();
-
-//                result = results.FirstOrDefault(s => string.Equals(s, searchString, StringComparison.OrdinalIgnoreCase));
-//                if (string.IsNullOrEmpty(result))
-//                {
-//                    if (takeCity)
-//                        result = results.FirstOrDefault(s => s.IndexOf("город", StringComparison.OrdinalIgnoreCase) >= 0);
-//                    else
-//                    {
-//                        result = results.FirstOrDefault(s => s.IndexOf("город", StringComparison.OrdinalIgnoreCase) == -1);
-//                        if (string.IsNullOrEmpty(result))
-//                            result = results.First();
-//                    }
-//                }
             }
             else
                 result = results.First();
 
-//            foreach (
-//                var row in
-//                    table.Rows.Cast<DataRow>()
-//                        .Where(
-//                            row =>
-//                                DbToConvert.ReplaceYO(row[classificatorColumnDictionary[searchColumn] - 1].ToString())
-//                                    .IndexOf(searchString, StringComparison.CurrentCultureIgnoreCase) >= 0))
-//            {
-//                return row[classificatorColumnDictionary[searchColumn] - 1].ToString();
-//            }
 
             return result??String.Empty;
         }
@@ -404,7 +307,6 @@ namespace Formater.SupportWorksheetsClasses
             var pattern = searchString + "(\\b|$)";
 
             if (table == null) return String.Empty;
-            //change to FirstOrDefault
             foreach (
                 var row in
                     table.Rows.Cast<DataRow>()
@@ -412,22 +314,11 @@ namespace Formater.SupportWorksheetsClasses
                             row =>
                                 Regex.IsMatch(row[classificatorColumnDictionary[searchColumn] - 1].ToString(), pattern,
                                     RegexOptions.IgnoreCase)))
-//                                row[classificatorColumnDictionary[searchColumn] - 1].ToString()
-//                                    .IndexOf(searchString, StringComparison.CurrentCultureIgnoreCase) >= 0))
             {
                 return row[classificatorColumnDictionary[searchColumn] - 1].ToString();
             }
 
             return String.Empty;
-        }
-
-
-        private Range SetColumnRange(OKTMOColumns column)
-        {
-            return
-                worksheet.Range[
-                    worksheet.Cells[2, classificatorColumnDictionary[column]],
-                    worksheet.Cells[lastUsedRow, classificatorColumnDictionary[column]]].Cells;
         }
 
         /// <summary>
@@ -480,41 +371,6 @@ namespace Formater.SupportWorksheetsClasses
             //GetFullName("город " + regCenterName, OKTMOColumns.Region);
             cityName = regCenterName;
             return fullName;
-        }
-
-
-        /// <summary>
-        /// В зависимости от пераметров сбрасывает настроенные парамеры полностьб
-        /// </summary>
-        public void Reset(bool fullReset = false)
-        {
-            if (!fullReset)
-                CustomDataTable = SubjectTable;
-            else
-            {
-                SubjectTable = null;
-                CustomDataTable = null;
-                RegCenter = null;
-                subjectName = string.Empty;
-            }
-            
-        }
-
-        public void SetSubjectTable(string subjName)
-        {
-            if (String.IsNullOrEmpty(subjName)) return;
-
-            if (cashedSubjecTables.ContainsKey(subjName))
-            {
-                SubjectTable = cashedSubjecTables[subjName];
-                return;
-            }
-
-            SubjectTable = table.GetCustomDataTable(row =>
-                //Только полное совпадление макси поиска с значением ячейки
-                String.Equals(DbToConvert.ReplaceYO(row[Columns.Subject - 1].ToString()), subjName,
-                    StringComparison.CurrentCultureIgnoreCase));
-            this.subjectName = subjName;
         }
 
         public void SetCustomTable(SearchParams searchParams)

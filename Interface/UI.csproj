@@ -138,6 +138,9 @@
     <Compile Include="ExtentionConverterWindow.xaml.cs">
       <DependentUpon>ExtentionConverterWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="FormatWbWindow.xaml.cs">
+      <DependentUpon>FormatWbWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\Annotations.cs" />
     <Page Include="ColumnsCompareWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -148,6 +151,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ExtentionConverterWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="FormatWbWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -163,6 +170,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Properties\Annotations1.cs" />
     <Compile Include="TypifyConverter.xaml.cs">
       <DependentUpon>TypifyConverter.xaml</DependentUpon>
     </Compile>

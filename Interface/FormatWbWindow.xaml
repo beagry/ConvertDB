@@ -1,0 +1,16 @@
+﻿<Window x:Class="UI.FormatWbWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="FormatWbWindow" SizeToContent="WidthAndHeight"
+        FontFamily="#Roboto">
+    <StackPanel Margin="10">
+        <StackPanel>
+            <Label Content="Книга на обработку" DockPanel.Dock="Top"></Label>
+            <DockPanel Width="300">
+                <Button Content="Выбрать" DockPanel.Dock="Right" HorizontalAlignment="Right" Padding="5" Width="80"></Button>
+                <TextBox IsReadOnly="True" HorizontalAlignment="Stretch"></TextBox>
+            </DockPanel>
+            <Button Content="OK" HorizontalAlignment="Right" Margin="0,10,0,0" Width="80" Height="25"></Button>
+        </StackPanel>
+    </StackPanel>
+</Window>

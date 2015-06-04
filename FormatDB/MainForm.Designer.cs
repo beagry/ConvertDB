@@ -41,6 +41,7 @@
             this.SelectOKTMOFileButton = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.WarningLabel = new System.Windows.Forms.Label();
             this.progressBar = new System.Windows.Forms.ProgressBar();
             this.OpenButton = new System.Windows.Forms.Button();
             this.workbookPathTextBox = new System.Windows.Forms.TextBox();
@@ -57,7 +58,6 @@
             this.VGTWorksheetCBox = new System.Windows.Forms.ComboBox();
             this.label7 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
-            this.WarningLabel = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -72,7 +72,7 @@
             this.CatalogPathTextBox.Location = new System.Drawing.Point(141, 33);
             this.CatalogPathTextBox.Name = "CatalogPathTextBox";
             this.CatalogPathTextBox.ReadOnly = true;
-            this.CatalogPathTextBox.Size = new System.Drawing.Size(233, 22);
+            this.CatalogPathTextBox.Size = new System.Drawing.Size(232, 22);
             this.CatalogPathTextBox.TabIndex = 0;
             // 
             // OKTMOPathTextBox
@@ -83,7 +83,7 @@
             this.OKTMOPathTextBox.Location = new System.Drawing.Point(141, 3);
             this.OKTMOPathTextBox.Name = "OKTMOPathTextBox";
             this.OKTMOPathTextBox.ReadOnly = true;
-            this.OKTMOPathTextBox.Size = new System.Drawing.Size(233, 22);
+            this.OKTMOPathTextBox.Size = new System.Drawing.Size(232, 22);
             this.OKTMOPathTextBox.TabIndex = 1;
             // 
             // SubjectSourcePathTextBox
@@ -94,7 +94,7 @@
             this.SubjectSourcePathTextBox.Location = new System.Drawing.Point(141, 63);
             this.SubjectSourcePathTextBox.Name = "SubjectSourcePathTextBox";
             this.SubjectSourcePathTextBox.ReadOnly = true;
-            this.SubjectSourcePathTextBox.Size = new System.Drawing.Size(233, 22);
+            this.SubjectSourcePathTextBox.Size = new System.Drawing.Size(232, 22);
             this.SubjectSourcePathTextBox.TabIndex = 2;
             // 
             // label1
@@ -145,7 +145,7 @@
             this.SelectCatalogFileButton.BackColor = System.Drawing.Color.WhiteSmoke;
             this.SelectCatalogFileButton.Dock = System.Windows.Forms.DockStyle.Fill;
             this.SelectCatalogFileButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.SelectCatalogFileButton.Location = new System.Drawing.Point(380, 33);
+            this.SelectCatalogFileButton.Location = new System.Drawing.Point(379, 33);
             this.SelectCatalogFileButton.Name = "SelectCatalogFileButton";
             this.SelectCatalogFileButton.Size = new System.Drawing.Size(32, 24);
             this.SelectCatalogFileButton.TabIndex = 7;
@@ -158,7 +158,7 @@
             this.SelectSubjectSourceFileButton.BackColor = System.Drawing.Color.WhiteSmoke;
             this.SelectSubjectSourceFileButton.Dock = System.Windows.Forms.DockStyle.Fill;
             this.SelectSubjectSourceFileButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.SelectSubjectSourceFileButton.Location = new System.Drawing.Point(380, 63);
+            this.SelectSubjectSourceFileButton.Location = new System.Drawing.Point(379, 63);
             this.SelectSubjectSourceFileButton.Name = "SelectSubjectSourceFileButton";
             this.SelectSubjectSourceFileButton.Size = new System.Drawing.Size(32, 24);
             this.SelectSubjectSourceFileButton.TabIndex = 7;
@@ -171,7 +171,7 @@
             this.SelectOKTMOFileButton.BackColor = System.Drawing.Color.WhiteSmoke;
             this.SelectOKTMOFileButton.Dock = System.Windows.Forms.DockStyle.Fill;
             this.SelectOKTMOFileButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.SelectOKTMOFileButton.Location = new System.Drawing.Point(380, 3);
+            this.SelectOKTMOFileButton.Location = new System.Drawing.Point(379, 3);
             this.SelectOKTMOFileButton.Name = "SelectOKTMOFileButton";
             this.SelectOKTMOFileButton.Size = new System.Drawing.Size(32, 24);
             this.SelectOKTMOFileButton.TabIndex = 7;
@@ -208,6 +208,20 @@
             this.tabPage1.Size = new System.Drawing.Size(562, 180);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Основная вкладка";
+            // 
+            // WarningLabel
+            // 
+            this.WarningLabel.BackColor = System.Drawing.Color.Yellow;
+            this.WarningLabel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.WarningLabel.Font = new System.Drawing.Font("MS Reference Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.WarningLabel.ForeColor = System.Drawing.Color.Crimson;
+            this.WarningLabel.Location = new System.Drawing.Point(3, 100);
+            this.WarningLabel.Name = "WarningLabel";
+            this.WarningLabel.Size = new System.Drawing.Size(437, 51);
+            this.WarningLabel.TabIndex = 7;
+            this.WarningLabel.Text = "Во время работы программы не открывайте никакие Excel Файлы. \r\nЭто Приведёт к пол" +
+    "омке.";
+            this.WarningLabel.Visible = false;
             // 
             // progressBar
             // 
@@ -296,7 +310,7 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 36.74541F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 63.25459F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 38F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 146F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 147F));
             this.tableLayoutPanel1.Controls.Add(this.label8, 0, 3);
             this.tableLayoutPanel1.Controls.Add(this.CatalogPathTextBox, 1, 1);
             this.tableLayoutPanel1.Controls.Add(this.label3, 0, 2);
@@ -342,9 +356,9 @@
             this.OKTMOWorksheetCBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.OKTMOWorksheetCBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.OKTMOWorksheetCBox.FormattingEnabled = true;
-            this.OKTMOWorksheetCBox.Location = new System.Drawing.Point(418, 3);
+            this.OKTMOWorksheetCBox.Location = new System.Drawing.Point(417, 3);
             this.OKTMOWorksheetCBox.Name = "OKTMOWorksheetCBox";
-            this.OKTMOWorksheetCBox.Size = new System.Drawing.Size(141, 24);
+            this.OKTMOWorksheetCBox.Size = new System.Drawing.Size(142, 24);
             this.OKTMOWorksheetCBox.TabIndex = 8;
             // 
             // CatalogWorksheetCBox
@@ -354,9 +368,9 @@
             this.CatalogWorksheetCBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.CatalogWorksheetCBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.CatalogWorksheetCBox.FormattingEnabled = true;
-            this.CatalogWorksheetCBox.Location = new System.Drawing.Point(418, 33);
+            this.CatalogWorksheetCBox.Location = new System.Drawing.Point(417, 33);
             this.CatalogWorksheetCBox.Name = "CatalogWorksheetCBox";
-            this.CatalogWorksheetCBox.Size = new System.Drawing.Size(141, 24);
+            this.CatalogWorksheetCBox.Size = new System.Drawing.Size(142, 24);
             this.CatalogWorksheetCBox.TabIndex = 8;
             // 
             // SubjectSourceWorksheetCBox
@@ -366,9 +380,9 @@
             this.SubjectSourceWorksheetCBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.SubjectSourceWorksheetCBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.SubjectSourceWorksheetCBox.FormattingEnabled = true;
-            this.SubjectSourceWorksheetCBox.Location = new System.Drawing.Point(418, 63);
+            this.SubjectSourceWorksheetCBox.Location = new System.Drawing.Point(417, 63);
             this.SubjectSourceWorksheetCBox.Name = "SubjectSourceWorksheetCBox";
-            this.SubjectSourceWorksheetCBox.Size = new System.Drawing.Size(141, 24);
+            this.SubjectSourceWorksheetCBox.Size = new System.Drawing.Size(142, 24);
             this.SubjectSourceWorksheetCBox.TabIndex = 8;
             // 
             // SelectVGTFileButton
@@ -376,7 +390,7 @@
             this.SelectVGTFileButton.BackColor = System.Drawing.Color.WhiteSmoke;
             this.SelectVGTFileButton.Dock = System.Windows.Forms.DockStyle.Fill;
             this.SelectVGTFileButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.SelectVGTFileButton.Location = new System.Drawing.Point(380, 93);
+            this.SelectVGTFileButton.Location = new System.Drawing.Point(379, 93);
             this.SelectVGTFileButton.Name = "SelectVGTFileButton";
             this.SelectVGTFileButton.Size = new System.Drawing.Size(32, 24);
             this.SelectVGTFileButton.TabIndex = 10;
@@ -392,7 +406,7 @@
             this.VGTPathTextBox.Location = new System.Drawing.Point(141, 93);
             this.VGTPathTextBox.Name = "VGTPathTextBox";
             this.VGTPathTextBox.ReadOnly = true;
-            this.VGTPathTextBox.Size = new System.Drawing.Size(233, 22);
+            this.VGTPathTextBox.Size = new System.Drawing.Size(232, 22);
             this.VGTPathTextBox.TabIndex = 11;
             // 
             // VGTWorksheetCBox
@@ -401,9 +415,9 @@
             this.VGTWorksheetCBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.VGTWorksheetCBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.VGTWorksheetCBox.FormattingEnabled = true;
-            this.VGTWorksheetCBox.Location = new System.Drawing.Point(418, 93);
+            this.VGTWorksheetCBox.Location = new System.Drawing.Point(417, 93);
             this.VGTWorksheetCBox.Name = "VGTWorksheetCBox";
-            this.VGTWorksheetCBox.Size = new System.Drawing.Size(141, 24);
+            this.VGTWorksheetCBox.Size = new System.Drawing.Size(142, 24);
             this.VGTWorksheetCBox.TabIndex = 12;
             // 
             // label7
@@ -425,20 +439,6 @@
             this.label6.Size = new System.Drawing.Size(96, 16);
             this.label6.TabIndex = 10;
             this.label6.Text = "Путь к файлу";
-            // 
-            // WarningLabel
-            // 
-            this.WarningLabel.BackColor = System.Drawing.Color.Yellow;
-            this.WarningLabel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.WarningLabel.Font = new System.Drawing.Font("MS Reference Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.WarningLabel.ForeColor = System.Drawing.Color.Crimson;
-            this.WarningLabel.Location = new System.Drawing.Point(3, 100);
-            this.WarningLabel.Name = "WarningLabel";
-            this.WarningLabel.Size = new System.Drawing.Size(437, 51);
-            this.WarningLabel.TabIndex = 7;
-            this.WarningLabel.Text = "Во время работы программы не открывайте никакие Excel Файлы. \r\nЭто Приведёт к пол" +
-    "омке.";
-            this.WarningLabel.Visible = false;
             // 
             // MainForm
             // 

@@ -10,31 +10,15 @@ namespace Formater.SupportWorksheetsClasses
 {
     class VGTWorksheet
     {
-        private readonly Worksheet worksheet;
         private readonly DataTable table;
         public DataTable Table { get { return table; } }
 
         private const byte CityNameExcelColumn = 1;
         private const byte TerritoryExcelColumn = 3;
 
-        public VGTWorksheet(Worksheet worksheet)
+        public VGTWorksheet(DataTable table)
         {
-            this.worksheet = worksheet;
-            try
-            {
-                worksheet.ShowAllData();
-            }
-            catch (COMException e)
-            {
-                if (e.HResult != -2146827284) throw;
-            } 
-            table = worksheet.ToDataTable();
-        }
-
-        public void CloseWorkbook()
-        {
-            Workbook workbook = worksheet.Parent;
-            workbook.Close(false);
+            this.table = table;
         }
 
         public bool CityExists(string s)
