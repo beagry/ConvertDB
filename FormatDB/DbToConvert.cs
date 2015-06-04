@@ -2,23 +2,16 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Converter.Template_workbooks;
 using Converter.Template_workbooks.EFModels;
 using ExcelRLibrary;
-using ExcelRLibrary.TemplateWorkbooks;
 using Formater.SupportWorksheetsClasses;
 using OfficeOpenXml;
-using Excel = Microsoft.Office.Interop.Excel;
-
 
 namespace Formater
 {
@@ -28,28 +21,24 @@ namespace Formater
     {
         private const string noInfoString = "не указано";
 
-        private ExcelPackage package;
-        private ExcelWorksheet worksheet;
-        private static int lastUsedRow = 0;
-        private List<long> rowsToDelete;
+        private readonly ExcelWorksheet worksheet;
+        private static int lastUsedRow;
+        private readonly List<long> rowsToDelete;
 
         private CatalogWorksheet catalogWorksheet;
         private OKTMOWorksheet oktmo;
         private SubjectSourceWorksheet subjectSourceWorksheet;
         private VGTWorksheet vgtWorksheet;
-        private MainForm MainForm;
+        private readonly MainForm MainForm;
         private ProgressBar progressBar;
 
         public int HeadSize { get; set; }
 
-        public ExcelPackage ExcelPackage
-        {
-            get { return package; }
-        }
+        public ExcelPackage ExcelPackage { get; private set; }
 
         private readonly XlTemplateWorkbookType wbType;
-        private readonly Dictionary<int, string> head; 
-        private TemplateWbsContext db;
+        private readonly Dictionary<int, string> head;
+        private readonly TemplateWbsContext db;
 
 
 #if !DEBUG
@@ -71,23 +60,23 @@ namespace Formater
 
         public List<string> ColumnsToReserve { get; set; }
 
-        private readonly byte subjColumn ;             
-        private readonly byte regionColumn ;           
-        private readonly byte settlementColumn ;       
-        private readonly byte nearCityColumn ;         
-        private readonly byte typeOfNearCityColumn ;   
-        private readonly byte vgtColumn ;              
-        private readonly byte streetColumn ;           
-        private readonly byte typeOfStreetColumn ;     
-        private readonly byte sourceLinkColumn ;       
-        private readonly byte distToRegCenterColumn ;  
-        private readonly byte distToNearCityColumn ;   
-        private readonly byte inCityColumn ;           
-        private readonly byte houseNumColumn ;         
-        private readonly byte letterColumn ;           
-        private readonly byte sntKpDnpColumn ;         
-        private readonly byte additionalInfoColumn ;   
-        private readonly byte buildColumn ;            
+        private readonly byte subjColumn;
+        private readonly byte regionColumn;
+        private readonly byte settlementColumn;
+        private readonly byte nearCityColumn;
+        private readonly byte typeOfNearCityColumn;
+        private readonly byte vgtColumn;
+        private readonly byte streetColumn;
+        private readonly byte typeOfStreetColumn;
+        private readonly byte sourceLinkColumn;
+        private readonly byte distToRegCenterColumn;
+        private readonly byte distToNearCityColumn;
+        private readonly byte inCityColumn;
+        private readonly byte houseNumColumn;
+        private readonly byte letterColumn;
+        private readonly byte sntKpDnpColumn;
+        private readonly byte additionalInfoColumn;
+        private readonly byte buildColumn;
 
 
         public DbToConvert(MainForm mainForm, XlTemplateWorkbookType wbType) : this()
@@ -95,32 +84,31 @@ namespace Formater
             MainForm = mainForm;
             this.wbType = wbType;
 
-            package = new ExcelPackage(new FileInfo(mainForm.WorkbookPath));
-            worksheet = package.Workbook.Worksheets.First();
+            ExcelPackage = new ExcelPackage(new FileInfo(mainForm.WorkbookPath));
+            worksheet = ExcelPackage.Workbook.Worksheets.First();
             lastUsedRow = worksheet.Dimension.Rows;
             head = worksheet.ReadHead();
 
             db = new TemplateWbsContext();
             var columns = db.TemplateWorkbooks.First(w => w.WorkbookType == wbType).Columns.ToList();
-            subjColumn =               (byte)columns.First(c => c.CodeName.Equals("SUBJECT")).ColumnIndex;
-            regionColumn =             (byte)columns.First(c => c.CodeName.Equals("REGION")).ColumnIndex;
-            settlementColumn =         (byte)columns.First(c => c.CodeName.Equals("SETTLEMENT")).ColumnIndex;
-            nearCityColumn =           (byte)columns.First(c => c.CodeName.Equals("NEAR_CITY")).ColumnIndex;
-            typeOfNearCityColumn =     (byte)columns.First(c => c.CodeName.Equals("TERRITORY_TYPE")).ColumnIndex;
-            vgtColumn =                (byte)columns.First(c => c.CodeName.Equals("VGT")).ColumnIndex;
-            streetColumn =             (byte)columns.First(c => c.CodeName.Equals("STREET")).ColumnIndex;
-            typeOfStreetColumn =       (byte)columns.First(c => c.CodeName.Equals("STREET_TYPE")).ColumnIndex;
-            sourceLinkColumn =         (byte)columns.First(c => c.CodeName.Equals("URL_SALE")).ColumnIndex;
-            distToRegCenterColumn =    (byte)columns.First(c => c.CodeName.Equals("DIST_REG_CENTER")).ColumnIndex;
-            distToNearCityColumn =     (byte)columns.First(c => c.CodeName.Equals("DIST_NEAR_CITY")).ColumnIndex;
-            inCityColumn =             (byte)columns.First(c => c.CodeName.Equals("IN_CITY")).ColumnIndex;
-            houseNumColumn =           (byte)columns.First(c => c.CodeName.Equals("HOUSE_NUM")).ColumnIndex;
-            letterColumn =             (byte)columns.First(c => c.CodeName.Equals("LETTER")).ColumnIndex;
-            sntKpDnpColumn =           (byte)columns.First(c => c.CodeName.Equals("ASSOCIATIONS")).ColumnIndex;
-            additionalInfoColumn =     (byte)columns.First(c => c.CodeName.Equals("ADDITIONAL")).ColumnIndex;
-            buildColumn =              (byte)columns.First(c => c.CodeName.Equals("HOUSE_NUM")).ColumnIndex;
+            subjColumn = (byte) columns.First(c => c.CodeName.Equals("SUBJECT")).ColumnIndex;
+            regionColumn = (byte) columns.First(c => c.CodeName.Equals("REGION")).ColumnIndex;
+            settlementColumn = (byte) columns.First(c => c.CodeName.Equals("SETTLEMENT")).ColumnIndex;
+            nearCityColumn = (byte) columns.First(c => c.CodeName.Equals("NEAR_CITY")).ColumnIndex;
+            typeOfNearCityColumn = (byte) columns.First(c => c.CodeName.Equals("TERRITORY_TYPE")).ColumnIndex;
+            vgtColumn = (byte) columns.First(c => c.CodeName.Equals("VGT")).ColumnIndex;
+            streetColumn = (byte) columns.First(c => c.CodeName.Equals("STREET")).ColumnIndex;
+            typeOfStreetColumn = (byte) columns.First(c => c.CodeName.Equals("STREET_TYPE")).ColumnIndex;
+            sourceLinkColumn = (byte) columns.First(c => c.CodeName.Equals("URL_SALE")).ColumnIndex;
+            distToRegCenterColumn = (byte) columns.First(c => c.CodeName.Equals("DIST_REG_CENTER")).ColumnIndex;
+            distToNearCityColumn = (byte) columns.First(c => c.CodeName.Equals("DIST_NEAR_CITY")).ColumnIndex;
+            inCityColumn = (byte) columns.First(c => c.CodeName.Equals("IN_CITY")).ColumnIndex;
+            houseNumColumn = (byte) columns.First(c => c.CodeName.Equals("HOUSE_NUM")).ColumnIndex;
+            letterColumn = (byte) columns.First(c => c.CodeName.Equals("LETTER")).ColumnIndex;
+            sntKpDnpColumn = (byte) columns.First(c => c.CodeName.Equals("ASSOCIATIONS")).ColumnIndex;
+            additionalInfoColumn = (byte) columns.First(c => c.CodeName.Equals("ADDITIONAL")).ColumnIndex;
+            buildColumn = (byte) columns.First(c => c.CodeName.Equals("HOUSE_NUM")).ColumnIndex;
         }
-
 
 
         private DbToConvert()
@@ -169,7 +157,7 @@ namespace Formater
 
 
         /// <summary>
-        /// Общий метод, запускающий подметоды своего типа
+        ///     Общий метод, запускающий подметоды своего типа
         /// </summary>
         /// <returns></returns>
         public bool FormatWorksheet()
@@ -214,7 +202,7 @@ namespace Formater
         {
             var columnIndex = GetColumnIndex("RELIEF");
 
-            for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
+            for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
                 if (cell.Value == null || cell.Value.ToString() == string.Empty)
@@ -249,7 +237,7 @@ namespace Formater
         {
             var columnIndex = GetColumnIndex("ROAD");
 
-            for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
+            for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
                 if (cell.Value == null || cell.Value.ToString() == string.Empty)
@@ -284,7 +272,7 @@ namespace Formater
         {
             var columnIndex = GetColumnIndex("SURFACE");
 
-            for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
+            for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
                 if (cell.Value == null || cell.Value.ToString() == string.Empty)
@@ -313,8 +301,8 @@ namespace Formater
         private void FormatBuildings()
         {
             var columnIndex = GetColumnIndex("OBJECT");
-            Regex regex = new Regex("дом", RegexOptions.IgnoreCase);
-            for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
+            var regex = new Regex("дом", RegexOptions.IgnoreCase);
+            for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
                 if (cell.Value == null || cell.Value.ToString() == string.Empty)
@@ -338,7 +326,7 @@ namespace Formater
             var lawNowColumnIndex = GetColumnIndex("LAW_NOW");
             if (lawNowColumnIndex == 0) return;
 
-            for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
+            for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
 //                if (cell.Value == null || cell.Value.ToString() == string.Empty)
@@ -357,7 +345,7 @@ namespace Formater
             var columnIndex = GetColumnIndex(columnCode);
             var v = catalogWorksheet.GetContentByCode(columnCode);
 
-            for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
+            for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
                 if (cell.Value == null) continue;
@@ -372,7 +360,7 @@ namespace Formater
             var columnIndex = GetColumnIndex(columnCode);
             var v = catalogWorksheet.GetContentByCode(columnCode);
 
-            for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
+            for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
                 if (cell.Value == null) continue;
@@ -395,33 +383,33 @@ namespace Formater
             var columnIndex = GetColumnIndex(columnCode);
             var dateRegex = new Regex("(сегодн|(поза)?вчер)");
 
-            for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
+            for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
                 if (cell.Value == null || cell.Value.ToString() == string.Empty)
-                if (cell.Value == null || cell.Value.ToString() == string.Empty)
-                {
-                    cell.Value = noInfoString;
-                }
+                    if (cell.Value == null || cell.Value.ToString() == string.Empty)
+                    {
+                        cell.Value = noInfoString;
+                    }
 
                 //Если есть дата
                 var value = cell.Value.ToString();
 
                 DateTime dt;
-                if (cell.Value is DateTime || DateTime.TryParse(value,out dt)) continue;
-                
+                if (cell.Value is DateTime || DateTime.TryParse(value, out dt)) continue;
+
 
                 double u = 0;
-                if (value is double|| double.TryParse(value,out u))
+                if (value is double || double.TryParse(value, out u))
                     dt = DateTime.FromOADate(u);
                 else
-                    DateTime.TryParse((string) value, out dt);
+                    DateTime.TryParse(value, out dt);
 
                 Match match;
                 //Когда не удалось конвертиорвать в дату
                 if (dt < new DateTime(2000, 01, 01))
                 {
-                    Regex regex = new Regex(@"\d\d\.\d\d\.\d{2,4}");
+                    var regex = new Regex(@"\d\d\.\d\d\.\d{2,4}");
                     match = regex.Match(value);
                     if (match.Success)
                     {
@@ -457,7 +445,7 @@ namespace Formater
                 if (worksheet.Cells[cell.Start.Row, parsingColumn].Value == null) continue;
 
                 value = worksheet.Cells[cell.Start.Row, parsingColumn].Value.ToString();
-                DateTime.TryParse((string) value, out dt);
+                DateTime.TryParse(value, out dt);
 
                 if (dt < new DateTime(2000, 01, 01)) continue;
                 dt = dt.AddDays(days);
@@ -469,8 +457,9 @@ namespace Formater
 
         private void FormatDate(string columnCode)
         {
+            //todo реализовать функцию когда дата = "213 дня назад"
             var columnIndex = GetColumnIndex(columnCode);
-            for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
+            for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
                 if (cell.Value == null || cell.Value.ToString() == string.Empty)
@@ -492,16 +481,16 @@ namespace Formater
                 }
 
                 DateTime dt;
-                if (DateTime.TryParse(value,out dt))
+                if (DateTime.TryParse(value, out dt))
                 {
                     cell.Value = dt;
                     cell.Style.Numberformat.Format = "dd.mm.yyyy";
                     continue;
                 }
 
-                
+
                 double b;
-                if (double.TryParse(value,out b))
+                if (double.TryParse(value, out b))
                 {
                     dt = DateTime.FromOADate(b);
                 }
@@ -509,12 +498,12 @@ namespace Formater
                 {
                     DateTime.TryParse(value, out dt);
                 }
-                if (dt <=  new DateTime(2000, 01, 01))
+                if (dt <= new DateTime(2000, 01, 01))
                 {
                     var regex = new Regex(@"\d\d\.\d\d\.\d{2,4}");
                     var match = regex.Match(cell.Value.ToString());
                     value = match.Value;
-                    DateTime.TryParse((string) value, out dt);
+                    DateTime.TryParse(value, out dt);
                     if (dt < new DateTime(2000, 01, 01))
                     {
                         dt = TryPasreDate(cell.Value.ToString());
@@ -529,7 +518,7 @@ namespace Formater
 
         private DateTime TryPasreDate(string text)
         {
-            var dict = new Dictionary<string, string>()
+            var dict = new Dictionary<string, string>
             {
                 {"янв", "01"},
                 {"февр", "02"},
@@ -542,7 +531,7 @@ namespace Formater
                 {"сент", "09"},
                 {"окт", "10"},
                 {"нояб", "11"},
-                {"дек", "12"},
+                {"дек", "12"}
             };
 
             foreach (var keyPair in dict)
@@ -568,7 +557,7 @@ namespace Formater
         {
             var columnIndex = GetColumnIndex("LAND_CATEGORY");
 
-            for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
+            for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
                 if (cell.Value == null || cell.Value.ToString() == string.Empty)
@@ -612,7 +601,7 @@ namespace Formater
             var v = catalogWorksheet.GetContentByCode(code);
             var rentalPeriodColumnIndex = GetColumnIndex("RENTAL_PERIOD");
 
-            for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
+            for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
 
@@ -628,17 +617,15 @@ namespace Formater
 
                 if (Regex.IsMatch(value, "аренд", RegexOptions.IgnoreCase))
                 {
-                    Match match = new Regex(@"\d+").Match(value);
+                    var match = new Regex(@"\d+").Match(value);
                     if (match.Success && rentalPeriodColumnIndex != 0)
                         worksheet.Cells[cell.Start.Row, rentalPeriodColumnIndex].Value =
-                            String.Format("на {0} лет",
+                            string.Format("на {0} лет",
                                 match.Value);
                     cell.Value = "аренда";
                 }
                 else
                     cell.Value = "собственность";
-
-
             }
         }
 
@@ -649,7 +636,7 @@ namespace Formater
 
             var lastColumnIndex = GetColumnIndex("HEAT_SUPPLY");
 
-            var usingRange = worksheet.Cells[2, firstColumnIndex,lastUsedRow, lastColumnIndex];
+            var usingRange = worksheet.Cells[2, firstColumnIndex, lastUsedRow, lastColumnIndex];
 
             var columnsCodeList = new List<string>
             {
@@ -657,14 +644,14 @@ namespace Formater
                 "SYSTEM_WATER",
                 "SYSTEM_SEWERAGE",
                 "SYSTEM_ELECTRICITY",
-                "HEAT_SUPPLY",
+                "HEAT_SUPPLY"
             };
 
             var columnIndex = firstColumnIndex;
             var v = catalogWorksheet.GetContentByCode(columnsCodeList[0]);
 
             //Проверяем первый столбец(Газ) на предмет информации для соседних столбцов
-            for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
+            for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
                 if (cell.Value == null || cell.Value.ToString() == string.Empty)
@@ -731,7 +718,7 @@ namespace Formater
 
                 columnIndex = GetColumnIndex(columnName);
                 //Далее по всем ячейкам в столбце
-                for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
+                for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
                 {
                     var cell = worksheet.Cells[i, columnIndex];
                     if (cell.Value == null || cell.Value.ToString() == string.Empty)
@@ -767,7 +754,7 @@ namespace Formater
             var multiplierRegex = new Regex(@"(г(ект)?а|сот|(/)?(кв\\s*\\.?\\s*м\\b|м2|м\\s*\\.\\s*кв\b|м\b))",
                 RegexOptions.IgnoreCase);
 
-            for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
+            for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
                 if (cell.Value == null) return;
@@ -808,7 +795,7 @@ namespace Formater
                 var cellValue = cell.Value.ToString();
 
                 //Проверяем строку на предмет "100 000рублей за сотку-метр-гектар"
-                Match match = multiplierRegex.Match(cellValue);
+                var match = multiplierRegex.Match(cellValue);
                 if (match.Success)
                 {
                     switch (match.Value.ToLower())
@@ -833,13 +820,13 @@ namespace Formater
                     {
                         //Проверка на 85.000
                         var val2 = Regex.IsMatch(cell.Value.ToString(), @"\d+\.\d{3,}")
-                            ? cell.Value.ToString().Replace(".", String.Empty)
+                            ? cell.Value.ToString().Replace(".", string.Empty)
                             : cellValue;
 
                         match = numericRegex.Match(val2);
                         if (!match.Success)
                         {
-                            cell.Value = String.Empty;
+                            cell.Value = string.Empty;
                             continue;
                         }
 
@@ -851,7 +838,7 @@ namespace Formater
                         double s2;
 
                         //Убераем пробемы, заменяем точку на запятую и конвертирует в double
-                        Double.TryParse(match.Value.Trim().Replace(" ", String.Empty).Replace(".", ","), out s2);
+                        double.TryParse(match.Value.Trim().Replace(" ", string.Empty).Replace(".", ","), out s2);
 
                         pricePerUnitCell.Value = s2*y*x;
                         pricePerUnitCell.Style.Numberformat.Format = "#";
@@ -860,20 +847,20 @@ namespace Formater
 
                 //Проверка на 85.000
                 var val = Regex.IsMatch(cell.Value.ToString(), @"\d+\.\d{3,}")
-                    ? cell.Value.ToString().Replace(".", String.Empty)
+                    ? cell.Value.ToString().Replace(".", string.Empty)
                     : cellValue;
 
                 match = numericRegex.Match(val);
                 if (!match.Success)
                 {
-                    cell.Value = String.Empty;
+                    cell.Value = string.Empty;
                     continue;
                 }
 
                 double s;
 
                 //Убераем пробемы, заменяем точку на запятую и конвертирует в double
-                Double.TryParse(match.Value.Trim().Replace(" ", String.Empty).Replace(".", ","), out s);
+                double.TryParse(match.Value.Trim().Replace(" ", string.Empty).Replace(".", ","), out s);
 
                 cell.Value = s*y*multiplier*x;
                 cell.Style.Numberformat.Format = "#";
@@ -887,10 +874,10 @@ namespace Formater
             var columnIndex = GetColumnIndex(columnCode);
 
             //10 000,89 руб / 9 000.80 рубсотк
-            Regex numericRegex = new Regex(@"(\d|\s|\.|\,)+");
-            Regex multiplieRegex = new Regex(@"(га|сот)", RegexOptions.IgnoreCase);
+            var numericRegex = new Regex(@"(\d|\s|\.|\,)+");
+            var multiplieRegex = new Regex(@"(га|сот)", RegexOptions.IgnoreCase);
 
-            for (var i = HeadSize; i <= worksheet.Dimension.End.Row; i++)
+            for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
                 if (cell.Value == null) return;
@@ -928,11 +915,11 @@ namespace Formater
                 match = numericRegex.Match(cell.Value.ToString());
                 if (!match.Success)
                 {
-                    cell.Value = String.Empty;
+                    cell.Value = string.Empty;
                     continue;
                 }
                 double s;
-                Double.TryParse(match.Value.Trim().Replace(" ", String.Empty).Replace(".", ","), out s);
+                double.TryParse(match.Value.Trim().Replace(" ", string.Empty).Replace(".", ","), out s);
 
                 cell.Value = s*y;
                 cell.Style.Numberformat.Format = @"#";
@@ -948,7 +935,7 @@ namespace Formater
         }
 
 
-        /// Метод бэкапит данные, подвергшиеся замещению
+        // Метод бэкапит данные, подвергшиеся замещению
 //        private void ReserveColumns()
 //        {
 //            string wsName = "Reserve";
