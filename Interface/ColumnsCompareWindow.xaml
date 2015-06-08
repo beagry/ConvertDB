@@ -53,7 +53,7 @@
                 <StackPanel DockPanel.Dock="Top">
                     <Label Content="Не распределенные столбцы"
                            FontSize="14" Height="29" />
-                    <telerik:RadListBox ItemsSource="{Binding UnbindedColumns}"
+                    <telerik:RadListBox ItemsSource="{Binding UnbindedColumns}" MaxWidth="300"
                                         HorizontalAlignment="Stretch" MinHeight="200" MaxHeight="300"
                                         Margin="0,5,0,0"
                                         ItemContainerStyle="{StaticResource DraggableListBoxItem}"
@@ -70,7 +70,21 @@
                     <ListBox Margin="0,5,0,0" ItemsSource="{Binding LastSelectedColumnValuesExamples}" MinHeight="200"
                              MaxHeight="300"
                              HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                             VerticalAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+                             VerticalAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+<!--                                <StackPanel>-->
+                                    <TextBlock Text="{Binding}" MaxWidth="300" TextWrapping="NoWrap">
+                                        <TextBlock.ToolTip>
+                                            <ToolTip>
+                                                <TextBlock Text="{Binding}"></TextBlock>
+                                            </ToolTip>
+                                        </TextBlock.ToolTip>
+                                    </TextBlock>
+<!--                                </StackPanel>-->
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </StackPanel>
                 <DockPanel Margin="0,15,0,0" Height="32" VerticalAlignment="Bottom">
                     <Button HorizontalAlignment="Left" Content="&#60;&#61;Добавить" Width="90"
