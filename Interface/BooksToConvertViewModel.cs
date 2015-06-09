@@ -93,6 +93,7 @@ namespace UI
 
         public ObservableCollection<SelectedWorkbook> Workbooks{ get; set; }
 
+
         public XlTemplateWorkbookType WorkbooksType
         {
             get { return workbooksType; }

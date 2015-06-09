@@ -213,6 +213,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FormatDB\FormatDB.csproj">
+      <Project>{402D2627-FB68-4E16-B38A-6278A9800368}</Project>
+      <Name>FormatDB</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TestWSSourceClass\DBConvert.csproj">
       <Project>{2a95f170-6cfa-480d-ac85-cdef0c4ba927}</Project>
       <Name>DBConvert</Name>
