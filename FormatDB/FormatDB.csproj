@@ -124,10 +124,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LocationRgexpHandler.cs" />
+    <Compile Include="ExcelLocationRow.cs" />
     <Compile Include="CSVReader.cs" />
+    <Compile Include="ExcelRowLocationDecoder.cs" />
+    <Compile Include="Interfaces.cs" />
     <Compile Include="Regexes\DescriprionSearch.cs" />
     <Compile Include="SupportWorksheetsClasses\CatalogWorksheet.cs" />
-    <Compile Include="DBConvertRegexSearches.cs" />
     <Compile Include="DbToConvert.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="LandPropertyTemplateWorkbook.cs" />
