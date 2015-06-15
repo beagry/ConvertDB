@@ -8,7 +8,7 @@ using DataTable = System.Data.DataTable;
 
 namespace Formater.SupportWorksheetsClasses
 {
-    class VGTWorksheet
+    public class VGTWorksheet
     {
         private readonly DataTable table;
         public DataTable Table { get { return table; } }

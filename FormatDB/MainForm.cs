@@ -188,35 +188,35 @@ namespace Formater
         //
         //Buttons Clicks
         //
-        private async void StartButton_Click(object sender, EventArgs e)
+        private void StartButton_Click(object sender, EventArgs e)
         {
-            convert = new DbToConvert(this, XlTemplateWorkbookType.LandProperty) { ColumnsToReserve = new List<string> { "SUBJECT", "REGION", "NEAR_CITY", "SYSTEM_GAS", "SYSTEM_WATER", "SYSTEM_SEWERAGE", "SYSTEM_ELECTRICITY" } };
-            var button = sender as Button;
-            if (button == null) return;
-
-#if !DEBUG
-            if (FormHasInvalidControl())
-            {
-                MessageBox.Show(
-                    @"Не все поля заполнены",
-                    @"Операция прервана", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-#endif
-
-            tabPage1.Enabled = false;
-            tabPage2.Enabled = false;
-
-            WarningLabel.Visible = true;
-            if (!convert.ColumnHeadIsOk()) return;
-
-            //Запусть обработки в новом потоке
-            await Task.Run(() => convert.FormatWorksheet());
-
-            convert.ExcelPackage.SaveWithDialog();
-            WarningLabel.Visible = false;
-            tabPage1.Enabled = true;
-            tabPage1.Enabled = true;
+//            convert = new DbToConvert(this, XlTemplateWorkbookType.LandProperty) { ColumnsToReserve = new List<string> { "SUBJECT", "REGION", "NEAR_CITY", "SYSTEM_GAS", "SYSTEM_WATER", "SYSTEM_SEWERAGE", "SYSTEM_ELECTRICITY" } };
+//            var button = sender as Button;
+//            if (button == null) return;
+//
+//#if !DEBUG
+//            if (FormHasInvalidControl())
+//            {
+//                MessageBox.Show(
+//                    @"Не все поля заполнены",
+//                    @"Операция прервана", MessageBoxButtons.OK, MessageBoxIcon.Error);
+//                return;
+//            }
+//#endif
+//
+//            tabPage1.Enabled = false;
+//            tabPage2.Enabled = false;
+//
+//            WarningLabel.Visible = true;
+//            if (!convert.ColumnHeadIsOk()) return;
+//
+//            //Запусть обработки в новом потоке
+//            await Task.Run(() => convert.FormatWorksheet());
+//
+//            convert.ExcelPackage.SaveWithDialog();
+//            WarningLabel.Visible = false;
+//            tabPage1.Enabled = true;
+//            tabPage1.Enabled = true;
 
         }
 

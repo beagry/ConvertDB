@@ -9,7 +9,7 @@ using OfficeOpenXml;
 
 namespace Formater.SupportWorksheetsClasses
 {
-    class CatalogWorksheet
+    public  class CatalogWorksheet
     {
         private System.Data.DataTable table;
         private const byte CodeColumnIndex = 2;
