@@ -2,14 +2,22 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:UI" x:Class="UI.FormatWbWindow"
+    xmlns:hammer="clr-namespace:Hammer.SpinningWheel;assembly=Hammer.SpinningWheel"
     Title="Анализ текста" SizeToContent="WidthAndHeight"
     FontFamily="#Roboto" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
     <Window.DataContext>
         <local:FormatDbViewModel />
     </Window.DataContext>
     <Window.Resources>
-        <Style TargetType="ComboBox">
+        <Style TargetType="ComboBox" x:Key="CboxStyle">
             <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
+        </Style>
+        <Style TargetType="hammer:SpinningWheel" x:Key="SpinWheelStyle">
+            <Setter Property="Speed" Value="0.7"></Setter>
+            <Setter Property="Width" Value="20"></Setter>
+            <Setter Property="CircleRadius" Value="2"></Setter>
+            <Setter Property="Radius" Value="7"></Setter>
+            
         </Style>
     </Window.Resources>
     <StackPanel Margin="10">
@@ -64,46 +72,180 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                            <Label Width="120" Content="Справочник" />
-                            <TextBox VerticalContentAlignment="Center" Margin="10,0,0,0"
+                            <Label Width="100" Content="Справочник" />
+                            <hammer:SpinningWheel Margin="10,0,0,0" >
+                                <hammer:SpinningWheel.Style>
+                                    <Style TargetType="hammer:SpinningWheel">
+                                        <Style.Setters>
+                                            <Setter Property="Speed" Value="0.7"></Setter>
+                                            <Setter Property="Width" Value="20"></Setter>
+                                            <Setter Property="CircleRadius" Value="2"></Setter>
+                                            <Setter Property="Radius" Value="7"></Setter>
+                                            <Setter Property="IsSpinning" Value="False"></Setter>
+                                            <Setter Property="Visibility" Value="Hidden"></Setter>
+                                        </Style.Setters>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CatalogSupportWorkbook.TaskInProgress}" Value="true">
+                                                <Setter Property="Visibility" Value="Visible"></Setter>
+                                                <Setter Property="IsSpinning" Value="True"></Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </hammer:SpinningWheel.Style>
+                            </hammer:SpinningWheel>
+                            <TextBox VerticalContentAlignment="Center" 
                                      Width="180" IsReadOnly="True" Text="{Binding CatalogSupportWorkbook.Path}" />
-                            <Button Margin="0,0,00,0" Content="..." Padding="10,0,10,0" Click="CatalogButton_Click" />
+                            <Button Margin="0,0,0,0" Content="..." Padding="10,0,10,0" Click="CatalogButton_Click" />
                             <ComboBox Margin="10,0,0,0" Width="120"
                                       SelectedItem="{Binding CatalogSupportWorkbook.SelectedWorksheet}"
-                                      ItemsSource="{Binding CatalogSupportWorkbook.Worksheets}" />
+                                      ItemsSource="{Binding CatalogSupportWorkbook.Worksheets}">
+                                <ComboBox.Style>
+                                    <Style TargetType="ComboBox">
+                                        <Style.Setters>
+                                            <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
+                                            <Setter Property="IsEnabled" Value="False"></Setter>
+                                        </Style.Setters>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CatalogSupportWorkbook.HasWorksheets}" Value="true">
+                                                <Setter Property="IsEnabled" Value="True"></Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ComboBox.Style>
+                            </ComboBox>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                            <Label Width="120" Content="ОКТМО" />
-                            <TextBox VerticalContentAlignment="Center" Margin="10,0,0,0"
+                            <Label Width="100" Content="ОКТМО" />
+                            <hammer:SpinningWheel Margin="10,0,0,0" >
+                                <hammer:SpinningWheel.Style>
+                                    <Style TargetType="hammer:SpinningWheel">
+                                        <Style.Setters>
+                                            <Setter Property="Speed" Value="0.7"></Setter>
+                                            <Setter Property="Width" Value="20"></Setter>
+                                            <Setter Property="CircleRadius" Value="2"></Setter>
+                                            <Setter Property="Radius" Value="7"></Setter>
+                                            <Setter Property="IsSpinning" Value="False"></Setter>
+                                            <Setter Property="Visibility" Value="Hidden"></Setter>
+                                        </Style.Setters>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding OktmoSupportWorkbook.TaskInProgress}" Value="true">
+                                                <Setter Property="Visibility" Value="Visible"></Setter>
+                                                <Setter Property="IsSpinning" Value="True"></Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </hammer:SpinningWheel.Style>
+                            </hammer:SpinningWheel>
+                            <TextBox VerticalContentAlignment="Center" 
                                      Width="180" IsReadOnly="True" Text="{Binding OktmoSupportWorkbook.Path}" />
-                            <Button Margin="0,0,00,0" Content="..." Padding="10,0,10,0" Click="OKTMOButton_Click" />
+                            <Button Margin="0,0,0,0" Content="..." Padding="10,0,10,0" Click="OKTMOButton_Click" />
                             <ComboBox Margin="10,0,0,0" Width="120"
                                       SelectedItem="{Binding OktmoSupportWorkbook.SelectedWorksheet}"
-                                      ItemsSource="{Binding OktmoSupportWorkbook.Worksheets}" />
+                                      ItemsSource="{Binding OktmoSupportWorkbook.Worksheets}">
+                                <ComboBox.Style>
+                                    <Style TargetType="ComboBox">
+                                        <Style.Setters>
+                                        <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
+                                        <Setter Property="IsEnabled" Value="False"></Setter>
+                                        </Style.Setters>
+                                        <Style.Triggers><DataTrigger Binding="{Binding OktmoSupportWorkbook.HasWorksheets}" Value="true">
+                                            <Setter Property="IsEnabled" Value="True"></Setter>
+                                        </DataTrigger></Style.Triggers>
+                                    </Style>
+                                </ComboBox.Style>
+                            </ComboBox>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                            <Label Width="120" Content="Справочник ВГТ" />
-                            <TextBox VerticalContentAlignment="Center" Margin="10,0,0,0"
+                            <Label Width="100" Content="ВГТ" />
+                            <hammer:SpinningWheel Margin="10,0,0,0" >
+                                <hammer:SpinningWheel.Style>
+                                    <Style TargetType="hammer:SpinningWheel">
+                                        <Style.Setters>
+                                            <Setter Property="Speed" Value="0.7"></Setter>
+                                            <Setter Property="Width" Value="20"></Setter>
+                                            <Setter Property="CircleRadius" Value="2"></Setter>
+                                            <Setter Property="Radius" Value="7"></Setter>
+                                            <Setter Property="IsSpinning" Value="False"></Setter>
+                                            <Setter Property="Visibility" Value="Hidden"></Setter>
+                                        </Style.Setters>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding VgtCatalogSupportWorkbook.TaskInProgress}" Value="true">
+                                                <Setter Property="Visibility" Value="Visible"></Setter>
+                                                <Setter Property="IsSpinning" Value="True"></Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </hammer:SpinningWheel.Style>
+                            </hammer:SpinningWheel>
+                            <TextBox VerticalContentAlignment="Center" 
                                      Width="180" IsReadOnly="True" Text="{Binding VgtCatalogSupportWorkbook.Path}" />
-                            <Button Margin="0,0,00,0" Content="..." Padding="10,0,10,0" Click="VGTCatalogButton_Click" />
+                            <Button Margin="0,0,0,0" Content="..." Padding="10,0,10,0" Click="VGTCatalogButton_Click" />
                             <ComboBox Margin="10,0,0,0" Width="120"
                                       SelectedItem="{Binding VgtCatalogSupportWorkbook.SelectedWorksheet}"
-                                      ItemsSource="{Binding VgtCatalogSupportWorkbook.Worksheets}" />
+                                      ItemsSource="{Binding VgtCatalogSupportWorkbook.Worksheets}">
+                                <ComboBox.Style>
+                                    <Style TargetType="ComboBox">
+                                        <Style.Setters>
+                                            <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
+                                            <Setter Property="IsEnabled" Value="False"></Setter>
+                                        </Style.Setters>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding VgtCatalogSupportWorkbook.HasWorksheets}" Value="true">
+                                                <Setter Property="IsEnabled" Value="True"></Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ComboBox.Style>
+                            </ComboBox>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                            <Label Width="120" Content="Субъект-Источник" />
-                            <TextBox VerticalContentAlignment="Center" Margin="10,0,0,0"
+                            <Label Width="100" Content="Суб-источник" />
+                            <hammer:SpinningWheel Margin="10,0,0,0" >
+                                <hammer:SpinningWheel.Style>
+                                    <Style TargetType="hammer:SpinningWheel">
+                                        <Style.Setters>
+                                            <Setter Property="Speed" Value="0.7"></Setter>
+                                            <Setter Property="Width" Value="20"></Setter>
+                                            <Setter Property="CircleRadius" Value="2"></Setter>
+                                            <Setter Property="Radius" Value="7"></Setter>
+                                            <Setter Property="IsSpinning" Value="False"></Setter>
+                                            <Setter Property="Visibility" Value="Hidden"></Setter>
+                                        </Style.Setters>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SubjectSourceSupportWorkbook.TaskInProgress}" Value="true">
+                                                <Setter Property="Visibility" Value="Visible"></Setter>
+                                                <Setter Property="IsSpinning" Value="True"></Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </hammer:SpinningWheel.Style>
+                            </hammer:SpinningWheel>
+                            <TextBox VerticalContentAlignment="Center" 
                                      Width="180" IsReadOnly="True" Text="{Binding SubjectSourceSupportWorkbook.Path}" />
-                            <Button Margin="0,0,00,0" Content="..." Padding="10,0,10,0" Click="SubjSourceButton_Click" />
+                            <Button Margin="0,0,0,0" Content="..." Padding="10,0,10,0" Click="SubjSourceButton_Click" />
                             <ComboBox Margin="10,0,0,0" Width="120"
                                       SelectedItem="{Binding SubjectSourceSupportWorkbook.SelectedWorksheet}"
-                                      ItemsSource="{Binding SubjectSourceSupportWorkbook.Worksheets}" />
+                                      ItemsSource="{Binding SubjectSourceSupportWorkbook.Worksheets}">
+                                <ComboBox.Style>
+                                    <Style TargetType="ComboBox">
+                                        <Style.Setters>
+                                            <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
+                                            <Setter Property="IsEnabled" Value="False"></Setter>
+                                        </Style.Setters>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SubjectSourceSupportWorkbook.HasWorksheets}" Value="true">
+                                                <Setter Property="IsEnabled" Value="True"></Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ComboBox.Style>
+                            </ComboBox>
                         </StackPanel>
                     </StackPanel>
                 </Grid>
             </TabItem>
         </TabControl>
-        <StatusBar VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Margin="0,5,0,0">
+        <StatusBar VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Margin="0,0,0,0">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid>
@@ -116,7 +258,7 @@
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
 
-            <StatusBarItem Margin="10,0,0,0" Grid.Column="0" HorizontalContentAlignment="Stretch">
+            <StatusBarItem Margin="0,0,0,0" Grid.Column="0" HorizontalContentAlignment="Stretch">
                 <ProgressBar Height="13" Width="auto"
                              IsIndeterminate="{Binding WorkInProgress}"
                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />

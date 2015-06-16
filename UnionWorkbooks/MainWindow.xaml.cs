@@ -117,7 +117,7 @@ namespace UnionWorkbooks
 
         }
 
-        private async void StartCombine()
+        private void StartCombine()
         {
             var combiner = new WorkbookCombiner()
             {

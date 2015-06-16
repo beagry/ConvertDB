@@ -84,6 +84,10 @@
     <Reference Include="ExcelRLibrary">
       <HintPath>..\..\ExcelRLibrary\ExcelRLibrary\bin\Release\ExcelRLibrary.dll</HintPath>
     </Reference>
+    <Reference Include="Hammer.SpinningWheel, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Hammer.SpinningWheel.2.0\lib\net40\Hammer.SpinningWheel.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>

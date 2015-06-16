@@ -98,6 +98,11 @@
     <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="PatternsLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\ExcelRLibrary\ExcelRLibrary\bin\Release\PatternsLib.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
@@ -129,6 +134,7 @@
     <Compile Include="CSVReader.cs" />
     <Compile Include="ExcelRowLocationDecoder.cs" />
     <Compile Include="Interfaces.cs" />
+    <Compile Include="OktmoHelper.cs" />
     <Compile Include="Regexes\DescriprionSearch.cs" />
     <Compile Include="SupportWorksheetsClasses\CatalogWorksheet.cs" />
     <Compile Include="DbToConvert.cs" />
@@ -140,7 +146,7 @@
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="SupportWorksheetsClasses\OKTMOWorksheet.cs" />
+    <Compile Include="SupportWorksheetsClasses\OktmoRepository.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

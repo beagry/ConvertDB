@@ -19,7 +19,7 @@ namespace Converter.Template_workbooks.EFModels
     public class UnitOfWork : IDisposable
     {
         private readonly TemplateWbsContext db = new TemplateWbsContext();
-        private bool disposed;
+        protected  bool disposed;
         private TemplateColumnRepository templateColumnRepository;
         private TemplateWbsRespository templateWbsRespository;
 
