@@ -1,6 +1,7 @@
 ﻿#define CheckHead
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -26,7 +27,7 @@ namespace Formater
         private static int lastUsedRow;
         private byte additionalInfoColumn;
         private byte buildColumn;
-        private readonly TemplateWbsContext db;
+//        private readonly TemplateWbsContext db;
         private byte distToNearCityColumn;
         private byte distToRegCenterColumn;
         private Dictionary<int, string> head;
@@ -76,15 +77,14 @@ namespace Formater
         {
             HeadSize = 2;
             rowsToDelete = new List<long>();
-
-            db = new TemplateWbsContext();
             InitColumn();
         }
 
         private void InitColumn()
         {
-            initColumnsTask = Task.Run(() =>
+            initColumnsTask =  Task.Run(() =>
             {
+                var db = new TemplateWbsContext();
                 var columns = db.TemplateWorkbooks.First(w => w.WorkbookType == wbType).Columns.ToList();
 
                 subjColumn = (byte)columns.First(c => c.CodeName.Equals("SUBJECT")).ColumnIndex;
@@ -104,6 +104,7 @@ namespace Formater
                 sntKpDnpColumn = (byte)columns.First(c => c.CodeName.Equals("ASSOCIATIONS")).ColumnIndex;
                 additionalInfoColumn = (byte)columns.First(c => c.CodeName.Equals("ADDITIONAL")).ColumnIndex;
                 buildColumn = (byte)columns.First(c => c.CodeName.Equals("HOUSE_NUM")).ColumnIndex;
+                db.Dispose();
             });
         }
 
@@ -116,6 +117,7 @@ namespace Formater
         {
             Task.WaitAll(initColumnsTask, initWbTask);
             var i = 1;
+            var db = new TemplateWbsContext();
             var columns = db.TemplateWorkbooks.First(w => w.WorkbookType == wbType).Columns.ToList();
 #if DEBUG
             foreach (var templateCode in columns.Select(c => c.CodeName))
@@ -129,27 +131,60 @@ namespace Formater
                 i++;
             }
 #endif
-            var reader = new ExcelReader();
-            oktmo = new OKTMORepository(reader.ReadExcelFile(dbParams.OktmoSupportWorkbook.Path),
+            db.Dispose();
+            var readedDses = ReadPaths();
+
+            oktmo = new OKTMORepository(readedDses[dbParams.OktmoSupportWorkbook.Path],
                 dbParams.OktmoSupportWorkbook.SelectedWorksheet);
+
 
             subjectSourceWorksheet =
                 new SubjectSourceWorksheet(
-                    reader.ReadExcelFile(dbParams.SubjectSourceSupportWorkbook.Path)
+                    readedDses[dbParams.SubjectSourceSupportWorkbook.Path]
                         .Tables.Cast<DataTable>()
                         .First(t => t.TableName.Equals(dbParams.SubjectSourceSupportWorkbook.SelectedWorksheet)));
 
-            vgtWorksheet = new VGTWorksheet(reader.ReadExcelFile(dbParams.VgtCatalogSupportWorkbook.Path)
+            vgtWorksheet = new VGTWorksheet(readedDses[dbParams.VgtCatalogSupportWorkbook.Path]
                 .Tables.Cast<DataTable>()
                 .First(t => t.TableName.Equals(dbParams.VgtCatalogSupportWorkbook.SelectedWorksheet)));
 
-            catalogWorksheet = new CatalogWorksheet(reader.ReadExcelFile(dbParams.CatalogSupportWorkbook.Path)
+            catalogWorksheet = new CatalogWorksheet(readedDses[dbParams.CatalogSupportWorkbook.Path]
                 .Tables.Cast<DataTable>()
                 .First(t => t.TableName.Equals(dbParams.CatalogSupportWorkbook.SelectedWorksheet)));
+
+            foreach (var pair in readedDses)
+            {
+                pair.Value.Dispose();
+            }
+            readedDses = null;
+            GC.Collect();
 
             lastUsedRow = worksheet.Dimension.End.Row;
 
             return true;
+        }
+
+        private Dictionary<string,DataSet> ReadPaths()
+        {
+            var result = new Dictionary<string,DataSet>();
+            var reader = new ExcelReader();
+
+            var paths = new[]
+            {
+                dbParams.OktmoSupportWorkbook.Path,
+                dbParams.CatalogSupportWorkbook.Path,
+                dbParams.SubjectSourceSupportWorkbook.Path,
+                dbParams.VgtCatalogSupportWorkbook.Path
+            };
+
+            foreach (var path in paths)
+            {
+                if (result.ContainsKey(path)) continue;
+                result.Add(path, reader.ReadExcelFile(path));
+            }
+
+            return result;
+
         }
 
         /// <summary>
