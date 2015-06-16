@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -121,34 +122,35 @@ namespace UI
         }
 
 
-        public ISupportWorkbook CatalogSupportWorkbook { get; set; }
-        public ISupportWorkbook OktmoSupportWorkbook { get; set; }
-        public ISupportWorkbook VgtCatalogSupportWorkbook { get; set; }
-        public ISupportWorkbook SubjectSourceSupportWorkbook { get; set; }
+        public ISupportWorkbookViewModel CatalogSupportWorkbook { get; set; }
+        public ISupportWorkbookViewModel OktmoSupportWorkbook { get; set; }
+        public ISupportWorkbookViewModel VgtCatalogSupportWorkbook { get; set; }
+        public ISupportWorkbookViewModel SubjectSourceSupportWorkbook { get; set; }
 
 
         public XlTemplateWorkbookType WorkbookType { get; set; }
         public bool DoDescription { get; set; }
         public ObservableCollection<EnumView<XlTemplateWorkbookType>> Enums { get; set; }
 
+//        public new event PropertyChangedEventHandler PropertyChanged;
 
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        [NotifyPropertyChangedInvocator]
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            if (PropertyChanged == null) return;
-            PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+//        [NotifyPropertyChangedInvocator]
+//        protected override void OnPropertyChanged([CallerMemberName] string propertyName = null)
+//        {
+//            if (PropertyChanged == null) return;
+//            PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
+//        }
     }
 
 
-    sealed class  SupportWorkbookViewModel:ISupportWorkbook,INotifyPropertyChanged
+    internal sealed class SupportWorkbookViewModel : ISupportWorkbookViewModel
     {
         private Task<List<string>> initialWsNamesTask;
 
         private string path;
+        private bool taskInProgress;
+        private bool hasWorksheets;
+
         public string Path
         {
             get { return path; }
@@ -162,6 +164,17 @@ namespace UI
 
         public ObservableCollection<string> Worksheets { get; set; }
 
+        public bool HasWorksheets
+        {
+            get { return hasWorksheets; }
+            set
+            {
+                if(value==hasWorksheets) return;
+                hasWorksheets = value; 
+                OnPropertyChanged();
+            }
+        }
+
         public string SelectedWorksheet { get; set; }
 
 
@@ -169,6 +182,7 @@ namespace UI
         {
             Worksheets = new ObservableCollection<string>();
             PropertyChanged += OnPathchanged;
+            Worksheets.CollectionChanged += (sender, args) => CheckWorksheetsCount();
         }
 
         private void OnPathchanged(object sender, PropertyChangedEventArgs e)
@@ -179,17 +193,38 @@ namespace UI
 
         private async void InitialWorksheetsList()
         {
+            if (!File.Exists(Path)) return;
             if (initialWsNamesTask != null)
                 await initialWsNamesTask;
 
+            TaskInProgress = true;
+
             var reader = new ExcelReader();
             Worksheets.Clear();
-            initialWsNamesTask =  Task.Run(() => reader.GetWorksheetsNames(Path));
+
+            initialWsNamesTask = Task.Run(() => reader.GetWorksheetsNames(Path));
             var wss = await initialWsNamesTask;
             wss.ForEach(s => Worksheets.Add(s));
+//            CheckWorksheetsCount();
+
+            TaskInProgress = false;
         }
 
+        private void CheckWorksheetsCount()
+        {
+            HasWorksheets = Worksheets.Any();
+        }
 
+    public bool TaskInProgress
+        {
+            get { return taskInProgress; }
+            set
+            {
+                if (taskInProgress == value) return;
+                taskInProgress = value; 
+                OnPropertyChanged();
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
