@@ -93,11 +93,11 @@ namespace UI
         }
     }
 
-    class FormatDbViewModel:IFormatDbParams,INotifyPropertyChanged
+    sealed class FormatDbViewModel:ViewModelAbstract, IFormatDbParams
     {
         private string path;
 
-        public FormatDbViewModel()
+        public FormatDbViewModel():base()
         {
             Enums = new ObservableCollection<EnumView<XlTemplateWorkbookType>>();
             foreach (XlTemplateWorkbookType e in Enum.GetValues(typeof(XlTemplateWorkbookType)))
@@ -108,7 +108,6 @@ namespace UI
             VgtCatalogSupportWorkbook = new SupportWorkbookViewModel();
             SubjectSourceSupportWorkbook = new SupportWorkbookViewModel();
         }
-
 
         public string Path  
         {
@@ -137,7 +136,7 @@ namespace UI
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             if (PropertyChanged == null) return;
             PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -189,7 +188,6 @@ namespace UI
             var wss = await initialWsNamesTask;
             wss.ForEach(s => Worksheets.Add(s));
         }
-
 
 
 
