@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
+using ExcelRLibrary;
 using ExcelRLibrary.SupportEntities.Oktmo;
 using PatternsLib;
 
@@ -65,6 +66,7 @@ namespace Formater.SupportWorksheetsClasses
         public OKTMORepository(DataSet ds, string mainWsName)
         {
             table = ds.Tables.Cast<DataTable>().First(t => t.TableName.Equals(mainWsName));
+            regCTable = ds.Tables.Cast<DataTable>().FirstOrDefault(t => t.TableName.EqualNoCase("РегЦентры"));
             oktmoRows = table.Rows.Cast<DataRow>().Select(r => new OktmoRow()
             {
                 Subject = (r[GetExcelColumn(OKTMOColumn.Subject)-1]??"").ToString(),
@@ -123,13 +125,18 @@ namespace Formater.SupportWorksheetsClasses
 
         public string GetDefaultRegCenterFullName(string regionFullName, ref string cityName)
         {
+            return String.Empty;
             var regCenterName = GetDefaultRegCenter(regionFullName);
             if (string.IsNullOrEmpty(regCenterName)) return string.Empty;
 
             var regCentSpec = new ExpressionSpecification<OktmoRow>(row => string.Equals(row.NearCity,regCenterName,StringComparison.OrdinalIgnoreCase) );
             var cityRegCentSpec = new ExpressionSpecification<OktmoRow>(row => string.Equals(row.TypeOfNearCity,"город",StringComparison.OrdinalIgnoreCase));
             var spec = regCentSpec.And(cityRegCentSpec);
-            var singleRow = oktmoRows.SingleOrDefault(r => spec.IsSatisfiedBy(r));
+
+            var rows = oktmoRows.Where(r => spec.IsSatisfiedBy(r)).DistinctBy(r => r.Region).ToList();
+            if (rows.Count() != 1) return  String.Empty;
+            var singleRow = rows.Single();
+
             var fullName = singleRow != null? singleRow.Region: String.Empty;
 
             cityName = regCenterName;

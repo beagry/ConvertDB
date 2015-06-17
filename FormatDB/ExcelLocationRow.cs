@@ -1689,7 +1689,7 @@ namespace Formater
                         NearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
                     }
             }
-            
+
 
             if (NearCityCell.Value != "")
             {
@@ -1698,7 +1698,7 @@ namespace Formater
                         .Where(s => !string.IsNullOrEmpty(s))
                         .Distinct()
                         .ToArray();
-                
+
                 //
                 //Записываем тип если он один
                 //
@@ -1745,17 +1745,17 @@ namespace Formater
                             NearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
                         }
                     }
-            }
-            else
-            {
-                TypeOfnearCityCell.Valid = false;
-                NearCityCell.Valid = false;
-                TypeOfnearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                TypeOfnearCityCell.Cell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
-                NearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                NearCityCell.Cell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
-            }
 
+                    else
+                    {
+                        TypeOfnearCityCell.Valid = false;
+                        NearCityCell.Valid = false;
+                        TypeOfnearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        TypeOfnearCityCell.Cell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                        NearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        NearCityCell.Cell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                    }
+            }
             //По возможности записываем поселение
             var settlements = oktmoHelper.CustomOktmoRows.Select(r => r.Settlement).Distinct().ToArray();
                 
@@ -1804,6 +1804,13 @@ namespace Formater
                         RegionCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
                         SettlementCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
                     }
+                else
+                {
+                    if (!NearCityCell.Valid)
+                    {
+                        NearCityCell.SetStatus(DataCell.DataCellStatus.Valid);
+                    }
+                }
             }
 
 

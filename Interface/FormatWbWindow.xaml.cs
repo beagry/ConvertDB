@@ -83,7 +83,7 @@ namespace UI
             };
             var button = sender as Button;
             if (button == null) return;
-
+            viewModel.StartWork();
             var checkHeadResult =  await Task.Run(() => convert.ColumnHeadIsOk());
             if (!checkHeadResult) return;
 
@@ -91,6 +91,7 @@ namespace UI
             await Task.Run(() => convert.FormatWorksheet());
 
             convert.ExcelPackage.SaveWithDialog();
+            viewModel.EndWork();
         }
     }
 
