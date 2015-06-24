@@ -21,6 +21,7 @@ using Converter.Template_workbooks;
 using ExcelRLibrary;
 using Formater;
 using Microsoft.Win32;
+using NLog;
 
 namespace UI
 {
@@ -95,9 +96,10 @@ namespace UI
         }
     }
 
-    sealed class FormatDbViewModel:ViewModelAbstract, IFormatDbParams
+    public sealed class FormatDbViewModel:ViewModelAbstract, IFormatDbParams
     {
         private string path;
+        private readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         public FormatDbViewModel():base()
         {
@@ -120,6 +122,18 @@ namespace UI
                 path = value;
                 OnPropertyChanged();
             }
+        }
+
+        public override void StartWork(string msg = "В процессе.")
+        {
+            base.StartWork(msg);
+            logger.Info("Начало работы.");
+        }
+
+        public override void EndWork(string msg = "Готово.")
+        {
+            base.EndWork(msg);
+            logger.Info("Работа закончена\r\n **********************\r\n");
         }
 
 
