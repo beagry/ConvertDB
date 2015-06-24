@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Converter.Template_workbooks;
@@ -14,6 +15,7 @@ using Converter.Template_workbooks.EFModels;
 using ExcelRLibrary;
 using Formater.SupportWorksheetsClasses;
 using Microsoft.Office.Interop.Excel;
+using NLog;
 using OfficeOpenXml;
 using DataTable = System.Data.DataTable;
 
@@ -23,6 +25,7 @@ namespace Formater
 
     public partial class DbToConvert
     {
+        readonly Logger logger = LogManager.GetCurrentClassLogger();
         private const string noInfoString = "не указано";
         private static int lastUsedRow;
         private byte additionalInfoColumn;
@@ -48,13 +51,10 @@ namespace Formater
         private  byte vgtColumn;
         private readonly XlTemplateWorkbookType wbType;
         private ExcelWorksheet worksheet;
-        private CatalogWorksheet catalogWorksheet;
-        private OKTMORepository oktmo;
-        private SubjectSourceWorksheet subjectSourceWorksheet;
-        private VGTWorksheet vgtWorksheet;
         private readonly IFormatDbParams dbParams;
         private Task initWbTask;
         private Task initColumnsTask;
+        private SupportWorksheets supportWorksheets;
 
         public DbToConvert(IFormatDbParams dbParams) : this()
         {
@@ -66,8 +66,17 @@ namespace Formater
         {
             initWbTask = Task.Run(() =>
             {
-                ExcelPackage = new ExcelPackage(new FileInfo(path));
-                worksheet = ExcelPackage.Workbook.Worksheets.First();
+                logger.Info("Чтение главной книги по адресу {0}",path);
+                try
+                {
+                    ExcelPackage = new ExcelPackage(new FileInfo(path));
+                    worksheet = ExcelPackage.Workbook.Worksheets.First();
+                }
+                catch (Exception e)
+                {
+                    logger.Error("Ошибка при чтении главного файла. Возможно файл слишком большой");
+                    throw;
+                }
                 lastUsedRow = worksheet.Dimension.Rows;
                 head = worksheet.ReadHead();
             });
@@ -84,27 +93,35 @@ namespace Formater
         {
             initColumnsTask =  Task.Run(() =>
             {
-                var db = new TemplateWbsContext();
-                var columns = db.TemplateWorkbooks.First(w => w.WorkbookType == wbType).Columns.ToList();
+                try
+                {
+                    var db = new TemplateWbsContext();
+                    var columns = db.TemplateWorkbooks.First(w => w.WorkbookType == wbType).Columns.ToList();
 
-                subjColumn = (byte)columns.First(c => c.CodeName.Equals("SUBJECT")).ColumnIndex;
-                regionColumn = (byte)columns.First(c => c.CodeName.Equals("REGION")).ColumnIndex;
-                settlementColumn = (byte)columns.First(c => c.CodeName.Equals("SETTLEMENT")).ColumnIndex;
-                nearCityColumn = (byte)columns.First(c => c.CodeName.Equals("NEAR_CITY")).ColumnIndex;
-                typeOfNearCityColumn = (byte)columns.First(c => c.CodeName.Equals("TERRITORY_TYPE")).ColumnIndex;
-                vgtColumn = (byte)columns.First(c => c.CodeName.Equals("VGT")).ColumnIndex;
-                streetColumn = (byte)columns.First(c => c.CodeName.Equals("STREET")).ColumnIndex;
-                typeOfStreetColumn = (byte)columns.First(c => c.CodeName.Equals("STREET_TYPE")).ColumnIndex;
-                sourceLinkColumn = (byte)columns.First(c => c.CodeName.Equals("URL_SALE")).ColumnIndex;
-                distToRegCenterColumn = (byte)columns.First(c => c.CodeName.Equals("DIST_REG_CENTER")).ColumnIndex;
-                distToNearCityColumn = (byte)columns.First(c => c.CodeName.Equals("DIST_NEAR_CITY")).ColumnIndex;
-                inCityColumn = (byte)columns.First(c => c.CodeName.Equals("IN_CITY")).ColumnIndex;
-                houseNumColumn = (byte)columns.First(c => c.CodeName.Equals("HOUSE_NUM")).ColumnIndex;
-                letterColumn = (byte)columns.First(c => c.CodeName.Equals("LETTER")).ColumnIndex;
-                sntKpDnpColumn = (byte)columns.First(c => c.CodeName.Equals("ASSOCIATIONS")).ColumnIndex;
-                additionalInfoColumn = (byte)columns.First(c => c.CodeName.Equals("ADDITIONAL")).ColumnIndex;
-                buildColumn = (byte)columns.First(c => c.CodeName.Equals("HOUSE_NUM")).ColumnIndex;
-                db.Dispose();
+                    subjColumn = (byte)columns.First(c => c.CodeName.Equals("SUBJECT")).ColumnIndex;
+                    regionColumn = (byte)columns.First(c => c.CodeName.Equals("REGION")).ColumnIndex;
+                    settlementColumn = (byte)columns.First(c => c.CodeName.Equals("SETTLEMENT")).ColumnIndex;
+                    nearCityColumn = (byte)columns.First(c => c.CodeName.Equals("NEAR_CITY")).ColumnIndex;
+                    typeOfNearCityColumn = (byte)columns.First(c => c.CodeName.Equals("TERRITORY_TYPE")).ColumnIndex;
+                    vgtColumn = (byte)columns.First(c => c.CodeName.Equals("VGT")).ColumnIndex;
+                    streetColumn = (byte)columns.First(c => c.CodeName.Equals("STREET")).ColumnIndex;
+                    typeOfStreetColumn = (byte)columns.First(c => c.CodeName.Equals("STREET_TYPE")).ColumnIndex;
+                    sourceLinkColumn = (byte)columns.First(c => c.CodeName.Equals("URL_SALE")).ColumnIndex;
+                    distToRegCenterColumn = (byte)columns.First(c => c.CodeName.Equals("DIST_REG_CENTER")).ColumnIndex;
+                    distToNearCityColumn = (byte)columns.First(c => c.CodeName.Equals("DIST_NEAR_CITY")).ColumnIndex;
+                    inCityColumn = (byte)columns.First(c => c.CodeName.Equals("IN_CITY")).ColumnIndex;
+                    houseNumColumn = (byte)columns.First(c => c.CodeName.Equals("HOUSE_NUM")).ColumnIndex;
+                    letterColumn = (byte)columns.First(c => c.CodeName.Equals("LETTER")).ColumnIndex;
+                    sntKpDnpColumn = (byte)columns.First(c => c.CodeName.Equals("ASSOCIATIONS")).ColumnIndex;
+                    additionalInfoColumn = (byte)columns.First(c => c.CodeName.Equals("ADDITIONAL")).ColumnIndex;
+                    buildColumn = (byte)columns.First(c => c.CodeName.Equals("HOUSE_NUM")).ColumnIndex;
+                    db.Dispose();
+                }
+                catch (Exception e)
+                {
+                    logger.Fatal("Ошибка при чтении базы");
+                    throw;
+                }
             });
         }
 
@@ -134,23 +151,37 @@ namespace Formater
             db.Dispose();
             var readedDses = ReadPaths();
 
-            oktmo = new OKTMORepository(readedDses[dbParams.OktmoSupportWorkbook.Path],
-                dbParams.OktmoSupportWorkbook.SelectedWorksheet);
+            logger.Info("Чтение вспомогательных книг");
+            try
+            {
+                var oktmoWs = new OKTMORepository(readedDses[dbParams.OktmoSupportWorkbook.Path],
+                    dbParams.OktmoSupportWorkbook.SelectedWorksheet);
 
+//                oktmo = new OKTMORepository();
+//                oktmo.InitializeFromDb();
 
-            subjectSourceWorksheet =
-                new SubjectSourceWorksheet(
-                    readedDses[dbParams.SubjectSourceSupportWorkbook.Path]
-                        .Tables.Cast<DataTable>()
-                        .First(t => t.TableName.Equals(dbParams.SubjectSourceSupportWorkbook.SelectedWorksheet)));
+                var soubjectSourceWorksheet =
+                    new SubjectSourceWorksheet(
+                        readedDses[dbParams.SubjectSourceSupportWorkbook.Path]
+                            .Tables.Cast<DataTable>()
+                            .First(t => t.TableName.Equals(dbParams.SubjectSourceSupportWorkbook.SelectedWorksheet)));
 
-            vgtWorksheet = new VGTWorksheet(readedDses[dbParams.VgtCatalogSupportWorkbook.Path]
-                .Tables.Cast<DataTable>()
-                .First(t => t.TableName.Equals(dbParams.VgtCatalogSupportWorkbook.SelectedWorksheet)));
+                var vgtWorksheet = new VGTWorksheet(readedDses[dbParams.VgtCatalogSupportWorkbook.Path]
+                    .Tables.Cast<DataTable>()
+                    .First(t => t.TableName.Equals(dbParams.VgtCatalogSupportWorkbook.SelectedWorksheet)));
 
-            catalogWorksheet = new CatalogWorksheet(readedDses[dbParams.CatalogSupportWorkbook.Path]
-                .Tables.Cast<DataTable>()
-                .First(t => t.TableName.Equals(dbParams.CatalogSupportWorkbook.SelectedWorksheet)));
+                var catalogWs = new CatalogWorksheet(readedDses[dbParams.CatalogSupportWorkbook.Path]
+                    .Tables.Cast<DataTable>()
+                    .First(t => t.TableName.Equals(dbParams.CatalogSupportWorkbook.SelectedWorksheet)));
+                supportWorksheets = new SupportWorksheets(catalogWs, oktmoWs, soubjectSourceWorksheet, vgtWorksheet);
+            }
+            catch (Exception e)
+            {
+                logger.Error("Ошибка при чтении вспомогательных книг");
+                return  false;
+            }
+            
+            logger.Info("Чтение прошло успешно");
 
             foreach (var pair in readedDses)
             {
@@ -194,9 +225,7 @@ namespace Formater
         public bool FormatWorksheet()
         {
             Task.WaitAll(initColumnsTask, initWbTask);
-            if (worksheet == null ||
-                oktmo == null ||
-                catalogWorksheet == null) return false;
+            if (worksheet == null || supportWorksheets.OKTMOWs == null || supportWorksheets.CatalogWs == null) return false;
 
 
             FormatClassification();
@@ -380,7 +409,7 @@ namespace Formater
         {
             const string columnCode = "OPERATION";
             var columnIndex = GetColumnIndex(columnCode);
-            var v = catalogWorksheet.GetContentByCode(columnCode);
+            var v = supportWorksheets.CatalogWs.GetContentByCode(columnCode);
 
             for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
             {
@@ -395,7 +424,7 @@ namespace Formater
         {
             var columnCode = "OFFER_DEAL";
             var columnIndex = GetColumnIndex(columnCode);
-            var v = catalogWorksheet.GetContentByCode(columnCode);
+            var v = supportWorksheets.CatalogWs.GetContentByCode(columnCode);
 
             for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
             {
@@ -409,8 +438,6 @@ namespace Formater
 
         private void FormatLastUpdateDate()
         {
-            const string parsingDateColumnName = "дата парсинга";
-            const string parsingDateColumnName2 = "дата_парсинга";
 
             const string columnCode = "DATE_IN_BASE";
 
@@ -634,7 +661,7 @@ namespace Formater
         {
             const string code = "LAW_NOW";
             var columnIndex = GetColumnIndex(code);
-            var v = catalogWorksheet.GetContentByCode(code);
+            var v = supportWorksheets.CatalogWs.GetContentByCode(code);
             var rentalPeriodColumnIndex = GetColumnIndex("RENTAL_PERIOD");
 
             for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
@@ -684,7 +711,7 @@ namespace Formater
             };
 
             var columnIndex = firstColumnIndex;
-            var v = catalogWorksheet.GetContentByCode(columnsCodeList[0]);
+            var v = supportWorksheets.CatalogWs.GetContentByCode(columnsCodeList[0]);
 
             //Проверяем первый столбец(Газ) на предмет информации для соседних столбцов
             for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
@@ -750,7 +777,7 @@ namespace Formater
             {
                 var columnName = columnsCodeList[n - 1];
                 //Значения по справочнику
-                v = catalogWorksheet.GetContentByCode(columnName);
+                v = supportWorksheets.CatalogWs.GetContentByCode(columnName);
 
                 columnIndex = GetColumnIndex(columnName);
                 //Далее по всем ячейкам в столбце
@@ -969,31 +996,39 @@ namespace Formater
             var everyEachStep = lastUsedRow / percentForThisMethod;
             var currStep = 0;
             Stopwatch sw = null;
+            var mainSw = Stopwatch.StartNew();
+            var currRow = 0;
+            var rows = Enumerable.Range(HeadSize + 1, lastUsedRow);
 
-            var supportWorksheets = new SupportWorksheets(catalogWorksheet, oktmo, subjectSourceWorksheet, vgtWorksheet);
-
-            for (var row = HeadSize + 1; row <= lastUsedRow; row++)
+            rows.AsParallel().AsOrdered().ForAll(row =>
+//            rows.ForEach(row =>
             {
-
-                if ((row - HeadSize) % 1000 == 0)
+                if (sw == null)
+                    sw = Stopwatch.StartNew();
+                if (currRow%1000 == 0)
                 {
-                    if (sw != null)
-                    {
-                        var timeSpan = sw.Elapsed;
-                        Console.WriteLine("1000 объектов за {0}", timeSpan);
-                        sw = Stopwatch.StartNew();
-                    }
-                    else
-                        sw = Stopwatch.StartNew();
+                    logger.Trace("1000 объектов за {0}", sw.Elapsed);
+                    sw = Stopwatch.StartNew();
                 }
 
-                var dataRow = new ExcelLocationRow(worksheet, row, wbType, supportWorksheets)
+                using (var dataRow = new ExcelLocationRow(worksheet, row, wbType, supportWorksheets))
                 {
-                    DoDescription = DoDescription
-                };
-                dataRow.CheckRowForLocations();
-            }
+                    dataRow.DoDescription = DoDescription;
+                    dataRow.CheckRowForLocations();
+                }
+
+                Interlocked.Increment(ref currRow);
+            });
+
+//            if (!workResult.IsCompleted)
+//            {
+//                logger.Error("Работа завершилась аварийно. Ошибка проявилась в строке {0}",workResult.LowestBreakIteration);
+//            }
+
+            logger.Info("Обрабочка местоположения прошла успешно.");
+            logger.Info("На {0} объектов было затрачено {1}",lastUsedRow - HeadSize, mainSw.Elapsed);
         }
+
 
         public bool DoDescription { get; set; }
 
