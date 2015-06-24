@@ -132,6 +132,7 @@ namespace Formater
             DistToRegCenterCell.Save();
             SntKpsCell.Save();
             InCityCell.Save();
+
             HouseNumCell.Save();
             LetterCell.Save();
             SourceLinkCell.Save();
