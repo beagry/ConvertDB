@@ -9,7 +9,6 @@ using OfficeOpenXml;
 namespace Converter
 {
     /// <summary>
-    ///     Тупо создает новую книгу по переданным правилам
     ///     Класс для объединения книг в шаблон на основе переданных правил
     /// </summary>
     public class WorkbookTypifier
@@ -33,7 +32,6 @@ namespace Converter
         /// <summary>
         ///     Метод возвращает единую книгу, солженную из переданныхх книг по переданным правилам
         /// </summary>
-        /// <param name="workbooksPaths"></param>
         /// <returns></returns>
         public ExcelPackage CombineToSingleWorkbook()
         {

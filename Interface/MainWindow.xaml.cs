@@ -19,10 +19,17 @@ namespace UI
             this.Close();
         }
 
-        private void ChangeExtentionButton_Click(object sender, RoutedEventArgs e)
+//        private void ChangeExtentionButton_Click(object sender, RoutedEventArgs e)
+//        {
+////            var w = new ExtentionConverterWindow();
+////            w.Show();
+////            this.Close();
+//        }
+
+        private void FormatDbButton_Click(object sender, RoutedEventArgs e)
         {
-            var w = new ExtentionConverterWindow();
-            w.Show();
+            var win = new FormatWbWindow();
+            win.Show();
             this.Close();
         }
     }

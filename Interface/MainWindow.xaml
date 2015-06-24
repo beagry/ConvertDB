@@ -2,10 +2,11 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="UI.MainWindow"
-        Title="MainWindow" Height="321.364" Width="277.879">
+        Title="MainWindow" SizeToContent="WidthAndHeight">
     <Grid>
-        <Button Content="Сменить формат" HorizontalAlignment="Left" Margin="72,44,0,0" VerticalAlignment="Top" Width="128"  Height="43" Click="ChangeExtentionButton_Click"/>
-        <Button Content="Подогнать столбцы" HorizontalAlignment="Left" Margin="72,121,0,0" VerticalAlignment="Top" Width="128" Click="ConvertButton_Click" Height="44"/>
-        <Button Content="Разобрать содержание" HorizontalAlignment="Left" Margin="72,205,0,0" VerticalAlignment="Top" Width="128" Height="44"/>
+        <StackPanel Margin="25">
+            <Button Margin="25" Content="Подогнать столбцы" HorizontalAlignment="Left"  VerticalAlignment="Top" Width="150" Click="ConvertButton_Click" Height="44"/>
+            <Button Margin="25" Content="Разобрать содержание" HorizontalAlignment="Left" VerticalAlignment="Top" Width="150" Height="44" Click="FormatDbButton_Click"/>
+        </StackPanel>
     </Grid>
 </Window>
