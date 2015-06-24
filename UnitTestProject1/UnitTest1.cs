@@ -37,7 +37,6 @@ namespace UnitTestProject1
             var w = new ColumnsCompareWindow(binded,allColumns,XlTemplateWorkbookType.CommerceProperty);
             w.ShowDialog();
         }
-
     }
 
 

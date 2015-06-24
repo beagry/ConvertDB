@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using Converter.Template_workbooks;
 using ExcelRLibrary;
 using Formater;
@@ -20,11 +21,35 @@ namespace UnitTestProject1
     public class FormatDbTests
     {
         [TestMethod]
-        public void RunWindow()
+        public void StartFormat()
         {
-            var w = new FormatWbWindow();
-            w.ShowDialog();
-            Assert.AreEqual(true, true);
+            IFormatDbParams viewModel = new FormatDbViewModel();
+            viewModel.Path = @"B:\Managers\Денис\Инструменты\Обрабокта выгрузок\Этап 2\Топ.xlsx";
+
+            var suppWbPath = @"D:\Земля 3 мини.xlsx";
+            viewModel.CatalogSupportWorkbook.Path = suppWbPath;
+            viewModel.CatalogSupportWorkbook.SelectedWorksheet = "analytics";
+            viewModel.VgtCatalogSupportWorkbook.Path = suppWbPath;
+            viewModel.VgtCatalogSupportWorkbook.SelectedWorksheet = "ВГТ";
+            viewModel.OktmoSupportWorkbook.Path = suppWbPath;
+            viewModel.OktmoSupportWorkbook.SelectedWorksheet = "нас.пункты РФ";
+            viewModel.SubjectSourceSupportWorkbook.Path = suppWbPath;
+            viewModel.SubjectSourceSupportWorkbook.SelectedWorksheet = "Список источников по регионам";
+            viewModel.DoDescription = false;
+
+            var convert = new DbToConvert(viewModel)
+            {
+                ColumnsToReserve = new List<string> { "SUBJECT", "REGION", "NEAR_CITY", "SYSTEM_GAS", "SYSTEM_WATER", "SYSTEM_SEWERAGE", "SYSTEM_ELECTRICITY" },
+                DoDescription = viewModel.DoDescription
+            };
+
+            var checkHeadResult = convert.ColumnHeadIsOk();
+            if (!checkHeadResult) return;
+
+            //Запусть обработки в новом потоке
+            convert.FormatWorksheet();
+
+            convert.ExcelPackage.SaveWithDialog();
         }
 
         [TestMethod]
