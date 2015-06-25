@@ -40,7 +40,7 @@ namespace UnitTestProject1
             var convert = new DbToConvert(viewModel)
             {
                 ColumnsToReserve = new List<string> { "SUBJECT", "REGION", "NEAR_CITY", "SYSTEM_GAS", "SYSTEM_WATER", "SYSTEM_SEWERAGE", "SYSTEM_ELECTRICITY" },
-                DoDescription = viewModel.DoDescription
+                DoDescription = true
             };
 
             var checkHeadResult = convert.ColumnHeadIsOk();

@@ -11,23 +11,13 @@ namespace Formater.SupportWorksheetsClasses
     public class VGTWorksheet
     {
         private readonly DataTable table;
-        public DataTable Table { get { return table; } }
-
         private const byte CityNameExcelColumn = 1;
+        private const byte RegionNameExcelColumn = 4;
         private const byte TerritoryExcelColumn = 3;
 
         public VGTWorksheet(DataTable table)
         {
             this.table = table;
-        }
-
-        public bool CityExists(string s)
-        {
-            return
-                table.Rows.Cast<DataRow>()
-                    .Select(row => row[CityNameExcelColumn - 1])
-                    .OfType<string>()
-                    .Any(s2 => String.Equals(s.Trim(), s2.Trim(), StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -45,19 +35,19 @@ namespace Formater.SupportWorksheetsClasses
         }
 
         /// <summary>
-        /// Возвращает True если в справочнике присутствует комбинация Города и Района
+        /// Возвращает True если в справочнике присутствует комбинация МунОбразования и Района
         /// </summary>
-        /// <param name="city"></param>
+        /// <param name="region"></param>
         /// <param name="territory"></param>
         /// <returns></returns>
-        public bool CombinationExists(string city, string territory)
+        public bool CombinationExists(string region, string territory)
         {
             var result =
                 table.Rows.Cast<DataRow>()
-                    .Where(r => r[CityNameExcelColumn - 1] is string && r[TerritoryExcelColumn - 1] is string)
+                    .Where(r => r[RegionNameExcelColumn - 1] is string && r[TerritoryExcelColumn - 1] is string)
                     .Any(
                         r =>
-                            String.Equals(r[CityNameExcelColumn - 1].ToString(), city, StringComparison.OrdinalIgnoreCase) &&
+                            String.Equals(r[RegionNameExcelColumn - 1].ToString(), region, StringComparison.OrdinalIgnoreCase) &&
                             String.Equals(r[TerritoryExcelColumn - 1].ToString(), territory,
                                 StringComparison.OrdinalIgnoreCase));
 
@@ -72,11 +62,6 @@ namespace Formater.SupportWorksheetsClasses
         public string GetCityByTerritory(string s)
         {
             var rows = GetCitiesListByTerritory(s);
-
-//            var rows = table.Rows.Cast<DataRow>()
-//                .Where(row => row[TerritoryExcelColumn - 1] is string)
-//                .Where(row2 => String.Equals(row2[TerritoryExcelColumn - 1].ToString(), s, StringComparison.OrdinalIgnoreCase)).Select(r => r[CityNameExcelColumn-1].ToString()).Distinct().ToList();
-
             return rows.Count == 1 ? rows[0] : string.Empty;
         }
 
