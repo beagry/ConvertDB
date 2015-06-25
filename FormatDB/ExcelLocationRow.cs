@@ -17,6 +17,8 @@ namespace Formater
 {
     public class ExcelLocationRow:IDisposable
     {
+        private const string DashPattern = @"\s*\-\s*";
+        private const string SpacePattern = @"\s+";
         private readonly ExcelWorksheet worksheet;
         private readonly SupportWorksheets supportWorksheets;
         private readonly int row;
@@ -423,7 +425,8 @@ namespace Formater
 
                 if (NearCityCell.Value != "" && NearCityCell.Value.EqualNoCase(name)) continue;
 
-                if (SubjectCell.Valid && RegionCell.Valid && NearCityCell.Valid) continue;
+                if (SubjectCell.Valid && RegionCell.Valid && NearCityCell.Valid &&
+                    !(type != "город" && TypeOfNearCityCell.Value == "город")) continue;
 
                 if (type == "город" && TypeOfNearCityCell.Value != "" &&
                     TypeOfNearCityCell.Value != "город")
@@ -439,15 +442,8 @@ namespace Formater
 
                     //Обнуляем МунОбразование
                     //сейчас стоит региональный центр или просто город
-                    //а найденный насел пункт подходит к другому мун образованию
-                    var itIsCity = (RegionCell.Value != "" &&
-                                    string.Equals(RegionCell.Value, regCenter,
-                                        StringComparison.OrdinalIgnoreCase) ||
-                                    (RegionCell.Value != "" &&
-                                     RegionCell.Value
-                                         .IndexOf("город", StringComparison.OrdinalIgnoreCase) >= 0 &&
-                                     type != "город") ||
-                                    (NearCityCell.Value != "" && TypeOfNearCityCell.Value == ""));
+                    //а найденный насел пункт подходит к другому мун образования
+                    var itIsCity = CurrentRegionIsCity || CurrentSettlIsCity || CurrentNearCityIsCity;
 
                     var valueNeedsResetRegion = !oktmoHelper.HasEqualNearCity(name) && oktmoHelper.SubjectHasEqualNearCity(name);
 
@@ -462,39 +458,34 @@ namespace Formater
                         SettlementCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
                     }
 
-                    const string dashPattern = @"\s*\-\s*";
-                    const string spacePattern = @"\s+";
-                    const string cityEnd = @"(е|а)\b";
-
                     //найденный насел пункт подхоидт к нашей выборке (по субъекту и возможно по мунобразованию если оно есть)
-                    if(!oktmoHelper.HasEqualNearCity(name.ToLower()))
+                    if (oktmoHelper.HasEqualNearCity(name.ToLower()))
+                    {
+                        var spec = new NearCitySpecification(name);
+                        oktmoHelper.SetSpecifications(spec);
+
+                        NearCityCell.Value = name;
+                        TypeOfNearCityCell.Value = type;
+                        cellsFilled = false;
+                    }
+                    else
                     {
                         if (!switched)
                         {
-                            switched = true;
-                            if (Regex.IsMatch(name, dashPattern))
+                            if (SwitchDashBetweenWords(ref name))
                             {
-                                name = Regex.Replace(name, dashPattern, " ");
-                                goto tryGetNearCityAgain;
-                            }
-
-                            if (Regex.IsMatch(name, spacePattern))
-                            {
-                                name = Regex.Replace(name, spacePattern, "-");
+                                switched = true;
                                 goto tryGetNearCityAgain;
                             }
                         }
 
                         if (!endChanged)
                         {
-                            if (type == "город" && Regex.IsMatch(name, cityEnd, RegexOptions.IgnoreCase))
+                            if (CityNameEndChanged(type, ref name))
                             {
-                                name = Regex.Replace(name, cityEnd, "");
+                                endChanged = true;
                                 goto tryGetNearCityAgain;
                             }
-
-                            endChanged = true;
-                            name = startName;
                         }
                         //Дробим имя собственное если возможно для поиска по каждому имени отдельни
                         if (!splitted)
@@ -502,16 +493,14 @@ namespace Formater
                             //Step one: we split it
                             if (words == null)
                             {
-                                var patterns = new List<string> {dashPattern, spacePattern};
+                                var patterns = new List<string> {DashPattern, SpacePattern};
 
-                                foreach (var pattern in patterns)
+                                foreach (var pattern in patterns.Where(pattern => Regex.IsMatch(startName, pattern)))
                                 {
-                                    if (!Regex.IsMatch(startName, pattern)) continue;
-
                                     words = Regex.Split(startName, pattern).ToList();
                                     name = words.Last();
                                     words[words.Count - 1] = null;
-                                    goto tryGetNearCityAgain; //just break
+                                    goto tryGetNearCityAgain;
                                 }
                             }
 
@@ -525,19 +514,13 @@ namespace Formater
                                     words[i] = null;
                                     goto tryGetNearCityAgain;
                                 }
-                                splitted = true;
-                                name = startName;
                             }
                         }
-                    }
-                    else
-                    {
-                        var spec = new NearCitySpecification(name);
-                        oktmoHelper.SetSpecifications(spec);
-
-                        NearCityCell.Value = name;
-                        TypeOfNearCityCell.Value = type;
-                        cellsFilled = false;
+                        if ((CurrentNearCityIsCity || NearCityCell.Value =="") && !type.EqualNoCase("город"))
+                        {
+                            NearCityCell.Value = name;
+                            TypeOfNearCityCell.Value = type;
+                        }
                     }
                 }
 
@@ -554,10 +537,54 @@ namespace Formater
                     TryFillRegion(ref descrtContent, regi);
                 }
             }
+        }
 
-            //=================
-            //Коммуникацияя
-            //=================
+        private static bool CityNameEndChanged(string type, ref string name)
+        {
+            const string cityEnd = @"(е|а)\b";
+            if (type != "город" || !Regex.IsMatch(name, cityEnd, RegexOptions.IgnoreCase)) return false;
+            name = Regex.Replace(name, cityEnd, "");
+            return true;
+        }
+
+        private static bool SwitchDashBetweenWords(ref string name)
+        {
+            if (Regex.IsMatch(name, DashPattern))
+            {
+                name = Regex.Replace(name, DashPattern, " ");
+                return true;
+            }
+
+            if (Regex.IsMatch(name, SpacePattern))
+            {
+                name = Regex.Replace(name, SpacePattern, "-");
+                return true;
+            }
+            return false;
+        }
+
+        private bool CurrentNearCityIsCity
+        {
+            get
+            {
+                if (!NearCityCell.Valid) return false;
+                return TypeOfNearCityCell.Valid && TextContainsCityAsType(TypeOfNearCityCell.Value);
+            }
+        }
+
+        private bool CurrentSettlIsCity
+        {
+            get { return SettlementCell.Valid && TextContainsCityAsType(SettlementCell.Value); }
+        }
+
+        private bool CurrentRegionIsCity
+        {
+            get { return RegionCell.Valid && TextContainsCityAsType(RegionCell.Value); }
+        }
+
+        private static bool TextContainsCityAsType(string value)
+        {
+            return value.ToLower().Contains("город");
         }
 
         private void CheckLandmarkdsCell()
@@ -1836,7 +1863,7 @@ namespace Formater
                     }
                 else
                 {
-                    if (settlements.Any(s => s == "") && !NearCityCell.Valid)
+                    if (settlements.Any(s => s == "") && !NearCityCell.Valid && NearCityCell.Value != "")
                     {
                         SettlementCell.SetStatus(DataCell.DataCellStatus.Valid);
                         NearCityCell.SetStatus(DataCell.DataCellStatus.Valid);
