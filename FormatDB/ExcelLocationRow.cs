@@ -516,7 +516,8 @@ namespace Formater
                                 }
                             }
                         }
-                        if ((CurrentNearCityIsCity || NearCityCell.Value =="") && !type.EqualNoCase("город"))
+                        if (((CurrentNearCityIsCity || NearCityCell.Value =="") && !type.EqualNoCase("город")) ||
+                            NearCityCell.Value != "" && !NearCityCell.Valid && TypeOfNearCityCell.Value == "")
                         {
                             NearCityCell.Value = name;
                             TypeOfNearCityCell.Value = type;
