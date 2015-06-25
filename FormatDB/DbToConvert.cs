@@ -1000,8 +1000,8 @@ namespace Formater
             var currRow = 0;
             var rows = Enumerable.Range(HeadSize + 1, lastUsedRow);
 
-            rows.AsParallel().AsOrdered().ForAll(row =>
-//            rows.ForEach(row =>
+//            rows.AsParallel().AsOrdered().ForAll(row =>
+            rows.ForEach(row =>
             {
                 if (sw == null)
                     sw = Stopwatch.StartNew();

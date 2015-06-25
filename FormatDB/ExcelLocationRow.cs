@@ -385,6 +385,11 @@ namespace Formater
                 var name = ReplaceYo(TryTemplateName(match.Groups["name"].Value));
                 var type = ReplaceYo(TryDescriptTypeOfNasPunkt(match.Groups["type"].Value));
 
+                if (NearCityCell.Value.EqualNoCase(name))
+                {
+                    descrtContent = reg.Replace(descrtContent, ", ");
+                    continue;
+                }
 
                 if (!string.IsNullOrEmpty(match.Groups["out"].Value))
                 {
@@ -1506,118 +1511,115 @@ namespace Formater
 
         private bool TryFillVGT(ref string value)
         {
-
-            var res = false;
             //----Обрабатываем ВГТ-----
-            if (!string.IsNullOrEmpty(value))
+            if (string.IsNullOrEmpty(value)) return false;
+            
+            //Подтверждаем, что это ВГТ
+            if (!supportWorksheets.VgtWorksheet.TerritotyExists(value)) return false;
+
+            var vgt = value;
+
+            if (RegionCell.Value != "" && RegionCell.Valid &&
+                supportWorksheets.VgtWorksheet.CombinationExists(RegionCell.Value, vgt))
             {
-                //Подтверждаем, что это ВГТ
-                if (supportWorksheets.VgtWorksheet.TerritotyExists(value))
+                VgtCell.Value = vgt;
+            }
+            
+            return true;
+
+            //todo Нужно ли нам записывть населенный пункт?
+            //а не записывается ли он потом, по найденному городу
+
+            //Далее идут ситации если текущий насел пункт пустой, или не подходит к найденному ВГТ
+
+            //Пробуем определить населенный пункт
+            var city = string.Empty;
+
+
+            //Пробуем извлечь текущий насел пункт из мунОбр
+            //И тем самым подтвердить мунОбр и проставить населПункт
+            if (RegionCell.Value != "" &&
+                RegionCell.Value.IndexOf("город", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                city = TryTemplateName(RegionCell.Value.Replace("город", ""));
+                city = city.Trim();
+            }
+            if (!string.IsNullOrEmpty(city) && supportWorksheets.VgtWorksheet.CombinationExists(city, vgt))
+            {
+                NearCityCell.Value = city;
+                TypeOfNearCityCell.Value = "город";
+
+                //Проверяем найденный насел пункт
+                if (oktmoHelper.HasEqualNearCity(city))
                 {
-                    var vgt = value;
-                    VgtCell.Value = vgt;
-                    res = true;
+                    NearCityCell.SetStatus(DataCell.DataCellStatus.Valid);
+                    RegionCell.SetStatus(DataCell.DataCellStatus.Valid);
 
-                    if (NearCityCell.Value != "" &&
-                        supportWorksheets.VgtWorksheet.CombinationExists(NearCityCell.Value, vgt))
-                        return true;
-
-                    //Далее идут ситации если текущий насел пункт пустой, или не подходит к найденному ВГТ
-
-                    //Пробуем определить населенный пункт
-                    var city = string.Empty;
-                    //Пробуем извлечь текущий насел пункт из мунОбр
-                    //И тем самым подтвердить мунОбр и проставить населПункт
-                    if (RegionCell.Value != "" &&
-                        RegionCell.Value.IndexOf("город", StringComparison.OrdinalIgnoreCase) >= 0)
-                    {
-                        city = TryTemplateName(RegionCell.Value.Replace("город", ""));
-                        city = city.Trim();
-                    }
-                    if (!string.IsNullOrEmpty(city) && supportWorksheets.VgtWorksheet.CombinationExists(city, vgt))
-                    {
-                        NearCityCell.Value = city;
-                        TypeOfNearCityCell.Value = "город";
-
-                        //Проверяем найденный насел пункт
-                        if (oktmoHelper.HasEqualNearCity(city))
-                        {
-                            NearCityCell.Valid = true;
-                            RegionCell.Valid = true;
-                            NearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
-                            RegionCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
-
-
-                            var spec = new NearCitySpecification(city);
-                            oktmoHelper.SetSpecifications(spec);
-                        }
-                        else
-                        {
-                            NearCityCell.Valid = false;
-                            RegionCell.Valid = false;
-                            NearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                            NearCityCell.Cell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
-                            RegionCell.Cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                            RegionCell.Cell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
-                        }
-                    }
-                    //В ином случае пробуем записать насел пункт через ВГТ
-                    else
-                    {
-                        var newCity = cellsFilled
-                            ? string.Empty
-                            : supportWorksheets.VgtWorksheet.GetCityByTerritory(vgt);
-                        if (!string.IsNullOrEmpty(newCity))
-                        //Строка будет  заполнена, если существует всего один насел пункт с таким районом
-                        {
-                            //нужно ли нам вообще проверять найденный
-                            if (NearCityCell.Value != "" &&
-                                string.Equals(NearCityCell.Value, newCity,
-                                    StringComparison.CurrentCultureIgnoreCase)) return res;
-
-                            //Если текущий населенный пункт верный (он не пуст и не окрашен как неверный)
-                            //мы его оставляем на месте, а найденный пишем в ориентир
-                            if (NearCityCell.Value != "" && NearCityCell.Valid)
-                                //Пишем найденный насел пункт в ориентир
-                                LandMarkCell.Value += "город " + vgt + ", ";
-
-                            //В остальных случаях найденный насел пункт попадёт в ячейку населенногоп пункта
-                            else
-                            {
-                                //Определяем, относится ли насел пункт к выборке
-                                if (oktmoHelper.HasEqualCityType(newCity))
-                                {
-                                    NearCityCell.Valid = true;
-                                    RegionCell.Valid = true;
-                                    NearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
-                                    RegionCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
-
-
-                                    //Try to fill
-                                    var spec = new NearCitySpecification(newCity);
-                                    oktmoHelper.SetSpecifications(spec);
-                                }
-                                else
-                                {
-                                    NearCityCell.Valid = false;
-                                    RegionCell.Valid = false;
-                                    NearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                                    NearCityCell.Cell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
-                                    RegionCell.Cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                                    RegionCell.Cell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
-                                }
-
-                                //Перекидываем текущий насел пункт
-                                if (NearCityCell.Value != "")
-                                    LandMarkCell.Value += NearCityCell + ", ";
-
-                                NearCityCell.Value = newCity;
-                            }
-                        }
-                    }
+                    var spec = new NearCitySpecification(city);
+                    oktmoHelper.SetSpecifications(spec);
+                }
+                else
+                {
+                    NearCityCell.SetStatus(DataCell.DataCellStatus.InValid);
+                    RegionCell.SetStatus(DataCell.DataCellStatus.InValid);
                 }
             }
-            return res;
+
+            //В ином случае пробуем записать насел пункт через ВГТ
+            else
+            {
+                var newCity = cellsFilled
+                    ? string.Empty
+                    : supportWorksheets.VgtWorksheet.GetCityByTerritory(vgt);
+
+                //Строка будет  заполнена, если существует всего один насел пункт с таким районом
+                if (string.IsNullOrEmpty(newCity)) return true;
+
+                //нужно ли нам вообще проверять найденный
+                if (NearCityCell.Value != "" &&
+                    string.Equals(NearCityCell.Value, newCity,
+                        StringComparison.CurrentCultureIgnoreCase)) return true;
+
+                //Если текущий населенный пункт верный (он не пуст и не окрашен как неверный)
+                //мы его оставляем на месте, а найденный пишем в ориентир
+                if (NearCityCell.Value != "" && NearCityCell.Valid)
+                    //Пишем найденный насел пункт в ориентир
+                    LandMarkCell.Value += "город " + vgt + ", ";
+
+                //В остальных случаях найденный насел пункт попадёт в ячейку населенногоп пункта
+                else
+                {
+                    //Определяем, относится ли насел пункт к выборке
+                    if (oktmoHelper.HasEqualCityType(newCity))
+                    {
+                        NearCityCell.Valid = true;
+                        RegionCell.Valid = true;
+                        NearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
+                        RegionCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
+
+
+                        //Try to fill
+                        var spec = new NearCitySpecification(newCity);
+                        oktmoHelper.SetSpecifications(spec);
+                    }
+                    else
+                    {
+                        NearCityCell.Valid = false;
+                        RegionCell.Valid = false;
+                        NearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        NearCityCell.Cell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                        RegionCell.Cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        RegionCell.Cell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                    }
+
+                    //Перекидываем текущий насел пункт
+                    if (NearCityCell.Value != "")
+                        LandMarkCell.Value += NearCityCell + ", ";
+
+                    NearCityCell.Value = newCity;
+                }
+            }
+            return true;
         }
 
         private void TryFillStreet(ref string value)
