@@ -1852,18 +1852,8 @@ namespace Formater
                 }
                 else if (SettlementCell.Value != "")
                 {
-
-//                    if(string.Equals(SettlementCell.Value, validSettlement,
-//                        StringComparison.OrdinalIgnoreCase))
-//                    {
-                        SettlementCell.SetStatus(DataCell.DataCellStatus.Valid);
-                        RegionCell.SetStatus(DataCell.DataCellStatus.Valid);
-//                    }
-//                    else
-//                    {
-//                        SettlementCell.SetStatus(DataCell.DataCellStatus.InValid);
-//                        RegionCell.SetStatus(DataCell.DataCellStatus.InValid);    
-//                    }
+                    SettlementCell.SetStatus(DataCell.DataCellStatus.Valid);
+                    RegionCell.SetStatus(DataCell.DataCellStatus.Valid);
                 }
             }
             else
@@ -1885,7 +1875,7 @@ namespace Formater
                     }
                 else
                 {
-                    if (settlements.Any(s => s == "") && !NearCityCell.Valid && NearCityCell.Value != "")
+                    if (settlements.Any(s => s == "") && !NearCityCell.Valid && RegionCell.Valid && NearCityCell.Value != "")
                     {
                         SettlementCell.SetStatus(DataCell.DataCellStatus.Valid);
                         NearCityCell.SetStatus(DataCell.DataCellStatus.Valid);
