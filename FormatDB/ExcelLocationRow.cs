@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Converter.Template_workbooks;
@@ -1260,7 +1261,16 @@ namespace Formater
 
             //Пытаемся найти полное наименование во всём ОКТМО
             var fullName = supportWorksheets.OKTMOWs.GetFullName(name, OKTMOColumn.Region, type);
-
+            if (fullName == "")
+            {
+                if (name.EndsWith("ий"))
+                {
+                    var sb = new StringBuilder(name);
+                    sb[sb.Length - 2] = 'о';
+                    name = sb.ToString();
+                    fullName = supportWorksheets.OKTMOWs.GetFullName(name, OKTMOColumn.Region, type);
+                }
+            }
 
             //Spet 1: Подходит ли регион к субъекту
             if (!string.IsNullOrEmpty(fullName) && oktmoComposition.SubjectHasEqualRegion(fullName.ToLower()))
