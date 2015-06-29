@@ -992,9 +992,6 @@ namespace Formater
 
         private void FormatClassification()
         {
-            const int percentForThisMethod = 70;
-            var everyEachStep = lastUsedRow / percentForThisMethod;
-            var currStep = 0;
             Stopwatch sw = null;
             var mainSw = Stopwatch.StartNew();
             var currRow = 0;
@@ -1019,11 +1016,6 @@ namespace Formater
 
                 Interlocked.Increment(ref currRow);
             });
-
-//            if (!workResult.IsCompleted)
-//            {
-//                logger.Error("Работа завершилась аварийно. Ошибка проявилась в строке {0}",workResult.LowestBreakIteration);
-//            }
 
             logger.Info("Обрабочка местоположения прошла успешно.");
             logger.Info("На {0} объектов было затрачено {1}",lastUsedRow - HeadSize, mainSw.Elapsed);

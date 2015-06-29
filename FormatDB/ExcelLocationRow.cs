@@ -862,120 +862,131 @@ namespace Formater
 
 
             //Поиск населенного пункта
-            tmpRegex = regexpHandler.NearCityToLeftRegex;
-            var matches = tmpRegex.Matches(value); // "Дальнево с."
-            var switched = false;
-            if (matches.Count == 0)
+            if (oktmoHelper.HasEqualNearCity(value))
             {
-                tmpRegex = regexpHandler.NearCityRegex;
-                matches = tmpRegex.Matches(value); // "с. Дальнево"
+                var spec = new NearCitySpecification(value);
+                oktmoHelper.SetSpecifications(spec);
+                NearCityCell.Value = value;
+                value = "";
             }
-            if (matches.Count > 0)
-            {
-                if (!cellsFilled)
-                {
-                    //Приоритет у любого негорода
-                    if (matches.Count > 1)
-                    {
-                        match =
-                            matches.Cast<Match>()
-                                .FirstOrDefault(
-                                    m => !Regex.IsMatch(m.Groups["type"].Value, "\bг", RegexOptions.IgnoreCase)) ??
-                            //Приорите у любого негорода
-                            matches[0]; //Конечно если он есть, если его нет, берём первое совпадение
-                    }
-                    else
-                        match = matches[0];
-
-                    var name = TryTemplateName(match.Groups["name"].Value);
-                    var type = TryDescriptTypeOfNasPunkt(match.Groups["type"].Value);
-
-                    tryAgainNCInNC:
-                    //Если мы впервые нашлим населенный пункт
-                    if (NearCityCell.Value == "" || NearCityCell.Value == string.Empty)
-                    {
-                        NearCityCell.Value = name;
-                        TypeOfNearCityCell.Value = type;
-
-                        if (oktmoHelper.HasEqualNearCity(name.ToLower()))
-                        {
-                            var spec = new NearCitySpecification(name);
-                            oktmoHelper.SetSpecifications(spec);
-
-                            RegionCell.Valid = true;
-                            NearCityCell.Valid = true;
-                            NearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
-                            RegionCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
-                        }
-                        else
-                        {
-                            if (!switched)
-                            {
-                                switched = true;
-                                if (name.Contains("-"))
-                                {
-                                    name = name.Replace("-", " ");
-                                    goto tryAgainNCInNC;
-                                }
-                                if (name.Contains(" "))
-                                {
-                                    name = name.Replace(" ", "-");
-                                    goto tryAgainNCInNC;
-                                }
-                            }
-                            NearCityCell.Valid = false;
-                            RegionCell.Valid = false;
-                            NearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                            NearCityCell.Cell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
-                            RegionCell.Cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                            RegionCell.Cell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
-                        }
-                    }
-                    else if (NearCityCell.Value != name) //нашли ли мы новую информацию
-                    {
-                        //и подходит ли она к нам
-                        if(oktmoHelper.HasEqualNearCity(name.ToLower()))
-                        {                            
-                            var spec = new NearCitySpecification(name);
-                            oktmoHelper.SetSpecifications(spec);
-
-                            LandMarkCell.Value += NearCityCell.Value + ", ";
-
-                            NearCityCell.Valid = true;
-                            RegionCell.Valid = true;
-                            NearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
-                            RegionCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
-
-                            NearCityCell.Value = name;
-                            TypeOfNearCityCell.Value = type;
-                        }
-                        else
-                        {
-                            if (!switched)
-                            {
-                                switched = true;
-                                if (name.Contains("-"))
-                                {
-                                    name = name.Replace("-", " ");
-                                    goto tryAgainNCInNC;
-                                }
-
-                                if (name.Contains(" "))
-                                {
-                                    name = name.Replace(" ", "-");
-                                    goto tryAgainNCInNC;
-                                }
-                            }
-                            LandMarkCell.Value += name + " " + type + ", ";
-                        }
-                    }
-                }
-                value = tmpRegex.Replace(value, ", ").Trim().Trim(',').Trim();
-            }
-            //Обрабатываем имена собственные
             else
             {
-                TryFindProperName(ref value);
+                tmpRegex = regexpHandler.NearCityToLeftRegex;
+                var matches = tmpRegex.Matches(value); // "Дальнево с."
+                var switched = false;
+                if (matches.Count == 0)
+                {
+                    tmpRegex = regexpHandler.NearCityRegex;
+                    matches = tmpRegex.Matches(value); // "с. Дальнево"
+                }
+                if (matches.Count > 0)
+                {
+                    if (!cellsFilled)
+                    {
+                        //Приоритет у любого негорода
+                        if (matches.Count > 1)
+                        {
+                            match =
+                                matches.Cast<Match>()
+                                    .FirstOrDefault(
+                                        m => !Regex.IsMatch(m.Groups["type"].Value, "\bг", RegexOptions.IgnoreCase)) ??
+                                //Приорите у любого негорода
+                                matches[0]; //Конечно если он есть, если его нет, берём первое совпадение
+                        }
+                        else
+                            match = matches[0];
+
+                        var name = TryTemplateName(match.Groups["name"].Value);
+                        var type = TryDescriptTypeOfNasPunkt(match.Groups["type"].Value);
+
+                        tryAgainNCInNC:
+                        //Если мы впервые нашлим населенный пункт
+                        if (NearCityCell.Value == "")
+                        {
+                            NearCityCell.Value = name;
+                            TypeOfNearCityCell.Value = type;
+
+                            if (oktmoHelper.HasEqualNearCity(name.ToLower()))
+                            {
+                                var spec = new NearCitySpecification(name);
+                                oktmoHelper.SetSpecifications(spec);
+
+                                RegionCell.Valid = true;
+                                NearCityCell.Valid = true;
+                                NearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
+                                RegionCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
+                            }
+                            else
+                            {
+                                if (!switched)
+                                {
+                                    switched = true;
+                                    if (name.Contains("-"))
+                                    {
+                                        name = name.Replace("-", " ");
+                                        goto tryAgainNCInNC;
+                                    }
+                                    if (name.Contains(" "))
+                                    {
+                                        name = name.Replace(" ", "-");
+                                        goto tryAgainNCInNC;
+                                    }
+                                }
+                                NearCityCell.Valid = false;
+                                RegionCell.Valid = false;
+                                NearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                NearCityCell.Cell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                                RegionCell.Cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                RegionCell.Cell.Style.Fill.BackgroundColor.SetColor(ExcelExtensions.BadColor);
+                            }
+                        }
+                        else if (NearCityCell.Value != name) //нашли ли мы новую информацию
+                        {
+                            //и подходит ли она к нам
+                            if (oktmoHelper.HasEqualNearCity(name.ToLower()))
+                            {
+                                var spec = new NearCitySpecification(name);
+                                oktmoHelper.SetSpecifications(spec);
+
+                                LandMarkCell.Value += NearCityCell.Value + ", ";
+
+                                NearCityCell.Valid = true;
+                                RegionCell.Valid = true;
+                                NearCityCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
+                                RegionCell.Cell.Style.Fill.PatternType = ExcelFillStyle.None;
+
+                                NearCityCell.Value = name;
+                                TypeOfNearCityCell.Value = type;
+                            }
+                            else
+                            {
+                                if (!switched)
+                                {
+                                    switched = true;
+                                    if (name.Contains("-"))
+                                    {
+                                        name = name.Replace("-", " ");
+                                        goto tryAgainNCInNC;
+                                    }
+
+                                    if (name.Contains(" "))
+                                    {
+                                        name = name.Replace(" ", "-");
+                                        goto tryAgainNCInNC;
+                                    }
+                                }
+                                LandMarkCell.Value += name + " " + type + ", ";
+                            }
+                        }
+                    }
+                    value = tmpRegex.Replace(value, ", ").Trim().Trim(',').Trim();
+                }
+
+                //Обрабатываем имена собственные
+                else
+                {
+                    TryFindProperName(ref value);
+                }
             }
 
             NearCityCell.InitValue = value;
@@ -984,8 +995,6 @@ namespace Formater
             {
                 LandMarkCell.Value += NearCityCell.InitValue + ", ";
             }
-            //Если у нас разобрано всё, а в ячейку населенного пункта ничего записано не было
-            //Мы очищаем ячейку
         }
 
         private void CheckRegionCell()
