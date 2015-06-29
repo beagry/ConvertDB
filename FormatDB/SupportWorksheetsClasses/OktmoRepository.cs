@@ -152,7 +152,6 @@ namespace Formater.SupportWorksheetsClasses
 
         public string GetDefaultRegCenterFullName(string regionFullName, ref string cityName)
         {
-            return string.Empty;
             var regCenterName = GetDefaultRegCenter(regionFullName);
             if (string.IsNullOrEmpty(regCenterName)) return string.Empty;
 
@@ -333,53 +332,6 @@ namespace Formater.SupportWorksheetsClasses
             var body = (MemberExpression) expression.Body;
             return body.Member.Name;
         }
-
-//        public void SetCustomTable(SearchParams searchParams)
-//        {
-//            var sourceTable = SubjectTable ?? table;
-//
-//            var currentCombination = new ColumnCombination {Subject = subjectName};
-//
-//            //Try to get cashed datatable
-//            DataTable tmpTable;
-//            if (Equals(searchParams.SearchColumn, OKTMOColumns.Region))
-//            {
-//                currentCombination.Region = searchParams.SearchString;
-//
-//                tmpTable = cashedCustomTables.FirstOrDefault(pair => pair.Key.Equals(currentCombination)).Value;
-//                if (tmpTable != null)
-//                {
-//                    CustomDataTable = tmpTable;
-//                    return;
-//                }
-//            }
-//            else if (Equals(searchParams.SearchColumn, OKTMOColumns.NearCity))
-//            {
-//                currentCombination.NearCity = searchParams.SearchString;
-//
-//                tmpTable = cashedCustomTables.FirstOrDefault(pair => pair.Key.Equals(currentCombination)).Value;
-//                if (tmpTable != null)
-//                {
-//                    CustomDataTable = tmpTable;
-//                    return;
-//                }
-//            }
-//
-//            //Create new custom datatable
-//            var searchColumn = GetExcelColumn(searchParams.SearchColumn) - 1;
-//            var seachString = searchParams.SearchString;
-//
-//            CustomDataTable =
-//                sourceTable.GetCustomDataTable(
-//                    row =>
-//                        string.Equals(ExcelLocationRow.ReplaceYo(row[searchColumn].ToString()), seachString,
-//                            StringComparison.OrdinalIgnoreCase));
-//
-//            //Cash DataTable
-//            if (cashedCustomTables.All(pair => !pair.Key.Equals(currentCombination)))
-//                cashedCustomTables.Add(currentCombination, CustomDataTable);
-//        }
-
 
         private class ColumnCombination : OktmoRow, IEquatable<ColumnCombination>
         {
