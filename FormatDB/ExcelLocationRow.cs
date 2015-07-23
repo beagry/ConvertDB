@@ -227,6 +227,12 @@ namespace Formater
                 return supportWorksheets.VgtWorksheet.TerritotyExists(s);
             };
             CheckCell(VgtCell, vgtFromComposition);
+
+            if (RegionCell.Value == "" && !RegionCell.Valid)
+            {
+                RegionCell.SetStatus(DataCell.DataCellStatus.Valid);
+                SubjectCell.SetStatus(DataCell.DataCellStatus.InValid);
+            }
         }
 
         private void CheckCell(DataCell cell, Func<string, bool> validation)
