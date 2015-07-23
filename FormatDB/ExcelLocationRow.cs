@@ -101,6 +101,8 @@ namespace Formater
             this.supportWorksheets = supportWorksheets;
             rowsToDelete = new List<int>();
             DoDescription = true;
+            stTypeExcluder =
+                new StreetTypHanlder(supportWorksheets.Kladr.Rows.Select(r => r.StreetType).Distinct().ToList());
         }
 
         public bool DoDescription { get; set; }
@@ -193,9 +195,17 @@ namespace Formater
         private bool CheckStreetCell()
         {
             var val = StreetCell.InitValue;
+            var textNoType = ExcludeStreetType(val);
+            if (TryAppendPropNameToStreet(textNoType)) return true;
+
             TryFillStreet(ref val);
             StreetCell.InitValue = val;
             return true;
+        }
+
+        private string ExcludeStreetType(string val)
+        {
+            return stTypeExcluder.RemoveStreetTypes(val);
         }
 
 
@@ -2583,6 +2593,7 @@ namespace Formater
         }
 
         private bool disposed = false;
+        private StreetTypHanlder stTypeExcluder;
 
         public void Dispose()
         {
@@ -2628,6 +2639,31 @@ namespace Formater
         }
 
         public string actualType { get; set; }
+    }
+
+    internal class StreetTypHanlder
+    {
+        private ICollection<string> types; 
+        private static Regex reg;
+        private Regex Regex { get { return reg ?? (reg = CreateReg()); } }
+
+        private Regex CreateReg()
+        {
+            var pattrn = @"(\s)*(" + String.Join("|", types) + @")(\.|\s)*";
+            var newReg = new Regex(pattrn, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            types = null;
+            return newReg;
+        }
+
+        public StreetTypHanlder(List<string> types)
+        {
+            this.types = types;
+        }
+
+        public string RemoveStreetTypes(string text)
+        {
+            return Regex.Replace(text, "").Trim();
+        }
     }
 
     public class SupportWorksheets : IDisposable
