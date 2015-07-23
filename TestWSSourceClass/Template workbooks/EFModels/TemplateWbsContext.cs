@@ -6,7 +6,8 @@ namespace Converter.Template_workbooks.EFModels
 {
     public class TemplateWbsContext : DbContext
     {
-        public TemplateWbsContext() : base("TWBsContext")
+        public TemplateWbsContext()
+            : base("name=TWBsContext")
         {
 //            AppDomain.CurrentDomain.SetData("DataDirectory", Directory.GetCurrentDirectory());
 //            Database.SetInitializer(new TemplateWbsInitializer());

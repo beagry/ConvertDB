@@ -20,6 +20,7 @@ namespace Formater
         ISupportWorkbookViewModel OktmoSupportWorkbook { get; set; }
         ISupportWorkbookViewModel VgtCatalogSupportWorkbook { get; set; }
         ISupportWorkbookViewModel SubjectSourceSupportWorkbook { get; set; }
+        ISupportWorkbookViewModel KladrWorkbook { get; set; }
     }
 
     public interface ISupportWorkbook

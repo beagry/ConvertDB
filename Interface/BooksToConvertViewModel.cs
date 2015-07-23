@@ -5,15 +5,17 @@ using System.Runtime.CompilerServices;
 using Converter.Properties;
 using Converter.Template_workbooks;
 using ExcelRLibrary;
+using Microsoft.Win32;
 
 namespace UI
 {
-    public sealed class BooksToConvertViewModel:INotifyPropertyChanged
+    public sealed class BooksToConvertViewModel : INotifyPropertyChanged
     {
-        private XlTemplateWorkbookType workbooksType;
         private bool editMode;
         private string status;
+        private XlTemplateWorkbookType workbooksType;
         private bool workInProgress;
+        private string mainBasePath;
 
         public BooksToConvertViewModel()
         {
@@ -22,10 +24,26 @@ namespace UI
             Workbooks = new ObservableCollection<SelectedWorkbook>();
             Status = "Готово к работе";
         }
-        public BooksToConvertViewModel(IEnumerable<SelectedWorkbook> workbooksPaths, XlTemplateWorkbookType workbooksType):this()
+
+        public BooksToConvertViewModel(IEnumerable<SelectedWorkbook> workbooksPaths,
+            XlTemplateWorkbookType workbooksType) : this()
         {
             Workbooks = new ObservableCollection<SelectedWorkbook>(workbooksPaths);
             WorkbooksType = workbooksType;
+        }
+
+        public bool UseMainBase { get; set; }
+
+        public string MainBasePath
+        {
+            get { return mainBasePath; }
+            set
+            {
+                if (mainBasePath == value)
+                    return;
+                mainBasePath = value;
+                OnPropertyChanged();
+            }
         }
 
         public bool EditMode
@@ -44,7 +62,7 @@ namespace UI
             get { return workInProgress; }
             set
             {
-                if (workInProgress == value)return;
+                if (workInProgress == value) return;
                 workInProgress = value;
                 OnPropertyChanged();
             }
@@ -52,15 +70,39 @@ namespace UI
 
         public string Status
         {
-            get
-            {
-                return status;
-            }
+            get { return status; }
             set
             {
                 if (status == value) return;
                 status = value;
                 OnPropertyChanged();
+            }
+        }
+
+        public ObservableCollection<SelectedWorkbook> Workbooks { get; set; }
+
+        public XlTemplateWorkbookType WorkbooksType
+        {
+            get { return workbooksType; }
+            set
+            {
+                if (value == workbooksType) return;
+                workbooksType = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+
+        public void SelectMainBasePath()
+        {
+            var fd = new OpenFileDialog();
+            if (fd.ShowDialog() == true)
+            {
+                MainBasePath = fd.FileName;
             }
         }
 
@@ -77,7 +119,6 @@ namespace UI
             Status = message;
         }
 
-
         public void EndWork()
         {
             EndWork("Готово");
@@ -89,24 +130,6 @@ namespace UI
             WorkInProgress = false;
             Status = message;
         }
-
-
-        public ObservableCollection<SelectedWorkbook> Workbooks{ get; set; }
-
-
-        public XlTemplateWorkbookType WorkbooksType
-        {
-            get { return workbooksType; }
-            set
-            {
-                if (value == workbooksType) return;
-                workbooksType = value;
-                OnPropertyChanged();
-            }
-        }
-
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)

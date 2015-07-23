@@ -15,7 +15,10 @@ namespace UI
     public partial class ColumnsCompareWindow : Window
     {
         private readonly CompareViewModel viewModel;
-        private readonly ICollection<WorksheetInfo> wsInfos; 
+        private readonly ICollection<WorksheetInfo> wsInfos;
+
+        public bool UseBase { set { viewModel.UseBase = value; } }
+        public string BasePath { set { viewModel.BasePath = value; } }
 
         public ColumnsCompareWindow(Dictionary<JustColumn, List<string>> rulesDictionary, ICollection<WorksheetInfo> wsInfos, XlTemplateWorkbookType wbType)
         {

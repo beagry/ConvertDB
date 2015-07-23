@@ -1,22 +1,23 @@
-﻿<Window x:Class="UI.ConverterWindow"
+﻿<Window
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="UI.ConverterWindow"
         Title="Преобразователь в шаблонную книгу" SizeToContent="WidthAndHeight" WindowStyle="ToolWindow"
         ResizeMode="NoResize"
         Closing="Window_Closing"
         KeyDown="ConverterWindow_OnKeyDown"
-        FontFamily="calibri" >
+        FontFamily="calibri" FontSize="14">
     <StackPanel IsEnabled="{Binding EditMode}">
         <StackPanel Margin="10" Orientation="Horizontal">
             <StackPanel>
                 <Label Content="Список книг" Width="180" FontSize="16" />
                 <ListBox x:Name="WorkbooksListBox" SelectionMode="Multiple" ItemsSource="{Binding Workbooks}"
-                         Height="218"
-                         Width="180" AllowDrop="True" Drop="ListBox_Drop" FontSize="16">
+					Height="218"
+					Width="180" AllowDrop="True" Drop="ListBox_Drop" FontSize="16">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding Name}"></TextBlock>
+                                <TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding Name}"/>
                             </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
@@ -24,16 +25,44 @@
             </StackPanel>
             <DockPanel Margin="15,0,0,0">
                 <StackPanel DockPanel.Dock="Top">
-                <Label Content="Тип" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="16" />
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="IsEnabled" Value="True"></Setter>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ElementName=UseBaseCheckBox, Path=IsChecked}" Value="true">
+                                    <Setter Property="IsEnabled" Value="False"></Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <Label Content="Тип" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="16" />
                     <ComboBox
-                            DisplayMemberPath="Description"
-                            SelectedValuePath="Value"    
-                            SelectedValue="{Binding WorkbooksType}" VerticalAlignment="Top"
-                              x:Name="WorkbookTypesComboBox" Width="170" Height="25"
-                              FontSize="16" />
+						DisplayMemberPath="Description"
+						SelectedValuePath="Value"    
+						SelectedValue="{Binding WorkbooksType}" VerticalAlignment="Top"
+						x:Name="WorkbookTypesComboBox" Width="170" Height="25"
+						FontSize="16" />
                 </StackPanel>
+                <DockPanel Margin ="0,15,0,0" DockPanel.Dock="Top">
+                    <CheckBox x:Name="UseBaseCheckBox" IsChecked="{Binding UseMainBase}" Content="Ипользовать базу" DockPanel.Dock="Top"></CheckBox>
+                    <DockPanel >
+                        <DockPanel.Style>
+                            <Style TargetType="DockPanel">
+                                <Setter Property="Visibility" Value="Hidden"></Setter>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ElementName=UseBaseCheckBox, Path=IsChecked}" Value="true">
+                                        <Setter Property="Visibility" Value="Visible"></Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DockPanel.Style>
+                        <Label DockPanel.Dock="Top" Content="Путь к базе" Padding="3"></Label>
+                        <Button DockPanel.Dock="Right" Padding="7,2" Content="..." Click="SelectMainbasePath"></Button>
+                        <TextBox IsReadOnly="True" Text="{Binding MainBasePath}" HorizontalAlignment="Stretch" DockPanel.Dock="Left"></TextBox>
+                    </DockPanel>
+                </DockPanel>
                 <Button VerticalAlignment="Center" Content="Обработать" Width="108" Height="32" FontSize="16"
-                        Click="Button_Click" />
+					Click="Button_Click" />
             </DockPanel>
         </StackPanel>
         <StatusBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Margin="0,15,0,0">
@@ -41,9 +70,9 @@
                 <ItemsPanelTemplate>
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="180*"></ColumnDefinition>
-                            <ColumnDefinition Width="Auto"></ColumnDefinition>
-                            <ColumnDefinition Width="170*"></ColumnDefinition>
+                            <ColumnDefinition Width="180*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="170*"/>
                         </Grid.ColumnDefinitions>
                     </Grid>
                 </ItemsPanelTemplate>
@@ -51,14 +80,13 @@
 
             <StatusBarItem Grid.Column="0" HorizontalContentAlignment="Stretch">
                 <ProgressBar Margin="5,0,5,0" Height="13" Width="auto" IsIndeterminate="{Binding WorkInProgress}"
-                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                </ProgressBar>
+					HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
             </StatusBarItem>
 
-            <Separator Grid.Column="1"></Separator>
+            <Separator Grid.Column="1"/>
 
             <StatusBarItem Grid.Column="2" HorizontalContentAlignment="Stretch">
-                <TextBlock Margin="5,0,0,0" TextAlignment="Right" HorizontalAlignment="Stretch" Text="{Binding Status}"></TextBlock>
+                <TextBlock Margin="5,0,0,0" TextAlignment="Right" HorizontalAlignment="Stretch" Text="{Binding Status}"/>
             </StatusBarItem>
 
         </StatusBar>

@@ -43,8 +43,8 @@ namespace Converter
         {
             Worksheet = worksheet;
             headsDictionary = worksheet.ReadHead();
-            lastUsedColumn = Worksheet.Dimension.Columns;
-            lastUsedRow = Worksheet.Dimension.Rows;
+            lastUsedColumn = Worksheet.Dimension.End.Column;
+            lastUsedRow = Worksheet.Dimension.End.Row;
         }
 
         private WorksheetFiller()

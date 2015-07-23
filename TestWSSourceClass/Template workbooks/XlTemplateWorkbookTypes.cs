@@ -11,7 +11,10 @@ namespace Converter.Template_workbooks
         LandProperty,
 
         [Description("Коммерция")] 
-        CommerceProperty
+        CommerceProperty,
+
+        [Description("Произвольный тип")]
+        Custom
 //        [Description("Загородка")]
 //        CountyLiveArea,
 //        [Description("Городское жильё")]

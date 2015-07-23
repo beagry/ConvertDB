@@ -28,17 +28,14 @@ namespace Converter
         ///     Самый продуктивный конструктор
         /// </summary>
         /// <param name="table"></param>
-        /// <param name="wbType"></param>
-        public SourceWs(DataTable table, XlTemplateWorkbookType wbType)
+        /// <param name="templateWorkbook"></param>
+        public SourceWs(DataTable table, TemplateWorkbook templateWorkbook)
             : this()
         {
+            wb = templateWorkbook;
             wsTable = table;
             head = wsTable.Columns.Cast<DataColumn>()
                 .ToDictionary(k => wsTable.Columns.IndexOf(k) + 1, v => v.ColumnName);
-
-            wb =
-                UnitOfWorkSingleton.UnitOfWork.TemplateWbsRespository.GetObjectsList()
-                    .First(w => w.WorkbookType == wbType);
         }
 
         private SourceWs()

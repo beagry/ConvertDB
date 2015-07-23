@@ -71,6 +71,9 @@ namespace UI
             get { return GetColumnValuesExamples(LastSelectedItem); }
         }
 
+        public string BasePath { get; set; }
+        public bool UseBase { get; set; }
+
 
         public CompareViewModel(Dictionary<JustColumn, ObservableCollection<string>> bindedColumns,
             ICollection<WorksheetInfo> worksheetsSamples, XlTemplateWorkbookType wbType):this()
@@ -189,7 +192,9 @@ namespace UI
             {
                 RulesDictionary = dict,
                 WorkbooksPaths = worksheets.Select(w => w.Workbook.Path).Distinct().ToList(),
-                WorkbookType = wbType
+                WorkbookType = wbType,
+                TemplateWorkbook = WorkbooksAnalyzier.TemplateWb,
+                BaseWbPath = UseBase?  BasePath : null
             };
 
             var result = typifer.CombineToSingleWorkbook();

@@ -82,6 +82,14 @@ namespace Formater.SupportWorksheetsClasses
                     .Distinct()
                     .ToList();
             return cities;
-        } 
+        }
+
+        private bool disposed = false;
+        public void Dispose()
+        {
+            if (disposed) return;
+            table.Dispose();
+            disposed = true;
+        }
     }
 }

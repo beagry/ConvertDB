@@ -100,7 +100,8 @@
       <HintPath>..\packages\EPPlus.4.0.4\lib\net20\EPPlus.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="ExcelRLibrary">
+    <Reference Include="ExcelRLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\ExcelRLibrary\ExcelRLibrary\bin\Release\ExcelRLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
@@ -114,6 +115,9 @@
     <Reference Include="PatternsLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\ExcelRLibrary\ExcelRLibrary\bin\Release\PatternsLib.dll</HintPath>
+    </Reference>
+    <Reference Include="REntities">
+      <HintPath>..\..\REntities\REntities\bin\Release\REntities.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -144,7 +148,6 @@
     <Compile Include="LocationRgexpHandler.cs" />
     <Compile Include="ExcelLocationRow.cs" />
     <Compile Include="CSVReader.cs" />
-    <Compile Include="ExcelRowLocationDecoder.cs" />
     <Compile Include="Interfaces.cs" />
     <Compile Include="OktmoHelper.cs" />
     <Compile Include="SupportWorksheetsClasses\CatalogWorksheet.cs" />
@@ -157,6 +160,7 @@
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="SupportWorksheetsClasses\KladrRepository.cs" />
     <Compile Include="SupportWorksheetsClasses\OktmoRepository.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -177,6 +181,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="SimilarityTool.cs" />
+    <Compile Include="SupportWorksheetsClasses\PlaceWithType.cs" />
     <Compile Include="SupportWorksheetsClasses\SubjectSourceWorksheet.cs" />
     <Compile Include="SupportWorksheetsClasses\VGTWorksheet.cs" />
   </ItemGroup>

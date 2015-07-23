@@ -8,6 +8,7 @@ using Converter.Template_workbooks;
 using Converter.Template_workbooks.EFModels;
 using ExcelRLibrary;
 using ExcelRLibrary.TemplateWorkbooks;
+using TemplateWorkbook = Converter.Template_workbooks.EFModels.TemplateWorkbook;
 
 namespace Converter
 {
@@ -19,15 +20,29 @@ namespace Converter
     {
         private readonly XlTemplateWorkbookType wbType;
         private Dictionary<JustColumn, List<string>> comparedColumns;
+        public static TemplateWorkbook TemplateWb { get; set; }
+        private readonly string mainWbPath;
 
-        public WorkbooksAnalyzier(XlTemplateWorkbookType workbookType)
+        public WorkbooksAnalyzier(XlTemplateWorkbookType workbookType):this()
         {
-            WorksheetsInfos = new List<WorksheetInfo>();
             wbType = workbookType;
         }
 
+        public WorkbooksAnalyzier(string mainBasePath):this()
+        {
+            mainWbPath = mainBasePath;
+            wbType = XlTemplateWorkbookType.Custom;
+        }
+
+        public WorkbooksAnalyzier()
+        {
+            WorksheetsInfos = new List<WorksheetInfo>();
+        }
+
+
         /// <summary>
-        ///     Result of CheckWorkbook(s) Method
+        ///     Результат работы сравнения переданных книг и книги шаблона.
+        ///     Даныне в формате Key = Столбец из книги шаблона, Value = Подошедшие столбцы из переданных книг
         /// </summary>
         public Dictionary<JustColumn, List<string>> ComparedColumns
         {
@@ -35,7 +50,7 @@ namespace Converter
         }
 
         /// <summary>
-        ///     Info about worksheets of WB
+        ///     Краткая инфомрация о проверенных книгах
         /// </summary>
         public List<WorksheetInfo> WorksheetsInfos { get; private set; }
 
@@ -61,12 +76,11 @@ namespace Converter
             }
         }
 
-        private void CheckWorkbook(string path)
+        public void CheckWorkbook(string path)
         {
             var fi = new FileInfo(path);
             var reader = new ExcelReader();
             DataSet ds = reader.ReadExcelFile(fi.FullName);
-//            if (ds == null) throw new IOException("Не удалось прочитать файл.");
 
             var dt = ds.Tables.Cast<DataTable>().First();
             if (dt == null) return;
@@ -75,8 +89,13 @@ namespace Converter
             //Создаем модель рабочего листа
             WorksheetsInfos.Add(new WorksheetInfo(dt) {Workbook = new SelectedWorkbook(fi.FullName)});
 
+            if (TemplateWb == null)
+            {
+                InitialTempateWb();
+            }
+
             //Анализируем содержание рабочего листа
-            var sourceWs = new SourceWs(dt, wbType);
+            var sourceWs = new SourceWs(dt, TemplateWb);
             sourceWs.CheckColumns();
             var result = sourceWs.ResultDictionary;
 
@@ -99,10 +118,38 @@ namespace Converter
             }
         }
 
+        private void InitialTempateWb()
+        {
+            if (wbType == XlTemplateWorkbookType.Custom)
+            {
+                CreateTemppateWbFromExcel();
+                return;
+            }
+
+            TemplateWb =
+                UnitOfWorkSingleton.UnitOfWork.TemplateWbsRespository.GetObjectsList()
+                    .First(w => w.WorkbookType == wbType);
+
+        }
+
+        private void CreateTemppateWbFromExcel()
+        {
+            var reader = new ExcelReader();
+            var ds = reader.GetWsStructs(mainWbPath);
+            var dt = ds.Tables.Cast<DataTable>().First();
+
+            var columns = dt.Columns.Cast<DataColumn>().Select(dc => new TemplateColumn
+            {
+                ColumnIndex = dt.Columns.IndexOf(dc) + 1,
+                Name = dc.ColumnName,
+                CodeName = dc.ColumnName
+            }).ToList();
+            TemplateWb = new TemplateWorkbook {WorkbookType = wbType,Columns = columns};
+        }
+
         private Dictionary<JustColumn, List<string>> CreateResultDict()
         {
-            var wb = UnitOfWorkSingleton.UnitOfWork.TemplateWbsRespository.GetTypedWorkbook(wbType);
-            var columns = wb.Columns.Select(c => new JustColumn(c.CodeName, c.Name, c.ColumnIndex)).ToList();
+            var columns = TemplateWb.Columns.Select(c => new JustColumn(c.CodeName, c.Name, c.ColumnIndex)).ToList();
             return columns.ToDictionary(j => j, j2 => new List<string>());
         }
     }

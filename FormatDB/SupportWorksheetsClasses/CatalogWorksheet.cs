@@ -9,7 +9,7 @@ using OfficeOpenXml;
 
 namespace Formater.SupportWorksheetsClasses
 {
-    public  class CatalogWorksheet
+    public  class CatalogWorksheet:IDisposable
     {
         private System.Data.DataTable table;
         private const byte CodeColumnIndex = 2;
@@ -27,6 +27,14 @@ namespace Formater.SupportWorksheetsClasses
                 .Select(r => (r[ContentColumnIndex - 1]??"").ToString()).ToList();
 
             return result;
+        }
+
+        private bool disposed = false;
+        public void Dispose()
+        {
+            if (disposed) return;
+            table.Dispose();
+            disposed = true;
         }
     }
 }

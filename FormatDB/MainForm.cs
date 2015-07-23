@@ -18,11 +18,11 @@ namespace Formater
 {
     public sealed partial class MainForm : Form
     {
-        private DbToConvert convert;
+//        private DbToConvert convert;
         private Color badColor = Color.Crimson;
         private Color goodColor = Color.Aquamarine;
         private const string ExcelFilter = @"Excel Files|*.xls;*.xlsx;*.xlsm;*.xlsb";
-        private Task task;
+//        private Task task;
         public string WorkbookPath{get { return workbookPathTextBox.Text; }}
         public string OKTMOPath {get { return OKTMOPathTextBox.Text; }}
         public string OKTMOWsName {get { return OKTMOWorksheetCBox.Text; }}

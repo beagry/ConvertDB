@@ -28,6 +28,10 @@ namespace UI
             ResetWindow();
         }
 
+        private void SelectMainbasePath(object sender, RoutedEventArgs e)
+        {
+            viewModel.SelectMainBasePath();
+        }
         private void ListBox_Drop(object sender, DragEventArgs e)
         {
             var files = (string[])e.Data.GetData(DataFormats.FileDrop);
@@ -53,7 +57,8 @@ namespace UI
         {
 
             viewModel.EditMode = false;
-            var wbAnalyzier = new WorkbooksAnalyzier(viewModel.WorkbooksType);
+            
+            var wbAnalyzier = viewModel.UseMainBase ? new WorkbooksAnalyzier(viewModel.MainBasePath) : new WorkbooksAnalyzier(viewModel.WorkbooksType);
 
             viewModel.StartWork();
 
@@ -79,7 +84,11 @@ namespace UI
 
             viewModel.EndWork();
 
-            var w = new ColumnsCompareWindow(dict, worksheets,viewModel.WorkbooksType);
+            var w = new ColumnsCompareWindow(dict, worksheets,viewModel.WorkbooksType)
+            {
+                UseBase = viewModel.UseMainBase,
+                BasePath =  viewModel.MainBasePath
+            };
             w.Closed += (o, args) => 
             {
                 ResetWindow();

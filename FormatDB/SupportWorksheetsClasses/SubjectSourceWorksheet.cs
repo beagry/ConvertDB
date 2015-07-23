@@ -72,5 +72,13 @@ namespace Formater.SupportWorksheetsClasses
             var res = (row[SubjectColumnIndex-1]??"").ToString();
             return res;
         }
+
+        private bool disposed = false;
+        public void Dispose()
+        {
+            if (disposed) return;
+            table.Dispose();
+            disposed = true;
+        }
     }
 }

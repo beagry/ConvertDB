@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using Converter.Template_workbooks;
 using Converter.Template_workbooks.EFModels;
@@ -20,6 +21,8 @@ namespace Converter
             WorkbookType = XlTemplateWorkbookType.LandProperty;
         }
 
+        public TemplateWorkbook TemplateWorkbook { get; set; }
+        public string BaseWbPath { private get; set; }
         public ICollection<string> WorkbooksPaths { get; set; }
 
         /// <summary>
@@ -35,17 +38,24 @@ namespace Converter
         /// <returns></returns>
         public ExcelPackage CombineToSingleWorkbook()
         {
-            var result = new ExcelPackage();
-            var resultWS = result.Workbook.Worksheets.Add("Combined");
-//            result.SaveWithDialog();
+            ExcelPackage result = new ExcelPackage();
+            ExcelWorksheet resultWS = null;
+            if (!string.IsNullOrEmpty(BaseWbPath))
+            {
+                result = new ExcelPackage(new FileInfo(BaseWbPath));
+                resultWS = result.Workbook.Worksheets.First();
+            }
+            
+            if (resultWS == null)
+            {
+                result = new ExcelPackage();
+                resultWS = result.Workbook.Worksheets.Add("Combined");
 
-            //подготовить конечный лист
-            var wbRepo = new TemplateWbsRespository();
 
-            var wb = wbRepo.GetTypedWorkbook(WorkbookType);
-            var columns = wb.Columns.Select(c => new {Index = c.ColumnIndex, c.Name, Code = c.CodeName}).ToList();
-            resultWS.WriteHead(columns.ToDictionary(k => k.Index, v => v.Code), 1);
-            resultWS.WriteHead(columns.ToDictionary(k => k.Index, v => v.Name), 2);
+                var columns = TemplateWorkbook.Columns.Select(c => new { Index = c.ColumnIndex, c.Name, Code = c.CodeName }).ToList();
+                resultWS.WriteHead(columns.ToDictionary(k => k.Index, v => v.Code), 1);
+                resultWS.WriteHead(columns.ToDictionary(k => k.Index, v => v.Name), 2);
+            }
 
             var wsWriter = new WorksheetFiller(resultWS, RulesDictionary);
 

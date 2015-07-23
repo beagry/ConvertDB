@@ -5,6 +5,7 @@ using Converter.Template_workbooks;
 using Converter.Template_workbooks.EFModels;
 using ExcelRLibrary.TemplateWorkbooks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using REntities.Oktmo;
 using UI;
 
 namespace UnitTestProject1
@@ -20,6 +21,7 @@ namespace UnitTestProject1
             var binded = new Dictionary<JustColumn, List<string>>()
             {
                 {new JustColumn( "SUBJECT", 0)   , new List<string>(){"COLUMN1","COLUMN2","ADDITIONAL_1","ONE_MORE"}},
+                {new JustColumn("REGION",     0),  new List<string>(){"REGION1","SOME_OTHER_REGION"}},
                 {new JustColumn("REGION",     0),  new List<string>(){"REGION1","SOME_OTHER_REGION"}},
                 {new JustColumn("NEAR_CITY",  0),  new List<string>(){"CITY","SUPER_CITY"}},
                 {new JustColumn("DESCTIPTION",0),  new List<string>(){"MY_BLA_BLA_BLA","TELL_SOME_PURE"}},
@@ -52,6 +54,15 @@ namespace UnitTestProject1
             var books = db.TemplateWorkbooks;
 
             Assert.IsTrue(books.First().Columns.Count == 60, "В первой книге слишком мало колонок");
+        }
+
+        [TestMethod]
+        public void InsertSome()
+        {
+            using (var db = new OktmoContext())
+            {
+                
+            }
         }
     }
 }

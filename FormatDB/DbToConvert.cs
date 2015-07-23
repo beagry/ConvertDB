@@ -55,10 +55,13 @@ namespace Formater
         private Task initWbTask;
         private Task initColumnsTask;
         private SupportWorksheets supportWorksheets;
+        private List<TemplateColumn> columns;
+        private byte parsingDateColumn;
 
         public DbToConvert(IFormatDbParams dbParams) : this()
         {
             this.dbParams = dbParams;
+            wbType = dbParams.WorkbookType;
             InitWorkbook(dbParams.Path);
         }
 
@@ -72,7 +75,7 @@ namespace Formater
                     ExcelPackage = new ExcelPackage(new FileInfo(path));
                     worksheet = ExcelPackage.Workbook.Worksheets.First();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     logger.Error("Ошибка при чтении главного файла. Возможно файл слишком большой");
                     throw;
@@ -96,7 +99,7 @@ namespace Formater
                 try
                 {
                     var db = new TemplateWbsContext();
-                    var columns = db.TemplateWorkbooks.First(w => w.WorkbookType == wbType).Columns.ToList();
+                    columns = db.TemplateWorkbooks.First(w => w.WorkbookType == wbType).Columns.ToList();
 
                     subjColumn = (byte)columns.First(c => c.CodeName.Equals("SUBJECT")).ColumnIndex;
                     regionColumn = (byte)columns.First(c => c.CodeName.Equals("REGION")).ColumnIndex;
@@ -115,9 +118,10 @@ namespace Formater
                     sntKpDnpColumn = (byte)columns.First(c => c.CodeName.Equals("ASSOCIATIONS")).ColumnIndex;
                     additionalInfoColumn = (byte)columns.First(c => c.CodeName.Equals("ADDITIONAL")).ColumnIndex;
                     buildColumn = (byte)columns.First(c => c.CodeName.Equals("HOUSE_NUM")).ColumnIndex;
+                    parsingDateColumn = (byte)columns.First(c => c.CodeName.Equals("DATE_PARSING")).ColumnIndex;
                     db.Dispose();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     logger.Fatal("Ошибка при чтении базы");
                     throw;
@@ -133,10 +137,11 @@ namespace Formater
         public bool ColumnHeadIsOk()
         {
             Task.WaitAll(initColumnsTask, initWbTask);
+            
+#if DEBUG
             var i = 1;
             var db = new TemplateWbsContext();
             var columns = db.TemplateWorkbooks.First(w => w.WorkbookType == wbType).Columns.ToList();
-#if DEBUG
             foreach (var templateCode in columns.Select(c => c.CodeName))
             {
                 if (worksheet.Cells[1, i].Value.ToString() != templateCode)
@@ -147,18 +152,19 @@ namespace Formater
                 }
                 i++;
             }
-#endif
             db.Dispose();
+#endif
+
             var readedDses = ReadPaths();
 
             logger.Info("Чтение вспомогательных книг");
             try
             {
-                var oktmoWs = new OKTMORepository(readedDses[dbParams.OktmoSupportWorkbook.Path],
-                    dbParams.OktmoSupportWorkbook.SelectedWorksheet);
 
-//                oktmo = new OKTMORepository();
-//                oktmo.InitializeFromDb();
+                var klard = new KladrRepository();
+
+                var oktmoWs = new OKTMORepository(readedDses[dbParams.OktmoSupportWorkbook.Path],
+                    dbParams.OktmoSupportWorkbook.SelectedWorksheet,klard);
 
                 var soubjectSourceWorksheet =
                     new SubjectSourceWorksheet(
@@ -173,9 +179,10 @@ namespace Formater
                 var catalogWs = new CatalogWorksheet(readedDses[dbParams.CatalogSupportWorkbook.Path]
                     .Tables.Cast<DataTable>()
                     .First(t => t.TableName.Equals(dbParams.CatalogSupportWorkbook.SelectedWorksheet)));
-                supportWorksheets = new SupportWorksheets(catalogWs, oktmoWs, soubjectSourceWorksheet, vgtWorksheet);
+
+                supportWorksheets = new SupportWorksheets(catalogWs, oktmoWs, soubjectSourceWorksheet, vgtWorksheet, klard);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 logger.Error("Ошибка при чтении вспомогательных книг");
                 return  false;
@@ -205,7 +212,7 @@ namespace Formater
                 dbParams.OktmoSupportWorkbook.Path,
                 dbParams.CatalogSupportWorkbook.Path,
                 dbParams.SubjectSourceSupportWorkbook.Path,
-                dbParams.VgtCatalogSupportWorkbook.Path
+                dbParams.VgtCatalogSupportWorkbook.Path,
             };
 
             foreach (var path in paths)
@@ -227,8 +234,8 @@ namespace Formater
             Task.WaitAll(initColumnsTask, initWbTask);
             if (worksheet == null || supportWorksheets.OKTMOWs == null || supportWorksheets.CatalogWs == null) return false;
 
-
             FormatClassification();
+            
 
 //            FormatCommunications();
 //            FormatAreaLot();
@@ -256,10 +263,19 @@ namespace Formater
             return true;
         }
 
-        internal int GetColumnIndex(string columnCode)
+        public void SaveResult()
         {
-            var col = head.First(p => p.Value.Equals(columnCode));
-            return col.Key;
+            supportWorksheets.Dispose();
+            ExcelPackage.SaveWithDialog();
+        }
+
+        private int GetColumnIndex(string columnCode)
+        {
+//            var col = head.First(p => p.Value.Equals(columnCode));
+//            return col.Key;
+
+            var firstOrDefault = columns.FirstOrDefault(c => c.CodeName.EqualNoCase(columnCode));
+            return firstOrDefault != null ? firstOrDefault.ColumnIndex : 0;
         }
 
         #region Format Methods
@@ -464,7 +480,7 @@ namespace Formater
 
 
                 double u = 0;
-                if (value is double || double.TryParse(value, out u))
+                if (double.TryParse(value, out u))
                     dt = DateTime.FromOADate(u);
                 else
                     DateTime.TryParse(value, out dt);
@@ -520,8 +536,13 @@ namespace Formater
 
         private void FormatDate(string columnCode)
         {
-            //todo реализовать функцию когда дата = "213 дня назад"
             var columnIndex = GetColumnIndex(columnCode);
+            var pattern = @"\d{1,2}\.\d{2}\.\d{4}";
+            var reg = new Regex(pattern);
+
+            var daysAgoPattrn = "";
+            var daysAgoRegex = new Regex(daysAgoPattrn);
+
             for (var i = HeadSize + 1; i <= worksheet.Dimension.End.Row; i++)
             {
                 var cell = worksheet.Cells[i, columnIndex];
@@ -530,14 +551,31 @@ namespace Formater
                     continue;
                 }
 
-
                 if (cell.Style.Numberformat.Format == "dd.mm.yyyy") continue;
 
                 var value = cell.Value.ToString();
+    
+                //215 дней назад
+                var m = daysAgoRegex.Match(value);
+                if (m.Success)
+                {
+                    var parsingDateCell = worksheet.Cells[i, parsingDateColumn];
+                    var parsingDate = parsingDateCell.Value as DateTime? ?? DateTime.MinValue;
+                    if (parsingDate != DateTime.MinValue)
+                    {
+                        double days;
+                        if (double.TryParse(m.Value, out days))
+                        {
+                            var newDate = parsingDate.AddDays(-days);
+                            cell.Value = newDate;
+                            continue;
+                        }
+                    }
+                }
 
-                var pattern = @"\d{1,2}\.\d{2}\.\d{4}";
-                var reg = new Regex(pattern);
-                var m = reg.Match(value);
+
+
+                m = reg.Match(value);
                 if (m.Success)
                 {
                     value = m.Value;
@@ -997,15 +1035,13 @@ namespace Formater
             var currRow = 0;
             var rows = Enumerable.Range(HeadSize + 1, lastUsedRow);
 
-            Parallel.ForEach(rows, row =>
-//            rows.AsParallel().AsOrdered().ForAll(row =>
-//            rows.ForEach(row =>
+            rows.ForEach(row =>
             {
                 if (sw == null)
                     sw = Stopwatch.StartNew();
                 if (currRow%1000 == 0)
                 {
-                    logger.Trace("1000 объектов за {0}", sw.Elapsed);
+                    logger.Info("1000 объектов за {0}", sw.Elapsed.ToString(@"hh\:mm\:ss"));
                     sw = Stopwatch.StartNew();
                 }
 
@@ -1019,7 +1055,7 @@ namespace Formater
             });
 
             logger.Info("Обрабочка местоположения прошла успешно.");
-            logger.Info("На {0} объектов было затрачено {1}",lastUsedRow - HeadSize, mainSw.Elapsed);
+            logger.Info("На {0} объектов было затрачено {1}", lastUsedRow - HeadSize, mainSw.Elapsed.ToString(@"hh\:mm\:ss"));
         }
 
 
