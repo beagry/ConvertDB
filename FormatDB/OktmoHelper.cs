@@ -68,7 +68,7 @@ namespace Formater
 
         public void SetSpecifications(ISpecification<OktmoRowDTO> specs)
         {
-            CustomOktmoRows = CustomOktmoRows.FindAll(specs.IsSatisfiedBy).ToList();
+            CustomOktmoRows = CustomOktmoRows.FindAll(specs.IsSatisfiedBy).Distinct(new OktmoRowDTOEqualityComparer()).ToList();
         }
 
         public void SetSubjectRows(List<OktmoRowDTO> rows)
