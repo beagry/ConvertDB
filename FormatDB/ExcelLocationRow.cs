@@ -427,8 +427,8 @@ namespace Formater
                 TryFillClassificator();
             }
 
-            var superTips = new[] {"Москва", "Санкт-Петербург"};
             if (RegionCell.Value != "" || NearCityCell.Value != "") return;
+            var superTips = new[] { "Москва", "Санкт-Петербург" };
             var eqName = superTips.FirstOrDefault(s => s.EqualNoCase(SubjectCell.Value));
             if (eqName == null) return;
             NearCityCell.Value = eqName;
