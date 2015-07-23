@@ -405,7 +405,7 @@ namespace Formater
                 }
             }
 
-            if (RegionCell.Value == regName)
+            if (RegionCell.Value.EqualNoCase(regCenter))
             {
                 if (oktmoComposition.CustomOktmoRows.Any(r => !r.Region.Equals(regName)))
                 {
@@ -413,6 +413,18 @@ namespace Formater
                     oktmoComposition.SetSpecifications(spec);
                     TryFillClassificator();
                 }
+            }
+            else if (NearCityCell.Value == regName)
+            {
+                if (RegionCell.Value != "")
+                    AppendToLandMarkCell(RegionCell.Value);
+                oktmoComposition.ResetToSubject();
+
+                var regCenterSpecs = new NearCitySpecification(regName);
+                var regNameSpecs = new RegionSpecification(regCenter);
+                var totalSpecs = regCenterSpecs.And(regNameSpecs);
+                oktmoComposition.SetSpecifications(totalSpecs);
+                TryFillClassificator();
             }
 
             var superTips = new[] {"Москва", "Санкт-Петербург"};

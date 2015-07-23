@@ -9,9 +9,11 @@ using System.Text.RegularExpressions;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using ExcelRLibrary;
-using ExcelRLibrary.SupportEntities.Oktmo;
 using NLog;
 using PatternsLib;
+using REntities.Kladr;
+using REntities.Kladr.DTO;
+using REntities.Oktmo;
 
 namespace Formater.SupportWorksheetsClasses
 {
@@ -27,11 +29,11 @@ namespace Formater.SupportWorksheetsClasses
 
     public interface IOktmoReposiroty
     {
-        IEnumerable<OktmoRow> GetSubjectRows(string subj);
-        IEnumerable<OktmoRow> GetRowsByRegion(string reg);
-        IEnumerable<OktmoRow> GetRowsBySettlement(string sett);
-        IEnumerable<OktmoRow> GetRowsByNearCity(string city);
-        IEnumerable<OktmoRow> GetRowsBySearchParams(OktmoRow searchParamsRow);
+        IEnumerable<OktmoRowDTO> GetSubjectRows(string subj);
+        IEnumerable<OktmoRowDTO> GetRowsByRegion(string reg);
+        IEnumerable<OktmoRowDTO> GetRowsBySettlement(string sett);
+        IEnumerable<OktmoRowDTO> GetRowsByNearCity(string city);
+        IEnumerable<OktmoRowDTO> GetRowsBySearchParams(OktmoRowDTO searchParamsRow);
 
         /// <summary>
         ///     Возвращает региональный ценр переданного субъекта
@@ -48,6 +50,26 @@ namespace Formater.SupportWorksheetsClasses
         string GetDefaultRegCenterFullName(string regionFullName, ref string cityName);
     }
 
+    static class KladrOktmoComparer
+    {
+        public static bool Equals(KladrLineDTO kladrLine, OktmoRowDTO oktmoRow)
+        {
+            if (!kladrLine.Subject.EqualNoCase(oktmoRow.Subject))
+                return false;
+
+            if (!kladrLine.Region.EqualNoCase(oktmoRow.Region))
+                return false;
+
+            if (!kladrLine.CityName.EqualNoCase(oktmoRow.City.Name))
+                return false;
+
+            if (!kladrLine.CityType.EqualNoCase(oktmoRow.City.Type))
+                return false;
+
+            return true;
+        }
+    }
+
     public class OKTMORepository : IOktmoReposiroty
     {
         private static readonly Dictionary<OKTMOColumn, byte> ClassificatorColumnDictionary = new Dictionary
@@ -61,10 +83,12 @@ namespace Formater.SupportWorksheetsClasses
         };
 
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
-        private ICollection<OktmoRow> oktmoRows;
+        private List<OktmoRowDTO> oktmoRows;
         private readonly DataTable regCTable;
 
-        public OKTMORepository(DataSet ds, string mainWsName)
+        private readonly Dictionary<OKTMOColumn, Dictionary<string, IEnumerable<OktmoRowDTO>>> cachedSubjRows;
+
+        public OKTMORepository(DataSet ds, string mainWsName,KladrRepository kladr):this()
         {
             var table = ds.Tables.Cast<DataTable>().First(t => t.TableName.Equals(mainWsName));
             regCTable = ds.Tables.Cast<DataTable>().FirstOrDefault(t => t.TableName.EqualNoCase("РегЦентры"));
@@ -75,19 +99,29 @@ namespace Formater.SupportWorksheetsClasses
                     "Не найдена база с Региональными центрами, заполнение региональных центров не будет выполнено.");
             }
 
-            oktmoRows = table.Rows.Cast<DataRow>().Select(r => new OktmoRow
+            oktmoRows = table.Rows.Cast<DataRow>().Select(r => new OktmoRowDTO
             {
                 Subject = (r[GetExcelColumn(OKTMOColumn.Subject) - 1] ?? "").ToString(),
                 Region = (r[GetExcelColumn(OKTMOColumn.Region) - 1] ?? "").ToString(),
-                Settlement = (r[GetExcelColumn(OKTMOColumn.Settlement) - 1] ?? "").ToString(),
-                NearCity = (r[GetExcelColumn(OKTMOColumn.NearCity) - 1] ?? "").ToString(),
-                TypeOfNearCity = (r[GetExcelColumn(OKTMOColumn.TypeOfNearCity) - 1] ?? "").ToString()
-            }).ToList().AsReadOnly();
+                Settlement = new SettlementDTO{Name = (r[GetExcelColumn(OKTMOColumn.Settlement) - 1] ?? "").ToString()},
+                City = new CityDTO{Name = (r[GetExcelColumn(OKTMOColumn.NearCity) - 1] ?? "").ToString(),
+                Type= (r[GetExcelColumn(OKTMOColumn.TypeOfNearCity) - 1] ?? "").ToString()}
+            }).ToList();
+
+
+            var kladrRows = kladr.Locations;
+
+            oktmoRows.AddRange(kladrRows);
         }
 
         public OKTMORepository()
         {
-            oktmoRows = new List<OktmoRow>();
+            oktmoRows = new List<OktmoRowDTO>();
+            cachedSubjRows = new Dictionary<OKTMOColumn, Dictionary<string, IEnumerable<OktmoRowDTO>>>();
+            foreach (OKTMOColumn oktmoColumnType in Enum.GetValues(typeof(OKTMOColumn)))
+            {
+                cachedSubjRows.Add(oktmoColumnType, new Dictionary<string, IEnumerable<OktmoRowDTO>>());
+            }
         }
 
         public void InitializeFromDb()
@@ -96,7 +130,7 @@ namespace Formater.SupportWorksheetsClasses
             try
             {
                 Mapper.AddProfile<OktmoProfile>();
-                oktmoRows = db.OktmoRows.Project().To<OktmoRow>().ToList();
+                oktmoRows = db.OktmoRows.Project().To<OktmoRowDTO>().ToList();
             }
             catch (Exception)
             {
@@ -156,14 +190,16 @@ namespace Formater.SupportWorksheetsClasses
             if (string.IsNullOrEmpty(regCenterName)) return string.Empty;
 
             var regCentSpec =
-                new ExpressionSpecification<OktmoRow>(
-                    row => string.Equals(row.NearCity, regCenterName, StringComparison.OrdinalIgnoreCase));
+                new ExpressionSpecification<OktmoRowDTO>(
+                    row => string.Equals(row.City.Name, regCenterName, StringComparison.OrdinalIgnoreCase));
+
             var cityRegCentSpec =
-                new ExpressionSpecification<OktmoRow>(
-                    row => string.Equals(row.TypeOfNearCity, "город", StringComparison.OrdinalIgnoreCase));
+                new ExpressionSpecification<OktmoRowDTO>(
+                    row => string.Equals(row.City.Type, "город", StringComparison.OrdinalIgnoreCase));
+
             var spec = regCentSpec.And(cityRegCentSpec);
 
-            var rows = oktmoRows.Where(r => spec.IsSatisfiedBy(r)).DistinctBy(r => r.Region).ToList();
+            var rows = oktmoRows.Where(r => spec.IsSatisfiedBy(r)).DistinctBy(r => r.Region.ToLower().Replace("город","").Trim()).ToList();
             if (rows.Count() != 1) return string.Empty;
             var singleRow = rows.Single();
 
@@ -173,37 +209,44 @@ namespace Formater.SupportWorksheetsClasses
             return fullName;
         }
 
-        public IEnumerable<OktmoRow> GetSubjectRows(string subj)
+        public IEnumerable<OktmoRowDTO> GetSubjectRows(string subj)
         {
             var spec = new SubjectSpecification(subj);
-            return oktmoRows.Where(oktmoRow => spec.IsSatisfiedBy(oktmoRow));
+            IEnumerable<OktmoRowDTO> subjRows;
+            
+            if (cachedSubjRows[OKTMOColumn.Subject].TryGetValue(subj, out subjRows)) return subjRows;
+            
+            subjRows = oktmoRows.Where(oktmoRow => spec.IsSatisfiedBy(oktmoRow)).ToList();
+            cachedSubjRows[OKTMOColumn.Subject].Add(subj,subjRows);
+
+            return subjRows;
         }
 
-        public IEnumerable<OktmoRow> GetRowsByRegion(string reg)
+        public IEnumerable<OktmoRowDTO> GetRowsByRegion(string reg)
         {
             var spec =
-                new ExpressionSpecification<OktmoRow>(
+                new ExpressionSpecification<OktmoRowDTO>(
                     row => string.Equals(row.Region, reg, StringComparison.OrdinalIgnoreCase));
             return oktmoRows.Where(oktmoRow => spec.IsSatisfiedBy(oktmoRow));
         }
 
-        public IEnumerable<OktmoRow> GetRowsBySettlement(string sett)
+        public IEnumerable<OktmoRowDTO> GetRowsBySettlement(string sett)
         {
             var spec =
-                new ExpressionSpecification<OktmoRow>(
-                    row => string.Equals(row.Settlement, sett, StringComparison.OrdinalIgnoreCase));
+                new ExpressionSpecification<OktmoRowDTO>(
+                    row => string.Equals(row.Settlement.Name, sett, StringComparison.OrdinalIgnoreCase));
             return oktmoRows.WhoSatisfySpec(spec);
         }
 
-        public IEnumerable<OktmoRow> GetRowsByNearCity(string city)
+        public IEnumerable<OktmoRowDTO> GetRowsByNearCity(string city)
         {
             var spec =
-                new ExpressionSpecification<OktmoRow>(
-                    row => string.Equals(row.NearCity, city, StringComparison.OrdinalIgnoreCase));
+                new ExpressionSpecification<OktmoRowDTO>(
+                    row => string.Equals(row.City.Name, city, StringComparison.OrdinalIgnoreCase));
             return oktmoRows.Where(oktmoRow => spec.IsSatisfiedBy(oktmoRow));
         }
 
-        public IEnumerable<OktmoRow> GetRowsBySearchParams(OktmoRow searchParamsRow)
+        public IEnumerable<OktmoRowDTO> GetRowsBySearchParams(OktmoRowDTO searchParamsRow)
         {
             var spec = new OktmoSpecifications(searchParamsRow);
             return oktmoRows.Where(oktmoRow => spec.IsSatisfiedBy(oktmoRow));
@@ -227,38 +270,59 @@ namespace Formater.SupportWorksheetsClasses
         /// <returns></returns>
         public string GetFullName(string searchString, OKTMOColumn searchColumn, string type = "")
         {
-            var pattern = "(\\b|^)" +  searchString.Trim() + "(\\b|$)";
-
-
-            var results = oktmoRows.Select(r => GetPropValueByName(r, searchColumn))
-                .Where(val => Regex.IsMatch(val, pattern, RegexOptions.IgnoreCase)).Distinct().ToList();
-
-
-            if (results.Count == 0) return string.Empty;
-            string result;
-
-            if (Equals(searchColumn, OKTMOColumn.Region))
+            try
             {
-                if (string.IsNullOrEmpty(type))
+                const string regChars = @"[\*\+\?\(\)\[\]\^\$!\{]";
+                searchString = Regex.Replace(searchString.Trim(), regChars, "");
+                var pattern = @"(\s\b|^)" + searchString + @"(\b\s|$)";
+
+                //Use cache
+                var keyThatContains =
+                    cachedSubjRows[searchColumn].Keys.FirstOrDefault(
+                        k => Regex.IsMatch(k, pattern, RegexOptions.IgnoreCase));
+                if (keyThatContains != null)
+                    return keyThatContains;
+
+
+                var results = oktmoRows.Select(r => GetPropValueByName(r, searchColumn))
+                    .Where(val => Regex.IsMatch(val, pattern, RegexOptions.IgnoreCase)).Distinct().ToList();
+
+
+                if (results.Count == 0)
                 {
-                    result =
-                        results.FirstOrDefault(s => string.Equals(s, searchString, StringComparison.OrdinalIgnoreCase));
+                    return searchString.EndsWith("е")
+                        ? GetFullName(searchString.Substring(0, searchString.Length - 1), searchColumn, type)
+                        : string.Empty;
+                }
+
+                string result;
+                if (Equals(searchColumn, OKTMOColumn.Region))
+                {
+                    if (string.IsNullOrEmpty(type))
+                    {
+                        result =
+                            results.FirstOrDefault(
+                                s => string.Equals(s, searchString, StringComparison.OrdinalIgnoreCase));
+                    }
+                    else
+                    {
+                        result = results.FirstOrDefault(s => s.IndexOf(type, StringComparison.OrdinalIgnoreCase) >= 0);
+                    }
+                    if (string.IsNullOrEmpty(result))
+                        result = results.First();
                 }
                 else
-                {
-                    result = results.FirstOrDefault(s => s.IndexOf(type, StringComparison.OrdinalIgnoreCase) >= 0);
-                }
-                if (string.IsNullOrEmpty(result))
                     result = results.First();
+
+                return result ?? string.Empty;
             }
-            else
-                result = results.First();
-
-
-            return result ?? string.Empty;
+            catch (Exception)
+            {
+                return String.Empty;
+            }
         }
 
-        public static string GetFullName(IEnumerable<OktmoRow> rows, string searchString, OKTMOColumn searchColumn)
+        public static string GetFullName(IEnumerable<OktmoRowDTO> rows, string searchString, OKTMOColumn searchColumn)
         {
             var pattern = "(\\b|^)" + searchString.Trim() + "(\\b|$)";
 
@@ -293,7 +357,7 @@ namespace Formater.SupportWorksheetsClasses
             return string.Empty;
         }
 
-        private static string GetPropValueByName(OktmoRow row, OKTMOColumn column)
+        private static string GetPropValueByName(OktmoRowDTO row, OKTMOColumn column)
         {
             var propName = GetOktmoRowPropName(column);
 
@@ -317,10 +381,10 @@ namespace Formater.SupportWorksheetsClasses
                     propName = GetPropertyName(() => row.Settlement);
                     break;
                 case OKTMOColumn.NearCity:
-                    propName = GetPropertyName(() => row.NearCity);
+                    propName = GetPropertyName(() => row.City.Name);
                     break;
                 case OKTMOColumn.TypeOfNearCity:
-                    propName = GetPropertyName(() => row.TypeOfNearCity);
+                    propName = GetPropertyName(() => row.City.Type);
                     break;
             }
 
@@ -333,23 +397,33 @@ namespace Formater.SupportWorksheetsClasses
             return body.Member.Name;
         }
 
-        private class ColumnCombination : OktmoRow, IEquatable<ColumnCombination>
-        {
-            public bool Equals(ColumnCombination comparer)
-            {
-                if (!string.Equals(Subject, comparer.Subject))
-                    return false;
-                if (!string.Equals(Region, comparer.Region))
-                    return false;
-                if (!string.Equals(Settlement, comparer.Settlement))
-                    return false;
-                if (!string.Equals(NearCity, comparer.NearCity))
-                    return false;
-                if (!string.Equals(TypeOfNearCity, comparer.TypeOfNearCity))
-                    return false;
+//        private class ColumnCombination : OktmoRow, IEquatable<ColumnCombination>
+//        {
+//            public bool Equals(ColumnCombination comparer)
+//            {
+//                if (!string.Equals(Subject, comparer.Subject))
+//                    return false;
+//                if (!string.Equals(Region, comparer.Region))
+//                    return false;
+//                if (!string.Equals(Settlement, comparer.Settlement))
+//                    return false;
+//                if (!string.Equals(NearCity, comparer.NearCity))
+//                    return false;
+//                if (!string.Equals(TypeOfNearCity, comparer.TypeOfNearCity))
+//                    return false;
+//
+//                return true;
+//            }
+//        }
 
-                return true;
-            }
+        private bool disposed = false;
+        public void Dispose()
+        {
+            if (disposed) return;
+            oktmoRows = null;
+            cachedSubjRows.Clear();
+            regCTable.Dispose();
+            disposed = true;
         }
     }
 

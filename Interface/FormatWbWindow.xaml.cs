@@ -111,6 +111,7 @@ namespace UI
             OktmoSupportWorkbook = new SupportWorkbookViewModel();
             VgtCatalogSupportWorkbook = new SupportWorkbookViewModel();
             SubjectSourceSupportWorkbook = new SupportWorkbookViewModel();
+            KladrWorkbook = new SupportWorkbookViewModel();
         }
 
         public string Path  
@@ -141,6 +142,7 @@ namespace UI
         public ISupportWorkbookViewModel OktmoSupportWorkbook { get; set; }
         public ISupportWorkbookViewModel VgtCatalogSupportWorkbook { get; set; }
         public ISupportWorkbookViewModel SubjectSourceSupportWorkbook { get; set; }
+        public ISupportWorkbookViewModel KladrWorkbook { get; set; }
 
 
         public XlTemplateWorkbookType WorkbookType { get; set; }
