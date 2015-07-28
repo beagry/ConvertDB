@@ -5,8 +5,8 @@
         Title="MainWindow" SizeToContent="WidthAndHeight">
     <Grid>
         <StackPanel Margin="25">
-            <Button Margin="25" Content="Подогнать столбцы" HorizontalAlignment="Left"  VerticalAlignment="Top" Width="150" Click="ConvertButton_Click" Height="44"/>
-            <Button Margin="25" Content="Разобрать содержание" HorizontalAlignment="Left" VerticalAlignment="Top" Width="150" Height="44" Click="FormatDbButton_Click"/>
+            <Button Margin="25" Content="Этап 1" HorizontalAlignment="Left"  VerticalAlignment="Top" Width="150" Click="ConvertButton_Click" Height="44"/>
+            <Button Margin="25" Content="Этап 2" HorizontalAlignment="Left" VerticalAlignment="Top" Width="150" Height="44" Click="FormatDbButton_Click"/>
         </StackPanel>
     </Grid>
 </Window>

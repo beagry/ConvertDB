@@ -23,42 +23,52 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
             </StackPanel>
-            <DockPanel Margin="15,0,0,0">
+            <DockPanel Margin="15,0,0,0" Width="160">
                 <StackPanel DockPanel.Dock="Top">
-                    <StackPanel.Style>
-                        <Style TargetType="StackPanel">
-                            <Setter Property="IsEnabled" Value="True"></Setter>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding ElementName=UseBaseCheckBox, Path=IsChecked}" Value="true">
-                                    <Setter Property="IsEnabled" Value="False"></Setter>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </StackPanel.Style>
-                    <Label Content="Тип" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="16" />
-                    <ComboBox
-						DisplayMemberPath="Description"
-						SelectedValuePath="Value"    
-						SelectedValue="{Binding WorkbooksType}" VerticalAlignment="Top"
-						x:Name="WorkbookTypesComboBox" Width="170" Height="25"
-						FontSize="16" />
+                    <Label Content="Шапка на выходе" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="16" />
+<!--                    <CheckBox x:Name="UseBaseCheckBox" IsChecked="{Binding UseMainBase}" Content="Ипользовать базу" DockPanel.Dock="Top"></CheckBox>-->
+                    <CheckBox x:Name="UseBaseCheckBox" IsChecked="False" Content="Ипользовать базу" DockPanel.Dock="Top"></CheckBox>
                 </StackPanel>
-                <DockPanel Margin ="0,15,0,0" DockPanel.Dock="Top">
-                    <CheckBox x:Name="UseBaseCheckBox" IsChecked="{Binding UseMainBase}" Content="Ипользовать базу" DockPanel.Dock="Top"></CheckBox>
-                    <DockPanel >
+                <DockPanel  Margin="0,10,0,0" Height="60" DockPanel.Dock="Top">
+                    <DockPanel DockPanel.Dock="Top">
                         <DockPanel.Style>
                             <Style TargetType="DockPanel">
-                                <Setter Property="Visibility" Value="Hidden"></Setter>
+                                <Setter Property="Visibility" Value="Visible"></Setter>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding ElementName=UseBaseCheckBox, Path=IsChecked}" Value="true">
-                                        <Setter Property="Visibility" Value="Visible"></Setter>
+                                        <Setter Property="Visibility" Value="Collapsed"></Setter>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </DockPanel.Style>
-                        <Label DockPanel.Dock="Top" Content="Путь к базе" Padding="3"></Label>
-                        <Button DockPanel.Dock="Right" Padding="7,2" Content="..." Click="SelectMainbasePath"></Button>
-                        <TextBox IsReadOnly="True" Text="{Binding MainBasePath}" HorizontalAlignment="Stretch" DockPanel.Dock="Left"></TextBox>
+                        <Label DockPanel.Dock="Top" Content="Тип книги" Padding="3"></Label>
+                        <ComboBox
+                        DockPanel.Dock="Top"
+						DisplayMemberPath="Description"
+						SelectedValuePath="Value"    
+						SelectedValue="{Binding WorkbooksType}" VerticalAlignment="Top"
+						x:Name="WorkbookTypesComboBox" Height="25"
+						FontSize="16">
+                        </ComboBox>
+                    </DockPanel>
+                    <DockPanel DockPanel.Dock="Top">
+                        <DockPanel >
+                            <DockPanel.Style>
+                                <Style TargetType="DockPanel">
+                                    <Setter Property="Visibility" Value="Hidden"></Setter>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ElementName=UseBaseCheckBox, Path=IsChecked}" Value="true">
+                                            <Setter Property="Visibility" Value="Visible"></Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DockPanel.Style>
+                            <Label DockPanel.Dock="Top" Content="Путь к базе" Padding="3"></Label>
+                            <DockPanel DockPanel.Dock="Bottom" Height="25">
+                                <Button DockPanel.Dock="Right" Padding="7,2" Content="..." Click="SelectMainbasePath"></Button>
+                                <TextBox IsReadOnly="True" Text="{Binding MainBasePath}" HorizontalAlignment="Stretch" DockPanel.Dock="Left"></TextBox>
+                            </DockPanel>
+                        </DockPanel>
                     </DockPanel>
                 </DockPanel>
                 <Button VerticalAlignment="Center" Content="Обработать" Width="108" Height="32" FontSize="16"
