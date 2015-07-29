@@ -19,7 +19,7 @@
 
             <ListView ItemsSource="{Binding BindedColumns}"
                       Margin="10,20,10,10"
-                      MaxHeight="600" MinHeight="100"
+                      
                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                       x:Name="ColumnsListView">
                 <ListView.View>
@@ -31,16 +31,17 @@
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <telerik:RadListBox Width="{Binding Path=Width, ElementName=DragColumn}"
-                                                        FontSize="12"
-                                                        HorizontalAlignment="Stretch"
-                                                        HorizontalContentAlignment="Stretch"
-                                                        ItemsSource="{Binding SuitedColumns}" Text="{Binding Name}"
-                                                        ItemContainerStyle="{StaticResource DraggableListBoxItem}"
-                                                        SelectionChanged="ListBox_OnSelectionChanged"
-                                                        ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                                        <telerik:RadListBox.DragDropBehavior>
-                                            <telerik:ListBoxDragDropBehavior />
-                                        </telerik:RadListBox.DragDropBehavior>
+                                            DockPanel.Dock="Top"
+                                            FontSize="12"
+                                            HorizontalAlignment="Stretch"
+                                            HorizontalContentAlignment="Stretch"
+                                            ItemsSource="{Binding SuitedColumns}" Text="{Binding Name}"
+                                            ItemContainerStyle="{StaticResource DraggableListBoxItem}"
+                                            SelectionChanged="ListBox_OnSelectionChanged"
+                                            ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                            <telerik:RadListBox.DragDropBehavior>
+                                                <telerik:ListBoxDragDropBehavior />
+                                            </telerik:RadListBox.DragDropBehavior>
                                     </telerik:RadListBox>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
@@ -53,7 +54,7 @@
                 <StackPanel DockPanel.Dock="Top">
                     <Label Content="Не распределенные столбцы"
                            FontSize="14" Height="29" />
-                    <telerik:RadListBox ItemsSource="{Binding UnbindedColumns}" MaxWidth="300"
+                    <telerik:RadListBox ItemsSource="{Binding UnbindedColumns}" Width="200"
                                         HorizontalAlignment="Stretch" MinHeight="200" MaxHeight="300"
                                         Margin="0,5,0,0"
                                         ItemContainerStyle="{StaticResource DraggableListBoxItem}"
@@ -68,7 +69,7 @@
                     <Label Content="Содержание" HorizontalAlignment="Left"
                            FontSize="14" Height="29" />
                     <ListBox Margin="0,5,0,0" ItemsSource="{Binding LastSelectedColumnValuesExamples}" MinHeight="200"
-                             MaxHeight="300"
+                             Height="250" Width="200"
                              HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                              VerticalAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemTemplate>

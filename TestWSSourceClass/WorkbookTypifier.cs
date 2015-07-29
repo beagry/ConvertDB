@@ -38,12 +38,28 @@ namespace Converter
         /// <returns></returns>
         public ExcelPackage CombineToSingleWorkbook()
         {
-            ExcelPackage result = new ExcelPackage();
+            var result = new ExcelPackage();
             ExcelWorksheet resultWS = null;
-            if (!string.IsNullOrEmpty(BaseWbPath))
+            WorksheetFiller wsWriter = null;
+            var reader = new ExcelReader();
+
+            if (!string.IsNullOrEmpty(BaseWbPath) && File.Exists(BaseWbPath))
             {
-                result = new ExcelPackage(new FileInfo(BaseWbPath));
-                resultWS = result.Workbook.Worksheets.First();
+                if (Path.GetExtension(BaseWbPath) == ".csv")
+                {
+                    result = new ExcelPackage();
+                    var data = reader.ReadExcelFile(BaseWbPath).Tables.Cast<DataTable>().First();
+                    resultWS = result.Workbook.Worksheets.Add(data.TableName);
+                    resultWS.Cells["A1"].LoadFromDataTable(data , true);
+                    data.Dispose();
+                }
+                else
+                {
+                    result = new ExcelPackage(new FileInfo(BaseWbPath));
+                    resultWS = result.Workbook.Worksheets.First();
+                }
+
+                wsWriter = new WorksheetFiller(resultWS, RulesDictionary);
             }
             
             if (resultWS == null)
@@ -53,23 +69,22 @@ namespace Converter
 
 
                 var columns = TemplateWorkbook.Columns.Select(c => new { Index = c.ColumnIndex, c.Name, Code = c.CodeName }).ToList();
-                resultWS.WriteHead(columns.ToDictionary(k => k.Index, v => v.Code), 1);
-                resultWS.WriteHead(columns.ToDictionary(k => k.Index, v => v.Name), 2);
+                resultWS.WriteHead(columns.ToDictionary(k => k.Index, v => v.Code), 2);
+                resultWS.WriteHead(columns.ToDictionary(k => k.Index, v => v.Name), 1);
+                wsWriter = new WorksheetFiller(resultWS, RulesDictionary)
+                {
+                    HeadsDictionary = columns.ToDictionary(k => k.Index, v => v.Code)
+                };
             }
 
-            var wsWriter = new WorksheetFiller(resultWS, RulesDictionary);
 
-
-            var reader = new ExcelReader();
+            
             foreach (
                 var dt in
                     WorkbooksPaths.Select(p => reader.ReadExcelFile(p))
                         .Select(ds => ds.Tables.Cast<DataTable>().First()))
             {
                 wsWriter.AppendDataTable(dt);
-                //бug ошибка при сохранении
-                //Можно откатить на Ctrl + Z
-//                result.Save();
             }
 
             return result;

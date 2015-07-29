@@ -36,7 +36,14 @@ namespace Converter.Template_workbooks.EFModels
         public string CodeName { get; set; }
         public int ColumnIndex { get; set; }
         public virtual List<TemplateWorkbook> TemplateWorkbooks { get; set; }
+
+        /// <summary>
+        ///     Паттерны поиска для подходящих колонок
+        /// </summary>
         public virtual List<SearchCritetia> SearchCritetias { get; set; }
+        /// <summary>
+        ///     Полное название сопоставимых колонок
+        /// </summary>
         public virtual List<BindedColumn> BindedColumns { get; set; }
     }
 

@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Converter;
+using Converter.Models;
 using Converter.Template_workbooks;
 using ExcelRLibrary;
 using RwaySupportLibraly;
@@ -41,7 +42,7 @@ namespace UI
                 {
                     if (viewModel.Workbooks.All(w => w.Path != s))
                     {
-                        viewModel.Workbooks.Add(new SelectedWorkbook(s));
+                        viewModel.Workbooks.Add(new SelectWorkbookViewModel(s));
                     }
                 });
         }
@@ -91,9 +92,10 @@ namespace UI
             };
             w.Closed += (o, args) => 
             {
-                ResetWindow();
-                this.Show();
-                viewModel.EditMode = true;
+                Close();
+//                ResetWindow();
+//                this.Show();
+//                viewModel.EditMode = true;
             };
 
             w.Show();
@@ -107,7 +109,7 @@ namespace UI
                 var selItems = WorkbooksListBox.SelectedItems;
                 if (selItems == null || selItems.Count == 0) return;
 
-                foreach (var item in selItems.Cast<SelectedWorkbook>().ToList())
+                foreach (var item in selItems.Cast<SelectWorkbookViewModel>().ToList())
                 {
                     viewModel.Workbooks.Remove(item);
                 }

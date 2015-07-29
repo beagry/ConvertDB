@@ -28,7 +28,7 @@ namespace Converter
     {
         private const string colName = "AddColumn_";
         private int colNum = 1;
-        private Dictionary<int, string> headsDictionary;
+        public Dictionary<int, string> HeadsDictionary { get; set; }
         private int lastUsedColumn;
         private int lastUsedRow;
 
@@ -42,7 +42,7 @@ namespace Converter
         public WorksheetFiller(ExcelWorksheet worksheet) : this()
         {
             Worksheet = worksheet;
-            headsDictionary = worksheet.ReadHead();
+            HeadsDictionary = worksheet.ReadHead();
             lastUsedColumn = Worksheet.Dimension.End.Column;
             lastUsedRow = Worksheet.Dimension.End.Row;
         }
@@ -79,7 +79,7 @@ namespace Converter
                 if (indexToPaste == 0)
                 {
                     indexToPaste = ++lastUsedColumn;
-                    headsDictionary.Add(indexToPaste, pasteColumnName);
+                    HeadsDictionary.Add(indexToPaste, pasteColumnName);
                     Worksheet.Cells[1, indexToPaste].Value = pasteColumnName;
                     RulesDictionary.Add(pasteColumnName, new List<string> {pasteColumnName});
                 }
@@ -128,16 +128,16 @@ namespace Converter
                         kv.Value.Any(s => string.Equals(s, columnNameToSearch, StringComparison.OrdinalIgnoreCase)))
                 .Key;
 
-            if (!headsDictionary.ContainsValue(columnNameToPaste))
+            if (!HeadsDictionary.ContainsValue(columnNameToPaste))
             {
                 var indexToPaste = ++lastUsedColumn;
-                headsDictionary.Add(indexToPaste, columnNameToPaste);
+                HeadsDictionary.Add(indexToPaste, columnNameToPaste);
                 Worksheet.Cells[1, indexToPaste].Value = columnNameToPaste;
                 return indexToPaste;
             }
 
             return
-                headsDictionary.First(
+                HeadsDictionary.First(
                     kv => string.Equals(kv.Value, columnNameToPaste, StringComparison.OrdinalIgnoreCase)).Key;
         }
     }

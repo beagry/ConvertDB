@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using Converter.Template_workbooks;
 using Converter.Template_workbooks.EFModels;
+using ExcelRLibrary;
 using ExcelRLibrary.TemplateWorkbooks;
 using TemplateWorkbook = Converter.Template_workbooks.EFModels.TemplateWorkbook;
 
@@ -77,7 +78,7 @@ namespace Converter
                 for (var i = tableColumns.Count - 1; i >= 0; i--)
                 {
                     var tableColumn = tableColumns[i];
-                    if (!column.BindedColumns.Any(bc => bc.Name.Equals(tableColumn.Name))) continue;
+                    if (!column.BindedColumns.Any(bc => bc.Name.EqualNoCase(tableColumn.Name))) continue;
 
                     columnsDictionary.Add(tableColumn.Index, column.CodeName);
                     tableColumns.Remove(tableColumn);
