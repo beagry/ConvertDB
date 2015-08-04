@@ -26,18 +26,16 @@ namespace Formater
     public partial class DbToConvert
     {
         readonly Logger logger = LogManager.GetCurrentClassLogger();
-        private const string noInfoString = "не указано";
-        private static int lastUsedRow;
+        private const string NoInfoString = "не указано";
+        private static int _lastUsedRow;
         private byte additionalInfoColumn;
         private byte buildColumn;
-//        private readonly TemplateWbsContext db;
         private byte distToNearCityColumn;
         private byte distToRegCenterColumn;
         private Dictionary<int, string> head;
         private byte houseNumColumn;
         private byte inCityColumn;
         private byte letterColumn;
-//        privaty MainForm MainForm;
         private byte nearCityColumn;
         private byte regionColumn;
         private readonly List<long> rowsToDelete;
@@ -80,7 +78,7 @@ namespace Formater
                     logger.Error("Ошибка при чтении главного файла. Возможно файл слишком большой");
                     throw;
                 }
-                lastUsedRow = worksheet.Dimension.Rows;
+                _lastUsedRow = worksheet.Dimension.Rows;
                 head = worksheet.ReadHead();
             });
         }
@@ -197,7 +195,7 @@ namespace Formater
             readedDses = null;
             GC.Collect();
 
-            lastUsedRow = worksheet.Dimension.End.Row;
+            _lastUsedRow = worksheet.Dimension.End.Row;
 
             return true;
         }
@@ -237,28 +235,28 @@ namespace Formater
             FormatClassification();
             
 
-//            FormatCommunications();
-//            FormatAreaLot();
-//            FormatPrice();
-//
-//            FormatOfferDeal();
-//            FormatOperation();
-//            FormatLandLaw();
-//            FormatSaleType();
-//
-//            FormatLandCategory();
-//
-//            FormatDate("DATE_RESEARCH");
-//            FormatDate("DATE_PARSING");
-//            FormatDate("DATE_IN_BASE");
-//            FormatBuildings();
-//            FormatLastUpdateDate();
-//
-//            FormatSurface();
-//            FormatRoad();
-//            FormatRelief();
-//
-//            FormatDistToRegCenter();
+            FormatCommunications();
+            FormatAreaLot();
+            FormatPrice();
+
+            FormatOfferDeal();
+            FormatOperation();
+            FormatLandLaw();
+            FormatSaleType();
+
+            FormatLandCategory();
+
+            FormatDate("DATE_RESEARCH");
+            FormatDate("DATE_PARSING");
+            FormatDate("DATE_IN_BASE");
+            FormatBuildings();
+            FormatLastUpdateDate();
+
+            FormatSurface();
+            FormatRoad();
+            FormatRelief();
+
+            FormatDistToRegCenter();
 
             return true;
         }
@@ -289,7 +287,7 @@ namespace Formater
                 var cell = worksheet.Cells[i, columnIndex];
                 if (cell.Value == null || cell.Value.ToString() == string.Empty)
                 {
-                    cell.Value = noInfoString;
+                    cell.Value = NoInfoString;
                     continue;
                 }
 
@@ -324,7 +322,7 @@ namespace Formater
                 var cell = worksheet.Cells[i, columnIndex];
                 if (cell.Value == null || cell.Value.ToString() == string.Empty)
                 {
-                    cell.Value = noInfoString;
+                    cell.Value = NoInfoString;
                     continue;
                 }
 
@@ -346,7 +344,7 @@ namespace Formater
                 if (Regex.IsMatch(cell.Value.ToString(), "грав", RegexOptions.IgnoreCase))
                     cell.Value = "гравийная дорога";
                 else
-                    cell.Value = noInfoString;
+                    cell.Value = NoInfoString;
             }
         }
 
@@ -359,7 +357,7 @@ namespace Formater
                 var cell = worksheet.Cells[i, columnIndex];
                 if (cell.Value == null || cell.Value.ToString() == string.Empty)
                 {
-                    cell.Value = noInfoString;
+                    cell.Value = NoInfoString;
                     continue;
                 }
 
@@ -376,7 +374,7 @@ namespace Formater
                 if (Regex.IsMatch(cell.Value.ToString(), "грун", RegexOptions.IgnoreCase))
                     cell.Value = "грунт";
                 else
-                    cell.Value = noInfoString;
+                    cell.Value = NoInfoString;
             }
         }
 
@@ -469,7 +467,7 @@ namespace Formater
                 if (cell.Value == null || cell.Value.ToString() == string.Empty)
                     if (cell.Value == null || cell.Value.ToString() == string.Empty)
                     {
-                        cell.Value = noInfoString;
+                        cell.Value = NoInfoString;
                     }
 
                 //Если есть дата
@@ -663,7 +661,7 @@ namespace Formater
                 var cell = worksheet.Cells[i, columnIndex];
                 if (cell.Value == null || cell.Value.ToString() == string.Empty)
                 {
-                    cell.Value = noInfoString;
+                    cell.Value = NoInfoString;
                     continue;
                 }
 
@@ -737,7 +735,7 @@ namespace Formater
 
             var lastColumnIndex = GetColumnIndex("HEAT_SUPPLY");
 
-            var usingRange = worksheet.Cells[2, firstColumnIndex, lastUsedRow, lastColumnIndex];
+            var usingRange = worksheet.Cells[2, firstColumnIndex, _lastUsedRow, lastColumnIndex];
 
             var columnsCodeList = new List<string>
             {
@@ -757,7 +755,7 @@ namespace Formater
                 var cell = worksheet.Cells[i, columnIndex];
                 if (cell.Value == null || cell.Value.ToString() == string.Empty)
                 {
-                    cell.Value = noInfoString;
+                    cell.Value = NoInfoString;
                     continue;
                 }
 
@@ -804,7 +802,7 @@ namespace Formater
                 //В самом конце можем перезаписать ячейку
                 cell.Value = Regex.IsMatch(cell.Value.ToString(), "газ", RegexOptions.IgnoreCase)
                     ? "есть, но не указано какое"
-                    : noInfoString;
+                    : NoInfoString;
             }
 
             //Проходимся по остальным столбцам (Вода, электр-во, канализация, отопление)
@@ -824,7 +822,7 @@ namespace Formater
                     var cell = worksheet.Cells[i, columnIndex];
                     if (cell.Value == null || cell.Value.ToString() == string.Empty)
                     {
-                        cell.Value = noInfoString;
+                        cell.Value = NoInfoString;
                         continue;
                     }
 
@@ -1028,12 +1026,15 @@ namespace Formater
 
         #endregion
 
+        /// <summary>
+        /// Разбирает столбцы местоположения
+        /// </summary>
         private void FormatClassification()
         {
             Stopwatch sw = null;
             var mainSw = Stopwatch.StartNew();
             var currRow = 0;
-            var rows = Enumerable.Range(HeadSize + 1, lastUsedRow);
+            var rows = Enumerable.Range(HeadSize + 1, _lastUsedRow);
 
             rows.ForEach(row =>
             {
@@ -1055,14 +1056,15 @@ namespace Formater
             });
 
             logger.Info("Обрабочка местоположения прошла успешно.");
-            logger.Info("На {0} объектов было затрачено {1}", lastUsedRow - HeadSize, mainSw.Elapsed.ToString(@"hh\:mm\:ss"));
+            logger.Info("На {0} объектов было затрачено {1}", _lastUsedRow - HeadSize, mainSw.Elapsed.ToString(@"hh\:mm\:ss"));
         }
 
 
         public bool DoDescription { get; set; }
 
         /// <summary>
-        ///     Метод запускается после максимального заполнения Населенного пункта, т.к. сравнивается с ним
+        ///     
+        ///     !Метод запускается после последней проверки всех ячеек на населенный пункт
         /// </summary>
         private void FormatDistToRegCenter()
         {
@@ -1071,7 +1073,7 @@ namespace Formater
             var nearCColumnIndex = GetColumnIndex("DIST_NEAR_CITY");
 
             //Для проверки
-            var distToDeadCity =
+            var distToNeadCity =
                 new Regex(
                     @"(?<dist>\d(?:\d|\s|\,|\.)+)\s?км\.?\s*(?<incity>\b(?:от|до|за)\b\s(?<cityType>[а-я]+\.?\s?)?(?<cityName>[А-Я]\w+)?)?");
 

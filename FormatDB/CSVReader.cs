@@ -27,7 +27,7 @@ namespace Formater
                     if (!doFirstLine)
                     {
                         var firstLine = reader.ReadLine();
-                        if (String.IsNullOrEmpty(firstLine)) return null;
+                        if (string.IsNullOrEmpty(firstLine)) return null;
                         var columnNames = firstLine.Split(headerDelimiter, StringSplitOptions.None);
 
 

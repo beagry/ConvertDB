@@ -80,7 +80,13 @@ namespace Converter
                     var tableColumn = tableColumns[i];
                     if (!column.BindedColumns.Any(bc => bc.Name.EqualNoCase(tableColumn.Name))) continue;
 
-                    columnsDictionary.Add(tableColumn.Index, column.CodeName);
+                    var index = tableColumn.Index;
+                    while (true)
+                    {
+                        if (!columnsDictionary.ContainsKey(index)) break;
+                        index++;
+                    }
+                    columnsDictionary.Add(index, column.CodeName);
                     tableColumns.Remove(tableColumn);
                 }
             }

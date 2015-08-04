@@ -16,10 +16,9 @@
                     <Setter Property="telerik:DragDropManager.AllowCapturedDrag" Value="True" />
                 </Style>
             </StackPanel.Resources>
-
+            <DockPanel MaxHeight="600" Margin="10,20,10,10">
             <ListView ItemsSource="{Binding BindedColumns}"
-                      Margin="10,20,10,10"
-                      
+                      DockPanel.Dock="Top"
                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                       x:Name="ColumnsListView">
                 <ListView.View>
@@ -49,7 +48,7 @@
                     </GridView>
                 </ListView.View>
             </ListView>
-
+            </DockPanel>
             <DockPanel Margin="10" Grid.Column="1" VerticalAlignment="Stretch">
                 <StackPanel DockPanel.Dock="Top">
                     <Label Content="Не распределенные столбцы"

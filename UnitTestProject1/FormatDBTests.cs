@@ -26,7 +26,8 @@ namespace UnitTestProject1
             IFormatDbParams viewModel = new FormatDbViewModel();
 //            viewModel.Path = @"B:\Managers\Денис\Инструменты\Обрабокта выгрузок\Обработать\14 год КН ЗУ\3 Земля\Result\С-Я.xlsx";
 //            viewModel.Path = @"M:\Managers\Денис\Инструменты\Обрабокта выгрузок\Этап 2\Топ.xlsx";
-            viewModel.Path = @"M:\Managers\Денис\Инструменты\Обрабокта выгрузок\Этап 2\Zy_irr1411_typed.xlsx";
+//            viewModel.Path = @"M:\Managers\Денис\Инструменты\Обрабокта выгрузок\Этап 2\Zy_irr1411_typed.xlsx";
+            viewModel.Path = @"M:\Managers\Денис\Инструменты\Обрабокта выгрузок\Этап 2\Воронежская область_all.xlsx";
 
             const string suppWbPath = @"D:\Земля 3 мини.xlsx";
             viewModel.CatalogSupportWorkbook.Path = suppWbPath;
