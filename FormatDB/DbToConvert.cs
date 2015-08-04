@@ -1,5 +1,4 @@
-﻿#define CheckHead
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -17,119 +16,33 @@ using Formater.SupportWorksheetsClasses;
 using Microsoft.Office.Interop.Excel;
 using NLog;
 using OfficeOpenXml;
+using Action = System.Action;
 using DataTable = System.Data.DataTable;
 
 namespace Formater
 {
-    public delegate void VoidDelegate();
-
     public partial class DbToConvert
     {
         readonly Logger logger = LogManager.GetCurrentClassLogger();
+
         private const string NoInfoString = "не указано";
         private static int _lastUsedRow;
-        private byte additionalInfoColumn;
-        private byte buildColumn;
-        private byte distToNearCityColumn;
-        private byte distToRegCenterColumn;
         private Dictionary<int, string> head;
-        private byte houseNumColumn;
-        private byte inCityColumn;
-        private byte letterColumn;
-        private byte nearCityColumn;
-        private byte regionColumn;
-        private readonly List<long> rowsToDelete;
-        private byte settlementColumn;
-        private  byte sntKpDnpColumn;
-        private  byte sourceLinkColumn;
-        private  byte streetColumn;
-        private byte subjColumn;
-        private  byte typeOfNearCityColumn;
-        private  byte typeOfStreetColumn;
-        private  byte vgtColumn;
+        private readonly List<long> rowsToDelete; //Будет использоваться, но позже
         private readonly XlTemplateWorkbookType wbType;
         private ExcelWorksheet worksheet;
         private readonly IFormatDbParams dbParams;
         private Task initWbTask;
-        private Task initColumnsTask;
         private SupportWorksheets supportWorksheets;
         private List<TemplateColumn> columns;
-        private byte parsingDateColumn;
+
 
         public DbToConvert(IFormatDbParams dbParams) : this()
         {
             this.dbParams = dbParams;
             wbType = dbParams.WorkbookType;
+            ReadSupportWorksheets();
             InitWorkbook(dbParams.Path);
-        }
-
-        private void InitWorkbook(string path)
-        {
-            initWbTask = Task.Run(() =>
-            {
-                logger.Info("Чтение главной книги по адресу {0}",path);
-                try
-                {
-                    ExcelPackage = new ExcelPackage(new FileInfo(path));
-                    worksheet = ExcelPackage.Workbook.Worksheets.First();
-                }
-                catch (Exception)
-                {
-                    logger.Error("Ошибка при чтении главного файла. Возможно файл слишком большой");
-                    throw;
-                }
-                _lastUsedRow = worksheet.Dimension.Rows;
-                head = worksheet.ReadHead();
-            });
-        }
-
-        private DbToConvert()
-        {
-            HeadSize = 2;
-            rowsToDelete = new List<long>();
-            InitColumns();
-        }
-
-        private void InitColumns()
-        {
-            initColumnsTask =  Task.Run(() =>
-            {
-                try
-                {
-                    using (var db = new TemplateWbsContext())
-                    {
-                        columns = db.TemplateWorkbooks.First(w => w.WorkbookType == wbType).Columns.ToList();
-                    }
-
-                    subjColumn = (byte) columns.First(c => c.CodeName.Equals("SUBJECT")).ColumnIndex;
-                    regionColumn = (byte) columns.First(c => c.CodeName.Equals("REGION")).ColumnIndex;
-                    settlementColumn = (byte) columns.First(c => c.CodeName.Equals("SETTLEMENT")).ColumnIndex;
-                    nearCityColumn = (byte) columns.First(c => c.CodeName.Equals("NEAR_CITY")).ColumnIndex;
-                    typeOfNearCityColumn = (byte) columns.First(c => c.CodeName.Equals("TERRITORY_TYPE")).ColumnIndex;
-                    vgtColumn = (byte) columns.First(c => c.CodeName.Equals("VGT")).ColumnIndex;
-                    streetColumn = (byte) columns.First(c => c.CodeName.Equals("STREET")).ColumnIndex;
-                    typeOfStreetColumn = (byte) columns.First(c => c.CodeName.Equals("STREET_TYPE")).ColumnIndex;
-                    sourceLinkColumn = (byte) columns.First(c => c.CodeName.Equals("URL_SALE")).ColumnIndex;
-                    distToRegCenterColumn = (byte) columns.First(c => c.CodeName.Equals("DIST_REG_CENTER")).ColumnIndex;
-                    distToNearCityColumn = (byte) columns.First(c => c.CodeName.Equals("DIST_NEAR_CITY")).ColumnIndex;
-                    inCityColumn = (byte) columns.First(c => c.CodeName.Equals("IN_CITY")).ColumnIndex;
-                    houseNumColumn = (byte) columns.First(c => c.CodeName.Equals("HOUSE_NUM")).ColumnIndex;
-                    letterColumn = (byte) columns.First(c => c.CodeName.Equals("LETTER")).ColumnIndex;
-                    sntKpDnpColumn = (byte) columns.First(c => c.CodeName.Equals("ASSOCIATIONS")).ColumnIndex;
-                    additionalInfoColumn = (byte) columns.First(c => c.CodeName.Equals("ADDITIONAL")).ColumnIndex;
-                    buildColumn = (byte) columns.First(c => c.CodeName.Equals("HOUSE_NUM")).ColumnIndex;
-                    parsingDateColumn = (byte) columns.First(c => c.CodeName.Equals("DATE_PARSING")).ColumnIndex;
-                }
-                catch (InvalidOperationException)
-                {
-                    logger.Fatal("Шаблонная книга не содержит указанной колонки");
-                }
-                catch (Exception)
-                {
-                    logger.Fatal("Ошибка при чтении базы");
-                    throw;
-                }
-            });
         }
 
 
@@ -138,50 +51,58 @@ namespace Formater
         public ExcelPackage ExcelPackage { get; private set; }
         public bool DoDescription { get; set; }
 
-        public bool ColumnHeadIsOk()
+
+
+
+        public bool CheckWorkbookhead()
         {
-            Task.WaitAll(initColumnsTask, initWbTask);
+            Task.WaitAll(initWbTask);
             
-#if DEBUG
             var i = 1;
             foreach (var templateCode in columns.Select(c => c.CodeName))
             {
                 if (worksheet.Cells[1, i].Value.ToString() != templateCode)
                 {
+                    logger.Error("Колонка #{0} должна содержать значение \"{1}\"",i,templateCode);
                     MessageBox.Show(string.Format("Табличная шапка в листе {0} не соотвествует стандарту",
                         worksheet.Name));
-                    return false;
+                    throw new ArgumentException("Шапка переданной книги не соответствует стандарту");
                 }
                 i++;
             }
-#endif
 
-            var readedDses = ReadPaths();
+            return true;
+        }
 
+        private void ReadSupportWorksheets()
+        {
             logger.Info("Чтение вспомогательных книг");
+
+            var supportDataSetsDict = ReadPaths();
+            if (supportDataSetsDict.Any(ds => ds.Equals(null))) throw new ArgumentException("Одна или несколько книг не читаемы");
+
             try
             {
-
                 var klard = new KladrRepository();
 
                 var oktmoWs =
                     new OKTMORepository(
-                        readedDses[dbParams.OktmoSupportWorkbook.Path].Tables.Cast<DataTable>()
+                        supportDataSetsDict[dbParams.OktmoSupportWorkbook.Path].Tables.Cast<DataTable>()
                             .First(t => t.TableName.Equals(dbParams.OktmoSupportWorkbook.SelectedWorksheet)), klard,
-                        readedDses[dbParams.OktmoSupportWorkbook.Path].Tables.Cast<DataTable>()
+                        supportDataSetsDict[dbParams.OktmoSupportWorkbook.Path].Tables.Cast<DataTable>()
                             .FirstOrDefault(t => t.TableName.EqualNoCase("РегЦентры")));
 
                 var soubjectSourceWorksheet =
                     new SubjectSourcesRepository(
-                        readedDses[dbParams.SubjectSourceSupportWorkbook.Path]
+                        supportDataSetsDict[dbParams.SubjectSourceSupportWorkbook.Path]
                             .Tables.Cast<DataTable>()
                             .First(t => t.TableName.Equals(dbParams.SubjectSourceSupportWorkbook.SelectedWorksheet)));
 
-                var vgtWorksheet = new VGTRepository(readedDses[dbParams.VgtCatalogSupportWorkbook.Path]
+                var vgtWorksheet = new VGTRepository(supportDataSetsDict[dbParams.VgtCatalogSupportWorkbook.Path]
                     .Tables.Cast<DataTable>()
                     .First(t => t.TableName.Equals(dbParams.VgtCatalogSupportWorkbook.SelectedWorksheet)));
 
-                var catalogWs = new CatalogueRepository(readedDses[dbParams.CatalogSupportWorkbook.Path]
+                var catalogWs = new CatalogueRepository(supportDataSetsDict[dbParams.CatalogSupportWorkbook.Path]
                     .Tables.Cast<DataTable>()
                     .First(t => t.TableName.Equals(dbParams.CatalogSupportWorkbook.SelectedWorksheet)));
 
@@ -190,22 +111,19 @@ namespace Formater
             catch (Exception)
             {
                 logger.Error("Ошибка при чтении вспомогательных книг");
-                return  false;
+                throw new ArgumentException("Одна или несколько книг не читаемы");
             }
-            
+
             logger.Info("Чтение прошло успешно");
 
-            foreach (var pair in readedDses)
+            foreach (var pair in supportDataSetsDict)
             {
                 pair.Value.Dispose();
             }
-            readedDses = null;
+
             GC.Collect();
-
-            _lastUsedRow = worksheet.Dimension.End.Row;
-
-            return true;
         }
+
 
 
         /// <summary>
@@ -214,7 +132,8 @@ namespace Formater
         /// <returns></returns>
         public bool FormatWorksheet()
         {
-            Task.WaitAll(initColumnsTask, initWbTask);
+            Task.WaitAll(initWbTask);
+
             if (worksheet == null || supportWorksheets.OKTMOWs == null || supportWorksheets.CatalogWs == null) return false;
 
             FormatClassification();
@@ -571,7 +490,7 @@ namespace Formater
                 var m = daysAgoRegex.Match(value);
                 if (m.Success)
                 {
-                    var parsingDateCell = worksheet.Cells[i, parsingDateColumn];
+                    var parsingDateCell = worksheet.Cells[i, GetColumnIndex("DATE_PARSING")];
                     var parsingDate = parsingDateCell.Value as DateTime? ?? DateTime.MinValue;
                     if (parsingDate != DateTime.MinValue)
                     {
@@ -940,19 +859,6 @@ namespace Formater
                             cell.Value = string.Empty;
                             continue;
                         }
-
-                        ////За метр квадратный
-                        ////ТО есть есть общая площадь (что не всегда) и есть за м.кв.
-                        //var pricePerUnitCell =
-                        //    worksheet.Cells[cell.Start.Row, GetColumnIndex("PRICE_FOR_UNIT")];
-
-                        //double s2;
-
-                        ////Убераем пробемы, заменяем точку на запятую и конвертирует в double
-                        //double.TryParse(match.Value.Trim().Replace(" ", string.Empty).Replace(".", ","), out s2);
-
-                        //pricePerUnitCell.Value = s2*y*x;
-                        //pricePerUnitCell.Style.Numberformat.Format = "#";
                     }
                 }
 
@@ -1058,8 +964,8 @@ namespace Formater
                 if (string.IsNullOrEmpty(cell.Value as string))
                     continue;
 
-                var inCityCell = worksheet.Cells[cell.Start.Row, inCityColumn];
-                var nearCityCell = worksheet.Cells[cell.Start.Row, nearCityColumn];
+                var inCityCell = worksheet.Cells[cell.Start.Row, GetColumnIndex("IN_CITY")];
+                var nearCityCell = worksheet.Cells[cell.Start.Row, GetColumnIndex("NEAR_CITY")];
 
                 var distValue = cell.Value.ToString();
                 if (distValue == "0")
@@ -1087,7 +993,7 @@ namespace Formater
                         if (nearCityCell.IsEmpty() == false &&
                             nearCityCell.Value.ToString() == match.Groups["Name"].Value)
                         {
-                            worksheet.Cells[cell.Start.Row, distToNearCityColumn].Value =
+                            worksheet.Cells[cell.Start.Row, GetColumnIndex("DIST_NEAR_CITY")].Value =
                                 match.Groups["num"].Value;
                             cell.Value = string.Empty;
                         }
@@ -1112,29 +1018,75 @@ namespace Formater
             return firstOrDefault != null ? firstOrDefault.ColumnIndex : 0;
         }
 
+        /// <summary>
+        ///     Производит чтение всех дополнительных вниг
+        /// </summary>
+        /// <exception cref="ArgumentException">Когда одну из книг не получилось прочитать</exception>
+        /// <returns></returns>
         private Dictionary<string, DataSet> ReadPaths()
         {
-            var result = new Dictionary<string, DataSet>();
-            var reader = new ExcelReader();
-
+            
             var paths = new[]
             {
                 dbParams.OktmoSupportWorkbook.Path,
                 dbParams.CatalogSupportWorkbook.Path,
                 dbParams.SubjectSourceSupportWorkbook.Path,
                 dbParams.VgtCatalogSupportWorkbook.Path,
-            };
+            }.Distinct();
+
+
+            var result = new Dictionary<string, DataSet>();
+            var reader = new ExcelReader();
 
             foreach (var path in paths)
             {
-                if (result.ContainsKey(path)) continue;
-                result.Add(path, reader.ReadExcelFile(path));
+                var ds = reader.ReadExcelFile(path);
+                if (ds == null) throw new ArgumentException("Одну или несколько книг не возмонжо прочитать");
+                result.Add(path, ds);
             }
 
             return result;
 
         }
 
+        /// <summary>
+        ///     
+        /// </summary>
+        /// <exception cref="ArgumentException">Выбрасывает при ошибки чтения файла или чтения бд</exception>
+        /// <param name="path">Пусть в рабочей книге</param>
+        private void InitWorkbook(string path)
+        {
+            initWbTask = Task.Run(() =>
+            {
+                logger.Info("Чтение главной книги по адресу {0}", path);
+                try
+                {
+                    ExcelPackage = new ExcelPackage(new FileInfo(path));
+                    worksheet = ExcelPackage.Workbook.Worksheets.First();
+                }
+                catch (Exception)
+                {
+                    logger.Error("Ошибка при чтении главного файла. Возможно файл слишком большой");
+                    throw new ArgumentException();
+                }
+                _lastUsedRow = worksheet.Dimension.Rows;
+                head = worksheet.ReadHead();
 
+                try
+                {
+                    columns = UnitOfWorkSingleton.UnitOfWork.TemplateWbsRespository.GetTypedWorkbook(wbType).Columns;
+                }
+                catch (Exception)
+                {
+                    throw new ArgumentException();
+                }
+            });           
+        }
+
+        private DbToConvert()
+        {
+            HeadSize = 2;
+            rowsToDelete = new List<long>();
+        }
     }
 }
