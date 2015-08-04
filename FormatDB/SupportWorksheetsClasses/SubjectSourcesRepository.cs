@@ -10,7 +10,7 @@ using DataTable = System.Data.DataTable;
 
 namespace Formater.SupportWorksheetsClasses
 {
-    public class SubjectSourceWorksheet
+    public class SubjectSourcesRepository
     {
         private readonly DataTable table;
         private const byte SourceNameColumnIndex = 1;
@@ -19,7 +19,7 @@ namespace Formater.SupportWorksheetsClasses
         private const byte DefaultCityColumnIndex = 5;
         
 
-        public SubjectSourceWorksheet(DataTable table)
+        public SubjectSourcesRepository(DataTable table)
         {
             this.table = table;
         }

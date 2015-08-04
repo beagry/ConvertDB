@@ -150,7 +150,7 @@
     <Compile Include="CSVReader.cs" />
     <Compile Include="Interfaces.cs" />
     <Compile Include="OktmoHelper.cs" />
-    <Compile Include="SupportWorksheetsClasses\CatalogWorksheet.cs" />
+    <Compile Include="SupportWorksheetsClasses\CatalogueRepository.cs" />
     <Compile Include="DbToConvert.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="LandPropertyTemplateWorkbook.cs" />
@@ -182,8 +182,8 @@
     </Compile>
     <Compile Include="SimilarityTool.cs" />
     <Compile Include="SupportWorksheetsClasses\PlaceWithType.cs" />
-    <Compile Include="SupportWorksheetsClasses\SubjectSourceWorksheet.cs" />
-    <Compile Include="SupportWorksheetsClasses\VGTWorksheet.cs" />
+    <Compile Include="SupportWorksheetsClasses\SubjectSourcesRepository.cs" />
+    <Compile Include="SupportWorksheetsClasses\VGTRepository.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

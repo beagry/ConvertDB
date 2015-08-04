@@ -9,14 +9,14 @@ using OfficeOpenXml;
 
 namespace Formater.SupportWorksheetsClasses
 {
-    public  class CatalogWorksheet:IDisposable
+    public  class CatalogueRepository:IDisposable
     {
         private System.Data.DataTable table;
         private const byte CodeColumnIndex = 2;
         private const byte NameColumnIndex = 3;
         private const byte ContentColumnIndex = 5;
 
-        public CatalogWorksheet(System.Data.DataTable table)
+        public CatalogueRepository(System.Data.DataTable table)
         {
             this.table = table;
         }

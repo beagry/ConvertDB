@@ -87,37 +87,42 @@ namespace Formater
         {
             HeadSize = 2;
             rowsToDelete = new List<long>();
-            InitColumn();
+            InitColumns();
         }
 
-        private void InitColumn()
+        private void InitColumns()
         {
             initColumnsTask =  Task.Run(() =>
             {
                 try
                 {
-                    var db = new TemplateWbsContext();
-                    columns = db.TemplateWorkbooks.First(w => w.WorkbookType == wbType).Columns.ToList();
+                    using (var db = new TemplateWbsContext())
+                    {
+                        columns = db.TemplateWorkbooks.First(w => w.WorkbookType == wbType).Columns.ToList();
+                    }
 
-                    subjColumn = (byte)columns.First(c => c.CodeName.Equals("SUBJECT")).ColumnIndex;
-                    regionColumn = (byte)columns.First(c => c.CodeName.Equals("REGION")).ColumnIndex;
-                    settlementColumn = (byte)columns.First(c => c.CodeName.Equals("SETTLEMENT")).ColumnIndex;
-                    nearCityColumn = (byte)columns.First(c => c.CodeName.Equals("NEAR_CITY")).ColumnIndex;
-                    typeOfNearCityColumn = (byte)columns.First(c => c.CodeName.Equals("TERRITORY_TYPE")).ColumnIndex;
-                    vgtColumn = (byte)columns.First(c => c.CodeName.Equals("VGT")).ColumnIndex;
-                    streetColumn = (byte)columns.First(c => c.CodeName.Equals("STREET")).ColumnIndex;
-                    typeOfStreetColumn = (byte)columns.First(c => c.CodeName.Equals("STREET_TYPE")).ColumnIndex;
-                    sourceLinkColumn = (byte)columns.First(c => c.CodeName.Equals("URL_SALE")).ColumnIndex;
-                    distToRegCenterColumn = (byte)columns.First(c => c.CodeName.Equals("DIST_REG_CENTER")).ColumnIndex;
-                    distToNearCityColumn = (byte)columns.First(c => c.CodeName.Equals("DIST_NEAR_CITY")).ColumnIndex;
-                    inCityColumn = (byte)columns.First(c => c.CodeName.Equals("IN_CITY")).ColumnIndex;
-                    houseNumColumn = (byte)columns.First(c => c.CodeName.Equals("HOUSE_NUM")).ColumnIndex;
-                    letterColumn = (byte)columns.First(c => c.CodeName.Equals("LETTER")).ColumnIndex;
-                    sntKpDnpColumn = (byte)columns.First(c => c.CodeName.Equals("ASSOCIATIONS")).ColumnIndex;
-                    additionalInfoColumn = (byte)columns.First(c => c.CodeName.Equals("ADDITIONAL")).ColumnIndex;
-                    buildColumn = (byte)columns.First(c => c.CodeName.Equals("HOUSE_NUM")).ColumnIndex;
-                    parsingDateColumn = (byte)columns.First(c => c.CodeName.Equals("DATE_PARSING")).ColumnIndex;
-                    db.Dispose();
+                    subjColumn = (byte) columns.First(c => c.CodeName.Equals("SUBJECT")).ColumnIndex;
+                    regionColumn = (byte) columns.First(c => c.CodeName.Equals("REGION")).ColumnIndex;
+                    settlementColumn = (byte) columns.First(c => c.CodeName.Equals("SETTLEMENT")).ColumnIndex;
+                    nearCityColumn = (byte) columns.First(c => c.CodeName.Equals("NEAR_CITY")).ColumnIndex;
+                    typeOfNearCityColumn = (byte) columns.First(c => c.CodeName.Equals("TERRITORY_TYPE")).ColumnIndex;
+                    vgtColumn = (byte) columns.First(c => c.CodeName.Equals("VGT")).ColumnIndex;
+                    streetColumn = (byte) columns.First(c => c.CodeName.Equals("STREET")).ColumnIndex;
+                    typeOfStreetColumn = (byte) columns.First(c => c.CodeName.Equals("STREET_TYPE")).ColumnIndex;
+                    sourceLinkColumn = (byte) columns.First(c => c.CodeName.Equals("URL_SALE")).ColumnIndex;
+                    distToRegCenterColumn = (byte) columns.First(c => c.CodeName.Equals("DIST_REG_CENTER")).ColumnIndex;
+                    distToNearCityColumn = (byte) columns.First(c => c.CodeName.Equals("DIST_NEAR_CITY")).ColumnIndex;
+                    inCityColumn = (byte) columns.First(c => c.CodeName.Equals("IN_CITY")).ColumnIndex;
+                    houseNumColumn = (byte) columns.First(c => c.CodeName.Equals("HOUSE_NUM")).ColumnIndex;
+                    letterColumn = (byte) columns.First(c => c.CodeName.Equals("LETTER")).ColumnIndex;
+                    sntKpDnpColumn = (byte) columns.First(c => c.CodeName.Equals("ASSOCIATIONS")).ColumnIndex;
+                    additionalInfoColumn = (byte) columns.First(c => c.CodeName.Equals("ADDITIONAL")).ColumnIndex;
+                    buildColumn = (byte) columns.First(c => c.CodeName.Equals("HOUSE_NUM")).ColumnIndex;
+                    parsingDateColumn = (byte) columns.First(c => c.CodeName.Equals("DATE_PARSING")).ColumnIndex;
+                }
+                catch (InvalidOperationException)
+                {
+                    logger.Fatal("Шаблонная книга не содержит указанной колонки");
                 }
                 catch (Exception)
                 {
@@ -131,6 +136,7 @@ namespace Formater
         public List<string> ColumnsToReserve { get; set; }
         public int HeadSize { get; set; }
         public ExcelPackage ExcelPackage { get; private set; }
+        public bool DoDescription { get; set; }
 
         public bool ColumnHeadIsOk()
         {
@@ -138,19 +144,16 @@ namespace Formater
             
 #if DEBUG
             var i = 1;
-            var db = new TemplateWbsContext();
-            var columns = db.TemplateWorkbooks.First(w => w.WorkbookType == wbType).Columns.ToList();
             foreach (var templateCode in columns.Select(c => c.CodeName))
             {
                 if (worksheet.Cells[1, i].Value.ToString() != templateCode)
                 {
-                    MessageBox.Show(String.Format("Табличная шапка в листе {0} не соотвествует стандарту",
+                    MessageBox.Show(string.Format("Табличная шапка в листе {0} не соотвествует стандарту",
                         worksheet.Name));
                     return false;
                 }
                 i++;
             }
-            db.Dispose();
 #endif
 
             var readedDses = ReadPaths();
@@ -161,20 +164,24 @@ namespace Formater
 
                 var klard = new KladrRepository();
 
-                var oktmoWs = new OKTMORepository(readedDses[dbParams.OktmoSupportWorkbook.Path],
-                    dbParams.OktmoSupportWorkbook.SelectedWorksheet,klard);
+                var oktmoWs =
+                    new OKTMORepository(
+                        readedDses[dbParams.OktmoSupportWorkbook.Path].Tables.Cast<DataTable>()
+                            .First(t => t.TableName.Equals(dbParams.OktmoSupportWorkbook.SelectedWorksheet)), klard,
+                        readedDses[dbParams.OktmoSupportWorkbook.Path].Tables.Cast<DataTable>()
+                            .FirstOrDefault(t => t.TableName.EqualNoCase("РегЦентры")));
 
                 var soubjectSourceWorksheet =
-                    new SubjectSourceWorksheet(
+                    new SubjectSourcesRepository(
                         readedDses[dbParams.SubjectSourceSupportWorkbook.Path]
                             .Tables.Cast<DataTable>()
                             .First(t => t.TableName.Equals(dbParams.SubjectSourceSupportWorkbook.SelectedWorksheet)));
 
-                var vgtWorksheet = new VGTWorksheet(readedDses[dbParams.VgtCatalogSupportWorkbook.Path]
+                var vgtWorksheet = new VGTRepository(readedDses[dbParams.VgtCatalogSupportWorkbook.Path]
                     .Tables.Cast<DataTable>()
                     .First(t => t.TableName.Equals(dbParams.VgtCatalogSupportWorkbook.SelectedWorksheet)));
 
-                var catalogWs = new CatalogWorksheet(readedDses[dbParams.CatalogSupportWorkbook.Path]
+                var catalogWs = new CatalogueRepository(readedDses[dbParams.CatalogSupportWorkbook.Path]
                     .Tables.Cast<DataTable>()
                     .First(t => t.TableName.Equals(dbParams.CatalogSupportWorkbook.SelectedWorksheet)));
 
@@ -200,31 +207,9 @@ namespace Formater
             return true;
         }
 
-        private Dictionary<string,DataSet> ReadPaths()
-        {
-            var result = new Dictionary<string,DataSet>();
-            var reader = new ExcelReader();
-
-            var paths = new[]
-            {
-                dbParams.OktmoSupportWorkbook.Path,
-                dbParams.CatalogSupportWorkbook.Path,
-                dbParams.SubjectSourceSupportWorkbook.Path,
-                dbParams.VgtCatalogSupportWorkbook.Path,
-            };
-
-            foreach (var path in paths)
-            {
-                if (result.ContainsKey(path)) continue;
-                result.Add(path, reader.ReadExcelFile(path));
-            }
-
-            return result;
-
-        }
 
         /// <summary>
-        ///     Общий метод, запускающий подметоды своего типа
+        ///     Общий метод, обрабатывающий все доступные для обработки столбцы
         /// </summary>
         /// <returns></returns>
         public bool FormatWorksheet()
@@ -261,22 +246,51 @@ namespace Formater
             return true;
         }
 
+        /// <summary>
+        ///     Показывает диалоговое окно для сохранения проделанной работы
+        /// </summary>
         public void SaveResult()
         {
             supportWorksheets.Dispose();
             ExcelPackage.SaveWithDialog();
         }
 
-        private int GetColumnIndex(string columnCode)
-        {
-//            var col = head.First(p => p.Value.Equals(columnCode));
-//            return col.Key;
 
-            var firstOrDefault = columns.FirstOrDefault(c => c.CodeName.EqualNoCase(columnCode));
-            return firstOrDefault != null ? firstOrDefault.ColumnIndex : 0;
-        }
 
         #region Format Methods
+
+        /// <summary>
+        /// Разбирает столбцы местоположения
+        /// </summary>
+        private void FormatClassification()
+        {
+            Stopwatch sw = null;
+            var mainSw = Stopwatch.StartNew();
+            var currRow = 0;
+            var rows = Enumerable.Range(HeadSize + 1, _lastUsedRow);
+
+            rows.ForEach(row =>
+            {
+                if (sw == null)
+                    sw = Stopwatch.StartNew();
+                if (currRow % 1000 == 0)
+                {
+                    logger.Info("1000 объектов за {0}", sw.Elapsed.ToString(@"hh\:mm\:ss"));
+                    sw = Stopwatch.StartNew();
+                }
+
+                using (var dataRow = new ExcelLocationRow(worksheet, row, wbType, supportWorksheets))
+                {
+                    dataRow.DoDescription = DoDescription;
+                    dataRow.CheckRowForLocations();
+                }
+
+                Interlocked.Increment(ref currRow);
+            });
+
+            logger.Info("Обрабочка местоположения прошла успешно.");
+            logger.Info("На {0} объектов было затрачено {1}", _lastUsedRow - HeadSize, mainSw.Elapsed.ToString(@"hh\:mm\:ss"));
+        }
 
         private void FormatRelief()
         {
@@ -728,7 +742,6 @@ namespace Formater
             }
         }
 
-
         private void FormatCommunications()
         {
             var firstColumnIndex = GetColumnIndex("SYSTEM_GAS");
@@ -1024,46 +1037,8 @@ namespace Formater
             }
         }
 
-        #endregion
-
         /// <summary>
-        /// Разбирает столбцы местоположения
-        /// </summary>
-        private void FormatClassification()
-        {
-            Stopwatch sw = null;
-            var mainSw = Stopwatch.StartNew();
-            var currRow = 0;
-            var rows = Enumerable.Range(HeadSize + 1, _lastUsedRow);
-
-            rows.ForEach(row =>
-            {
-                if (sw == null)
-                    sw = Stopwatch.StartNew();
-                if (currRow%1000 == 0)
-                {
-                    logger.Info("1000 объектов за {0}", sw.Elapsed.ToString(@"hh\:mm\:ss"));
-                    sw = Stopwatch.StartNew();
-                }
-
-                using (var dataRow = new ExcelLocationRow(worksheet, row, wbType, supportWorksheets))
-                {
-                    dataRow.DoDescription = DoDescription;
-                    dataRow.CheckRowForLocations();
-                }
-
-                Interlocked.Increment(ref currRow);
-            });
-
-            logger.Info("Обрабочка местоположения прошла успешно.");
-            logger.Info("На {0} объектов было затрачено {1}", _lastUsedRow - HeadSize, mainSw.Elapsed.ToString(@"hh\:mm\:ss"));
-        }
-
-
-        public bool DoDescription { get; set; }
-
-        /// <summary>
-        ///     
+        ///     Обрабатывает информаци об удаленности от регионального центра
         ///     !Метод запускается после последней проверки всех ячеек на населенный пункт
         /// </summary>
         private void FormatDistToRegCenter()
@@ -1081,9 +1056,7 @@ namespace Formater
             {
                 var cell = worksheet.Cells[i, columnIndex];
                 if (string.IsNullOrEmpty(cell.Value as string))
-                {
                     continue;
-                }
 
                 var inCityCell = worksheet.Cells[cell.Start.Row, inCityColumn];
                 var nearCityCell = worksheet.Cells[cell.Start.Row, nearCityColumn];
@@ -1128,5 +1101,40 @@ namespace Formater
                     cell.Value = string.Empty;
             }
         }
+
+        #endregion
+
+
+
+        private int GetColumnIndex(string columnCode)
+        {
+            var firstOrDefault = columns.FirstOrDefault(c => c.CodeName.EqualNoCase(columnCode));
+            return firstOrDefault != null ? firstOrDefault.ColumnIndex : 0;
+        }
+
+        private Dictionary<string, DataSet> ReadPaths()
+        {
+            var result = new Dictionary<string, DataSet>();
+            var reader = new ExcelReader();
+
+            var paths = new[]
+            {
+                dbParams.OktmoSupportWorkbook.Path,
+                dbParams.CatalogSupportWorkbook.Path,
+                dbParams.SubjectSourceSupportWorkbook.Path,
+                dbParams.VgtCatalogSupportWorkbook.Path,
+            };
+
+            foreach (var path in paths)
+            {
+                if (result.ContainsKey(path)) continue;
+                result.Add(path, reader.ReadExcelFile(path));
+            }
+
+            return result;
+
+        }
+
+
     }
 }

@@ -88,10 +88,10 @@ namespace Formater.SupportWorksheetsClasses
 
         private readonly Dictionary<OKTMOColumn, Dictionary<string, IEnumerable<OktmoRowDTO>>> cachedSubjRows;
 
-        public OKTMORepository(DataSet ds, string mainWsName,KladrRepository kladr):this()
+        public OKTMORepository(DataTable oktmoTable, KladrRepository kladr, DataTable regeCentersTable = null):this()
         {
-            var table = ds.Tables.Cast<DataTable>().First(t => t.TableName.Equals(mainWsName));
-            regCTable = ds.Tables.Cast<DataTable>().FirstOrDefault(t => t.TableName.EqualNoCase("РегЦентры"));
+            var table = oktmoTable;
+            regCTable = regeCentersTable;
 
             if (regCTable == null)
             {

@@ -63,7 +63,7 @@ namespace UnitTestProject1
             var suppPckg = new ExcelPackage(new FileInfo(suppWbPath));
             var suppWb = suppPckg.Workbook;
 
-            var catWs = new CatalogWorksheet(suppWb.Worksheets["analytics"].ToDataTable());
+            var catWs = new CatalogueRepository(suppWb.Worksheets["analytics"].ToDataTable());
             var oktmoDs = new DataSet();
 
             var dt1 = suppWb.Worksheets["нас.пункты РФ"].ToDataTable();
@@ -76,8 +76,8 @@ namespace UnitTestProject1
 //            var kladr = new KladrRepository(ds.Tables.Cast<DataTable>().First(t => t.TableName.Equals("STREET")));
             var kladr = new KladrRepository();
             var oktmoWs = new OKTMORepository(oktmoDs,"нас.пункты РФ",kladr);
-            var subjWs = new SubjectSourceWorksheet(suppWb.Worksheets["Список источников по регионам"].ToDataTable());
-            var vgtWs = new VGTWorksheet(suppWb.Worksheets["ВГТ"].ToDataTable());
+            var subjWs = new SubjectSourcesRepository(suppWb.Worksheets["Список источников по регионам"].ToDataTable());
+            var vgtWs = new VGTRepository(suppWb.Worksheets["ВГТ"].ToDataTable());
             
 
             var supportWss = new SupportWorksheets(catWs,oktmoWs,subjWs,vgtWs,kladr);

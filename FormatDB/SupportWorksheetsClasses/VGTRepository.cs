@@ -8,14 +8,14 @@ using DataTable = System.Data.DataTable;
 
 namespace Formater.SupportWorksheetsClasses
 {
-    public class VGTWorksheet
+    public class VGTRepository
     {
         private readonly DataTable table;
         private const byte CityNameExcelColumn = 1;
         private const byte RegionNameExcelColumn = 4;
         private const byte TerritoryExcelColumn = 3;
 
-        public VGTWorksheet(DataTable table)
+        public VGTRepository(DataTable table)
         {
             this.table = table;
         }
