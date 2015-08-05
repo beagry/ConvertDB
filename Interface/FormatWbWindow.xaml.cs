@@ -77,17 +77,24 @@ namespace UI
 
         private async   void StartButton_Click(object sender, RoutedEventArgs e)
         {
-            var convert = new DbToConvert(viewModel)
+            DbToConvert convert;
+            try
             {
-                ColumnsToReserve = new List<string> { "SUBJECT", "REGION", "NEAR_CITY", "SYSTEM_GAS", "SYSTEM_WATER", "SYSTEM_SEWERAGE", "SYSTEM_ELECTRICITY" },
-                DoDescription =  viewModel.DoDescription
-            };
+                convert = new DbToConvert(viewModel)
+                {
+                    ColumnsToReserve = new List<string> { "SUBJECT", "REGION", "NEAR_CITY", "SYSTEM_GAS", "SYSTEM_WATER", "SYSTEM_SEWERAGE", "SYSTEM_ELECTRICITY" },
+                    DoDescription =  viewModel.DoDescription
+                };
+            }
+            catch (ArgumentException)
+            {
+                return;
+            }
+
             var button = sender as Button;
             if (button == null) return;
-            viewModel.StartWork();
-            var checkHeadResult =  await Task.Run(() => convert.ColumnHeadIsOk());
-            if (!checkHeadResult) return;
 
+            viewModel.StartWork();
             //Запусть обработки в новом потоке
             await Task.Run(() => convert.FormatWorksheet());
 
@@ -100,6 +107,7 @@ namespace UI
     {
         private string path;
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
+
 
         public FormatDbViewModel():base()
         {
@@ -114,6 +122,8 @@ namespace UI
             KladrWorkbook = new SupportWorkbookViewModel();
         }
 
+        public ICommand StartFormatCommand { protected get; set; }
+
         public string Path  
         {
             get { return path; }
@@ -123,6 +133,30 @@ namespace UI
                 path = value;
                 OnPropertyChanged();
             }
+        }
+
+        public async void StartFormat()
+        {
+            DbToConvert convert;
+            try
+            {
+                convert = new DbToConvert(this)
+                {
+                    ColumnsToReserve = new List<string> { "SUBJECT", "REGION", "NEAR_CITY", "SYSTEM_GAS", "SYSTEM_WATER", "SYSTEM_SEWERAGE", "SYSTEM_ELECTRICITY" },
+                    DoDescription = DoDescription
+                };
+            }
+            catch (ArgumentException)
+            {
+                return;
+            }
+
+            StartWork();
+            //Запусть обработки в новом потоке
+            await Task.Run(() => convert.FormatWorksheet());
+
+            convert.ExcelPackage.SaveWithDialog();
+            EndWork();
         }
 
         public override void StartWork(string msg = "В процессе.")

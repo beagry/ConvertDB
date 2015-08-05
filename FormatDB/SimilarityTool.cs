@@ -6,9 +6,8 @@ using System.Text.RegularExpressions;
 namespace Formater
 {
     /// <summary>
-    /// This class implements string comparison algorithm
-    /// based on character pair similarity
-    /// Source: http://www.catalysoft.com/articles/StrikeAMatch.html
+    /// Класс для сравнения описания, рабоатет хорошо
+    ///  Source: http://www.catalysoft.com/articles/StrikeAMatch.html
     /// </summary>
     public static class SimilarityTool
     {

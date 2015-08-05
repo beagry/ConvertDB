@@ -41,15 +41,23 @@ namespace UnitTestProject1
             
             viewModel.DoDescription = false;
 
-            var convert = new DbToConvert(viewModel)
+            DbToConvert convert = null;
+            try
             {
-                ColumnsToReserve = new List<string> { "SUBJECT", "REGION", "NEAR_CITY", "SYSTEM_GAS", "SYSTEM_WATER", "SYSTEM_SEWERAGE", "SYSTEM_ELECTRICITY" },
-                DoDescription = false
-            };
+                convert = new DbToConvert(viewModel)
+                {
+                    ColumnsToReserve = new List<string> { "SUBJECT", "REGION", "NEAR_CITY", "SYSTEM_GAS", "SYSTEM_WATER", "SYSTEM_SEWERAGE", "SYSTEM_ELECTRICITY" },
+                    DoDescription = false
+                };
+            }
+            catch (ArgumentException e)
+            {
+                Console.WriteLine(e);
+                Assert.AreEqual(true,false);
+            }
 
-            var checkHeadResult = convert.ColumnHeadIsOk();
-            if (!checkHeadResult) Assert.AreEqual(false,true);
-
+            if (convert == null) Assert.AreEqual(true, false);
+            
             //Запусть обработки в новом потоке
             convert.FormatWorksheet();
 
@@ -71,11 +79,8 @@ namespace UnitTestProject1
             oktmoDs.Tables.Add(dt1);
             oktmoDs.Tables.Add(dt2);
 
-//            var reader = new ExcelReader();
-//            var ds = reader.ReadExcelFile(@"B:\Managers\Шапки и справочники\Справочники\STREET_new.xlsx");
-//            var kladr = new KladrRepository(ds.Tables.Cast<DataTable>().First(t => t.TableName.Equals("STREET")));
             var kladr = new KladrRepository();
-            var oktmoWs = new OKTMORepository(oktmoDs,"нас.пункты РФ",kladr);
+            var oktmoWs = new OKTMORepository(dt1,kladr,dt2);
             var subjWs = new SubjectSourcesRepository(suppWb.Worksheets["Список источников по регионам"].ToDataTable());
             var vgtWs = new VGTRepository(suppWb.Worksheets["ВГТ"].ToDataTable());
             

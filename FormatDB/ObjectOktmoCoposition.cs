@@ -2,24 +2,23 @@ using System.Collections.Generic;
 using System.Linq;
 using Converter.Properties;
 using ExcelRLibrary;
-using Formater.SupportWorksheetsClasses;
 using PatternsLib;
 using REntities.Oktmo;
 
 namespace Formater
 {
-    public class OktmoHelper
+    public class ObjectOktmoCoposition
     {
         public List<OktmoRowDTO> SubjectOktmoRows { get; private set; }
         public List<OktmoRowDTO> CustomOktmoRows { get; private set; }
 
-        public OktmoHelper([NotNull]List<OktmoRowDTO> subjectOktmoRowDTOs)
+        public ObjectOktmoCoposition([NotNull]List<OktmoRowDTO> subjectOktmoRowDTOs)
         {
             this.SubjectOktmoRows = subjectOktmoRowDTOs;
             ResetToSubject();
         }
 
-        public OktmoHelper()
+        public ObjectOktmoCoposition()
         {
             CustomOktmoRows = new List<OktmoRowDTO>();
             SubjectOktmoRows = new List<OktmoRowDTO>();

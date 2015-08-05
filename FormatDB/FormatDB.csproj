@@ -149,11 +149,10 @@
     <Compile Include="ExcelLocationRow.cs" />
     <Compile Include="CSVReader.cs" />
     <Compile Include="Interfaces.cs" />
-    <Compile Include="OktmoHelper.cs" />
+    <Compile Include="ObjectOktmoCoposition.cs" />
     <Compile Include="SupportWorksheetsClasses\CatalogueRepository.cs" />
     <Compile Include="DbToConvert.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="LandPropertyTemplateWorkbook.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -181,7 +180,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="SimilarityTool.cs" />
-    <Compile Include="SupportWorksheetsClasses\PlaceWithType.cs" />
     <Compile Include="SupportWorksheetsClasses\SubjectSourcesRepository.cs" />
     <Compile Include="SupportWorksheetsClasses\VGTRepository.cs" />
   </ItemGroup>
@@ -243,9 +241,7 @@
       <Name>DBConvert</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Regexes\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.97.0\build\net45\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.97.0\build\net45\System.Data.SQLite.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
