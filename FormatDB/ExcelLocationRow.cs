@@ -183,6 +183,7 @@ namespace Formater
             FinalCheckLocationComposition();
             if (!cellsFilled)
             {
+                CheckInvalidValues();
                 FillDefaultValues();
                 if (!cellsFilled)
                     FillOldvalues();
@@ -190,6 +191,27 @@ namespace Formater
             }
 
             SaveCells();
+        }
+
+        private void CheckInvalidValues()
+        {
+            if (StreetCell.Value == "" || StreetCell.Valid) return;
+            if (!StreetCell.Value.Contains(" ")) return;
+            
+            var words = StreetCell.Value.Split(' ');
+            for (var i = 0; i < words.Length; i++)
+            {
+                var c = 1;
+                while (true)
+                {
+                    if (TryAppendPropNameToNearCity(string.Join(" ",words.Skip(i).Take(c).ToArray())))
+                    {
+                        return;
+                    }
+                    c++;
+                    if (c + i > words.Length) break;
+                }
+            }
         }
 
         private bool CheckStreetCell()
@@ -421,26 +443,29 @@ namespace Formater
                 }
             }
 
-            if (RegionCell.Value.EqualNoCase(regCenter))
+            if (!string.IsNullOrEmpty(regCenter) && !string.IsNullOrEmpty(regName))
             {
-                if (oktmoComposition.CustomOktmoRows.Any(r => !r.Region.Equals(regName)))
+                if (RegionCell.Value.EqualNoCase(regCenter))
                 {
-                    var spec = new RegionSpecification(regName);
-                    oktmoComposition.SetSpecifications(spec);
+                    if (oktmoComposition.CustomOktmoRows.Any(r => !r.Region.Equals(regName)))
+                    {
+                        var spec = new RegionSpecification(regName);
+                        oktmoComposition.SetSpecifications(spec);
+                        TryFillClassificator();
+                    }
+                }
+                else if (NearCityCell.Value == regName)
+                {
+                    if (RegionCell.Value != "")
+                        AppendToLandMarkCell(RegionCell.Value);
+                    oktmoComposition.ResetToSubject();
+
+                    var regCenterSpecs = new NearCitySpecification(regName);
+                    var regNameSpecs = new RegionSpecification(regCenter);
+                    var totalSpecs = regCenterSpecs.And(regNameSpecs);
+                    oktmoComposition.SetSpecifications(totalSpecs);
                     TryFillClassificator();
                 }
-            }
-            else if (NearCityCell.Value == regName)
-            {
-                if (RegionCell.Value != "")
-                    AppendToLandMarkCell(RegionCell.Value);
-                oktmoComposition.ResetToSubject();
-
-                var regCenterSpecs = new NearCitySpecification(regName);
-                var regNameSpecs = new RegionSpecification(regCenter);
-                var totalSpecs = regCenterSpecs.And(regNameSpecs);
-                oktmoComposition.SetSpecifications(totalSpecs);
-                TryFillClassificator();
             }
 
             if (RegionCell.Value != "" || NearCityCell.Value != "") return;
@@ -1760,7 +1785,7 @@ namespace Formater
                 {
                     var multiProp = "";
                     var appended = false;
-                    for (var j = i - 1; i >= 0; i--)
+                    for (var j = i - 1; j >= 0; j--)
                     {
                         multiProp = matches[j].Value + " " + multiProp;
                         appended = (TryAppendPropName(multiProp));

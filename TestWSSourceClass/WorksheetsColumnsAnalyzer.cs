@@ -62,6 +62,7 @@ namespace Converter
         /// <returns></returns>
         public void CheckWorkbooks(IEnumerable<string> wbPaths)
         {
+            //TODO при создании книги-шаблона на основе базу подтягивать критерии поиска для столбцов, совпадающих с столбцами в базе
             try
             {
                 foreach (var wbPath in wbPaths)
@@ -144,7 +145,39 @@ namespace Converter
                 Name = dc.ColumnName,
                 CodeName = dc.ColumnName
             }).ToList();
+
             TemplateWb = new TemplateWorkbook {WorkbookType = wbType,Columns = columns};
+
+            //Теперь попытаемся добавить колонки для поиска
+            var templatedColumns =
+                UnitOfWorkSingleton.UnitOfWork.TemplateWbsRespository.Context.TemplateColumns.ToList();
+            foreach (var column in columns)
+            {
+                var column1 = column;
+                var done = false;
+                foreach (
+                    var comparedColumn in
+                        templatedColumns.Where(
+                            c => c.CodeName.EqualNoCase(column1.CodeName) || c.Name.EqualNoCase(column1.Name)))
+                {
+                    column.BindedColumns = comparedColumn.BindedColumns;
+                    column.SearchCritetias = comparedColumn.SearchCritetias;
+                    done = true;
+                }
+                if (done) continue;
+
+                foreach (
+                    var comparedColumn in
+                        templatedColumns.Where(
+                            c =>
+                                c.BindedColumns.Any(
+                                    bc => bc.Name.EqualNoCase(column1.Name) || bc.Name.EqualNoCase(column1.CodeName))))
+                {
+                    column1.BindedColumns = comparedColumn.BindedColumns;
+                    column1.BindedColumns.Add(new BindedColumn{Name = comparedColumn.Name});
+                    column1.BindedColumns.Add(new BindedColumn{Name = comparedColumn.CodeName});
+                }
+            }
         }
 
         private Dictionary<JustColumn, List<string>> CreateResultDict()
